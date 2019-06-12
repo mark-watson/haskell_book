@@ -1,0 +1,13 @@
+cover.md
+preface.md
+section1.md
+tutorial-pure.md
+tutorial-impure.md
+section2.md
+textprocessing.md
+nlptool.md
+linkeddata.md
+webscraping.md
+database.md
+blackjack.md
+appendexAtools.md

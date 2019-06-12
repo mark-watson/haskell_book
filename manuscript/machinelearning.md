@@ -1,0 +1,5 @@
+# Experiments with Machine Learning
+
+There are several open source Haskell machine learning libraries and we will one of them in this chapter: [HLearn](https://github.com/mikeizbicki/HLearn) and [LambdaNet neural networks](https://github.com/jbarrow/LambdaNet). Another project that we will not use but I recommend you look at if you have a keen interest in deep learning is the [dnngraph](https://github.com/ajtulloch/dnngraph) DSL for specifying deep learning networks that you can then run with the standard tools Caffe or Torch.
+
+I started using machine learning in the 1980s when I was on a DARPA neual network tools panel for a year, wrote the commercial application ANSim, and used neural networks on many projects. We will look at both neural networks and other techniques like linear regression.
