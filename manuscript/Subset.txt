@@ -10,4 +10,8 @@ linkeddata.md
 webscraping.md
 database.md
 blackjack.md
+section3.md
+kgcreator.md
+hybrid_haskell_python_nlp.md
+hybrid_haskell_python_deep_learning.md
 appendexAtools.md
