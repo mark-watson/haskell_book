@@ -14,4 +14,5 @@ section3.md
 kgcreator.md
 hybrid_haskell_python_nlp.md
 hybrid_haskell_python_deep_learning.md
+wrapup.md
 appendexAtools.md
