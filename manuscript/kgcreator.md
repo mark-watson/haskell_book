@@ -63,22 +63,33 @@ I almost always use the first method on my projects with dependencies on other l
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
+library
+  exposed-modules:
+      CorefWebClient
+      NlpWebClient
+      ClassificationWebClient
+      DirUtils
+      FileUtils
+      BlackBoard
+      GenTriples
+      GenNeo4jCypher
+      Apis
+      Categorize
+      NlpUtils
+      Summarize
+      Entities
   other-modules:
       Paths_KGCreator
       BroadcastNetworkNamesDbPedia
-      Categorize
       Category1Gram
       Category2Gram
       CityNamesDbpedia
       CompanyNamesDbpedia
       CountryNamesDbpedia
-      Entities
-      NlpUtils
       PeopleDbPedia
       PoliticalPartyNamesDbPedia
       Sentence
       Stemmer
-      Summarize
       TradeUnionNamesDbPedia
       UniversityNamesDbPedia
 
