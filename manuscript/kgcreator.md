@@ -2,7 +2,7 @@
 
 The large project described here processes raw text inputs and generates data for knowledge graphs in formats for both the Neo4J graph database and in RDF format for semantic web and linked data applications.
 
-This application works by identifying entities in text. Example entity types are people, companies, country names, city names, broadcast network names, political party names, and university names. We saw earlier code for detecting entities in the chapter on natural language processing (NLP) and we will reuse this code.
+This application works by identifying entities in text. Example entity types are people, companies, country names, city names, broadcast network names, political party names, and university names. We saw earlier code for detecting entities in the chapter on natural language processing (NLP) and we will reuse this code. We will discuss later three strategies for reusing code from different projects.
 
 There are two versions of this project that deal with generating duplicate data in  two ways:
 
@@ -13,7 +13,7 @@ For my own work I choose the second method since filtering duplicates is as easy
 **haskell_tutorial_cookbook_examples/knowledge_graph_creator_pure**):
 
 {lang="bash",linenos=off}
-````````
+~~~~~~~~
 all: gendata rdf cypher
 
 gendata:
@@ -28,7 +28,7 @@ cypher:
 	echo "Removing duplicate Cypher statements"
 	awk '!visited[$$0]++' out.cypher > output.cypher
 	rm -f out.cypher
-````````
+~~~~~~~~
 
 Because it makes a better example for this book because the implementation is simpler.
 
@@ -51,22 +51,61 @@ and after writing a RDF statement or a Neo4J Cypher data import statement, write
   blackboard_write newStatementString
 ~~~~~~~
 
-## Code Layout For the KGCreator Project
+## Code Layout For the KGCreator Project and strategies for sharing Haskell code between projects
+
+There are several ways to reuse code from multiple local Haskell projects:
+
+- In a project's cabal file, use relative paths to the source code for other projects. This is my preferred way to work but has the drawback that the stack command *sdist* to make a distribution tarball will not work with relative paths. If this is a problem for you then creak relative symbolic file links to the source directories in other projects.
+- In yur project's stack.yaml file, add the other project's name and path as a *extra-deps*.
+- In library projects, define a *packages* definition and install the library globally on your system.
+
+I almost always use the first method on my projects with dependencies on other local projects I work on and this is also the approach we use here. The relavent lines in the file KGCreator.cabal are:
+
+{lang="haskell",linenos=on}
+~~~~~~~~
+  other-modules:
+      Paths_KGCreator
+      BroadcastNetworkNamesDbPedia
+      Categorize
+      Category1Gram
+      Category2Gram
+      CityNamesDbpedia
+      CompanyNamesDbpedia
+      CountryNamesDbpedia
+      Entities
+      NlpUtils
+      PeopleDbPedia
+      PoliticalPartyNamesDbPedia
+      Sentence
+      Stemmer
+      Summarize
+      TradeUnionNamesDbPedia
+      UniversityNamesDbPedia
+
+  hs-source-dirs:
+      src
+      src/webclients
+      src/fileutils
+      src/sw
+      src/toplevel
+      ../NlpTool/src/nlp
+      ../NlpTool/src/nlp/data
+~~~~~~~~
+
+TBD: discuss relevant lines
+
 
 Before going into too much detail on the implementation let's look at the layout of the project code:
 
 {lang="bash",linenos=off}
-````````
-knowledge_graph_creator_pure $ ls -R src
-fileutils	nlp		sw		toplevel	webclients
-
+~~~~~~~~
 src/fileutils:
 BlackBoard.hs	DirUtils.hs	FileUtils.hs
 
-src/nlp:
+../NlpTool/src/nlp:
 Categorize.hs	Entities.hs	NlpUtils.hs	Sentence.hs	Stemmer.hs	Summarize.hs	data
 
-src/nlp/data:
+../NlpTool/src/nlp/data:
 BroadcastNetworkNamesDbPedia.hs	CompanyNamesDbpedia.hs		TradeUnionNamesDbPedia.hs
 Category1Gram.hs		CountryNamesDbpedia.hs		UniversityNamesDbPedia.hs
 Category2Gram.hs		PeopleDbPedia.hs
@@ -77,7 +116,7 @@ GenNeo4jCypher.hs	GenTriples.hs
 
 src/toplevel:
 Apis.hs
-````````
+~~~~~~~~
 
 TBD describe code
 
