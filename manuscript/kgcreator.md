@@ -108,7 +108,7 @@ TBD: discuss relevant lines
 
 Before going into too much detail on the implementation let's look at the layout of the project code:
 
-{lang="bash",linenos=off}
+{lang="bash",linenos=on}
 ~~~~~~~~
 src/fileutils:
 BlackBoard.hs	DirUtils.hs	FileUtils.hs
@@ -139,9 +139,6 @@ We will use the top level code that we developer earlier that is located in the 
 
 - Categorize.hs - categorizes text into categories like news, religion, business, politics, science, etc.
 - Entities.hs - identifies entities like people, companies, places, new broadcast networks, labor unions, etc. in text
-- NlpUtils.hs - general utilities
-- Sentence.hs - segments raw text into individual sentences
-- Stemmer.hs - performs stemming on text
 - Summarize.hs - creates an extractive summary of text
 
 TBD
