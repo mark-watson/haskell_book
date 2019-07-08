@@ -141,6 +141,564 @@ We will use the top level code that we developer earlier that is located in the 
 - Entities.hs - identifies entities like people, companies, places, new broadcast networks, labor unions, etc. in text
 - Summarize.hs - creates an extractive summary of text
 
+The KGCreator Haskell application looks in a specified directory for text files to process. For each file with a **.txt** extension there should be a matching file with the extension **.meta** that contains a single line: the URI of the web location where the corresponding text was found. The reason we need this is that we want to create graph knowledge bases of information found in text sources and the original location of the data is important to preserve.
+
+We have not looked at an example of using command line arguments yet so let's go into some detail.
+Previously when we have defined an output target executable in our **.cabal** file,
+in this case *KGCreator-exe*, we can use stack to build the executable and run it with:
+
+{lang="bash",linenos=off}
+~~~~~~~~
+stack build --fast --exec KGCreator-exe"
+~~~~~~~~
+
+Now, we have an executabel that requires two arguments: a source inoput directory and the file root for generated RDF and Cypher output files. We can pass command line arguments using this notation:
+
+{lang="bash",linenos=off}
+~~~~~~~~
+stack build --fast --exec "KGCreator-exe test_data outtest"
+~~~~~~~~
+
 TBD
+
+
+
+{lang="haskell",linenos=on}
+~~~~~~~~
+module Main where
+
+import System.Environment (getArgs)
+import Apis (processFilesToRdf, processFilesToNeo4j)
+
+main :: IO ()
+main
+  --  TBD: add command line argument processing
+ = do
+  args <- getArgs
+  case args of
+    [] -> error "must supply an input directory containing text and meta files"
+    [_] -> error "in addition to an input directory, also specify a root file name for the generated RDF and Cypher files"
+    [inputDir, outputFileRoot] -> do
+        processFilesToRdf   inputDir $ outputFileRoot ++ ".n3"
+        processFilesToNeo4j inputDir $ outputFileRoot ++ ".cypher"
+    _ -> error "too many arguments"
+~~~~~~~~
+
+## Top Level Code for Generating RDF
+
+
+{lang="haskell",linenos=on}
+~~~~~~~~
+module GenTriples
+  ( textToTriples
+  , category_to_uri_map
+  ) where
+
+import Categorize (bestCategories)
+import Entities
+  ( broadcastNetworkNames
+  , cityNames
+  , companyNames
+  , countryNames
+  , peopleNames
+  , politicalPartyNames
+  , tradeUnionNames
+  , universityNames
+  )
+import FileUtils
+  ( MyMeta
+  , filePathToString
+  , filePathToWordTokens
+  , readMetaFile
+  , uri
+  )
+import Summarize (summarize, summarizeS)
+
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+
+generate_triple :: [Char] -> [Char] -> [Char] -> [Char]
+generate_triple s p o = s ++ "  " ++ p ++ "  " ++ o ++ " .\n"
+
+make_literal :: [Char] -> [Char]
+make_literal s = "\"" ++ s ++ "\""
+
+category_to_uri_map :: M.Map [Char] [Char]
+category_to_uri_map =
+  M.fromList
+    [ ("news_weather", "<http://knowledgebooks.com/schema/topic/weather>")
+    , ("news_war", "<http://knowledgebooks.com/schema/topic/war>")
+    , ("economics", "<http://knowledgebooks.com/schema/topic/economics>")
+    , ("news_economy", "<http://knowledgebooks.com/schema/topic/economics>")
+    , ("news_politics", "<http://knowledgebooks.com/schema/topic/politics>")
+    , ("religion", "<http://knowledgebooks.com/schema/topic/religion>")
+    , ( "religion_buddhism"
+      , "<http://knowledgebooks.com/schema/topic/religion/buddhism>")
+    , ( "religion_islam"
+      , "<http://knowledgebooks.com/schema/topic/religion/islam>")
+    , ( "religion_christianity"
+      , "<http://knowledgebooks.com/schema/topic/religion/christianity>")
+    , ( "religion_hinduism"
+      , "<http://knowledgebooks.com/schema/topic/religion/hinduism>")
+    , ( "religion_judaism"
+      , "<http://knowledgebooks.com/schema/topic/religion/judaism>")
+    , ("chemistry", "<http://knowledgebooks.com/schema/topic/chemistry>")
+    , ("computers", "<http://knowledgebooks.com/schema/topic/computers>")
+    , ("computers_ai", "<http://knowledgebooks.com/schema/topic/computers/ai>")
+    , ( "computers_ai_datamining"
+      , "<http://knowledgebooks.com/schema/topic/computers/ai/datamining>")
+    , ( "computers_ai_learning"
+      , "<http://knowledgebooks.com/schema/topic/computers/ai/learning>")
+    , ( "computers_ai_nlp"
+      , "<http://knowledgebooks.com/schema/topic/computers/ai/nlp>")
+    , ( "computers_ai_search"
+      , "<http://knowledgebooks.com/schema/topic/computers/ai/search>")
+    , ( "computers_ai_textmining"
+      , "<http://knowledgebooks.com/schema/topic/computers/ai/textmining>")
+    , ( "computers/programming"
+      , "<http://knowledgebooks.com/schema/topic/computers/programming>")
+    , ( "computers_microsoft"
+      , "<http://knowledgebooks.com/schema/topic/computers/microsoft>")
+    , ( "computers/programming/ruby"
+      , "<http://knowledgebooks.com/schema/topic/computers/programming/ruby>")
+    , ( "computers/programming/lisp"
+      , "<http://knowledgebooks.com/schema/topic/computers/programming/lisp>")
+    , ("health", "<http://knowledgebooks.com/schema/topic/health>")
+    , ( "health_exercise"
+      , "<http://knowledgebooks.com/schema/topic/health/exercise>")
+    , ( "health_nutrition"
+      , "<http://knowledgebooks.com/schema/topic/health/nutrition>")
+    , ("mathematics", "<http://knowledgebooks.com/schema/topic/mathematics>")
+    , ("news_music", "<http://knowledgebooks.com/schema/topic/music>")
+    , ("news_physics", "<http://knowledgebooks.com/schema/topic/physics>")
+    , ("news_sports", "<http://knowledgebooks.com/schema/topic/sports>")
+    ]
+
+uri_from_category :: [Char] -> [Char]
+uri_from_category key =
+  fromMaybe ("\"" ++ key ++ "\"") $ M.lookup key category_to_uri_map
+
+textToTriples :: FilePath -> [Char] -> IO [Char]
+textToTriples file_path meta_file_path = do
+  word_tokens <- filePathToWordTokens file_path
+  contents <- filePathToString file_path
+  putStrLn $ "** contents:\n" ++ contents ++ "\n"
+  meta_data <- readMetaFile meta_file_path
+  let people = peopleNames word_tokens
+  let companies = companyNames word_tokens
+  let countries = countryNames word_tokens
+  let cities = cityNames word_tokens
+  let broadcast_networks = broadcastNetworkNames word_tokens
+  let political_parties = politicalPartyNames word_tokens
+  let trade_unions = tradeUnionNames word_tokens
+  let universities = universityNames word_tokens
+  let a_summary = summarizeS contents
+  let the_categories = bestCategories word_tokens
+  let filtered_categories =
+        map (uri_from_category . fst) $
+        filter (\(name, value) -> value > 0.3) the_categories
+  putStrLn "\nfiltered_categories:"
+  print filtered_categories
+  --putStrLn "a_summary:"
+  --print a_summary
+  --print $ summarize contents
+  -- <source document URI> <http://knowledgebooks.com/schema/summaryOf> text of summary
+  let summary_triples =
+        generate_triple
+          (uri meta_data)
+          "<http://knowledgebooks.com/schema/summaryOf>" $
+        "\"" ++ a_summary ++ "\""
+  let category_triples =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/news/category/>"
+            cat
+          | cat <- filtered_categories
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsPersonDbPediaLink> <dbpedia link>
+  let people_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsPersonDbPediaLink>"
+            (snd pair)
+          | pair <- people
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutPersonName> <literal of person name>
+  let people_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutPersonName>"
+            (make_literal (fst pair))
+          | pair <- people
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsCompanyDbPediaLink> <dbpedia link>
+  let company_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsCompanyDbPediaLink>"
+            (snd pair)
+          | pair <- companies
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCompanyName> <literal of company name>
+  let company_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutCompanyName>"
+            (make_literal (fst pair))
+          | pair <- companies
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsCountryDbPediaLink> <dbpedia link>
+  let country_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsCountryDbPediaLink>"
+            (snd pair)
+          | pair <- countries
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCountryName> <literal of company name>
+  let country_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutCountryName>"
+            (make_literal (fst pair))
+          | pair <- countries
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsCityDbPediaLink> <dbpedia link>
+  let city_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsCityDbPediaLink>"
+            (snd pair)
+          | pair <- cities
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCityName> <literal of city name>
+  let city_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutCityName>"
+            (make_literal (fst pair))
+          | pair <- cities
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsBroadCastDbPediaLink> <dbpedia link>
+  let bnetworks_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsBroadCastDbPediaLink>"
+            (snd pair)
+          | pair <- broadcast_networks
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutBroadCastName> <literal of broadcast network name>
+  let bnetworks_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutBroadCastName>"
+            (make_literal (fst pair))
+          | pair <- broadcast_networks
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsPoliticalPartyDbPediaLink> <dbpedia link>
+  let pparties_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsPoliticalPartyDbPediaLink>"
+            (snd pair)
+          | pair <- political_parties
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutPoliticalPartyName> <literal of political party name>
+  let pparties_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutPoliticalPartyName>"
+            (make_literal (fst pair))
+          | pair <- political_parties
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsTradeUnionDbPediaLink> <dbpedia link>
+  let unions_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsTradeUnionDbPediaLink>"
+            (snd pair)
+          | pair <- trade_unions
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutTradeUnionName> <literal of trade union name>
+  let unions_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutTradeUnionName>"
+            (make_literal (fst pair))
+          | pair <- trade_unions
+          ]
+  -- <source document URI> <http://knowledgebooks.com/schema/containsUniversityDbPediaLink> <dbpedia link>
+  let universities_triples1 =
+        concat
+          [ generate_triple
+            (uri meta_data)
+            "<http://knowledgebooks.com/schema/containsUniversityDbPediaLink>"
+            (snd pair)
+          | pair <- universities
+          ]
+  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutUniversityName> <literal of university name>
+  let universities_triples2 =
+        concat
+          [ generate_triple
+            (snd pair)
+            "<http://knowledgebooks.com/schema/aboutTradeUnionName>"
+            (make_literal (fst pair))
+          | pair <- universities
+          ]
+  return $
+    concat
+      [ people_triples1
+      , people_triples2
+      , company_triples1
+      , company_triples2
+      , country_triples1
+      , country_triples2
+      , city_triples1
+      , city_triples2
+      , bnetworks_triples1
+      , bnetworks_triples2
+      , pparties_triples1
+      , pparties_triples2
+      , unions_triples1
+      , unions_triples2
+      , universities_triples1
+      , universities_triples2
+      , category_triples
+      , summary_triples
+      ]
+~~~~~~~~
+
+## Top Level Code for Generating Cypher Input Data for Neo4J
+
+
+
+
+{lang="haskell",linenos=on}
+~~~~~~~~
+{-# LANGUAGE OverloadedStrings #-}
+
+module GenNeo4jCypher
+  ( textToCypher
+  , neo4j_category_node_defs
+  ) where
+
+import Categorize (bestCategories)
+import Data.List (isInfixOf)
+import Data.Char (toLower)
+import Data.String.Utils (replace)
+import Entities
+  ( broadcastNetworkNames
+  , cityNames
+  , companyNames
+  , countryNames
+  , peopleNames
+  , politicalPartyNames
+  , tradeUnionNames
+  , universityNames
+  )
+import FileUtils
+  ( MyMeta
+  , filePathToString
+  , filePathToWordTokens
+  , readMetaFile
+  , uri
+  )
+import GenTriples (category_to_uri_map)
+import Summarize (summarize, summarizeS)
+
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import Database.SQLite.Simple
+
+-- for debug:
+import Data.Typeable (typeOf)
+
+neo4j_category_node_defs :: [Char]
+neo4j_category_node_defs =
+  replace
+    "/"
+    "_"
+    $ concat
+    [ "CREATE (" ++ c ++ ":CategoryType {name:\"" ++ c ++ "\"})\n"
+    | c <- M.keys category_to_uri_map
+    ]
+
+uri_from_category :: p -> p
+uri_from_category s = s -- might want the full version from GenTriples
+
+repl :: Char -> Char
+repl '-' = '_'
+repl '/' = '_'
+repl '.' = '_'
+repl c = c
+
+filterChars :: [Char] -> [Char]
+filterChars = filter (\c -> c /= '?' && c /= '=' && c /= '<' && c /= '>')
+
+create_neo4j_node :: [Char] -> ([Char], [Char])
+create_neo4j_node uri =
+  let name =
+        (map repl (filterChars (replace "https://" "" (replace "http://" "" uri)))) ++ "_" ++ (map toLower node_type)
+      node_type =
+        if isInfixOf "dbpedia" uri
+          then "DbPedia"
+          else "News"
+      new_node =
+        "CREATE (" ++
+        name ++
+        ":" ++
+        node_type ++ " {name:\"" ++ (replace " " "_" name) ++ "\", uri:\"" ++ uri ++ "\"})\n"
+   in (name, new_node)
+
+create_neo4j_link :: [Char] -> [Char] -> [Char] -> [Char]
+create_neo4j_link node1 linkName node2 =
+  "CREATE (" ++ node1 ++ ")-[:" ++ linkName ++ "]->(" ++ node2 ++ ")\n"
+
+create_summary_node :: [Char] -> [Char] -> [Char]
+create_summary_node uri summary =
+  let name =
+        "summary_of_" ++
+        (map repl $
+         filterChars (replace "https://" "" (replace "http://" "" uri)))
+      s1 = "CREATE (" ++ name ++ ":Summary {name:\"" ++ name ++ "\", uri:\""
+      s2 = uri ++ "\", summary:\"" ++ summary ++ "\"})\n"
+   in s1 ++ s2
+
+create_entity_node :: ([Char], [Char]) -> [Char]
+create_entity_node entity_pair = 
+  "CREATE (" ++ (replace " " "_" (fst entity_pair)) ++  ":Entity {name:\"" ++ (fst entity_pair) ++ "\", uri:\"" ++ (snd entity_pair) ++ "\"})\n"
+
+create_contains_entity :: [Char] -> [Char] -> ([Char], [Char]) -> [Char]
+create_contains_entity relation_name source_uri entity_pair =
+  let new_person_node = create_entity_node entity_pair
+      new_link = create_neo4j_link source_uri relation_name (replace " " "_" (fst entity_pair))
+  in
+    (new_person_node ++ new_link)
+
+entity_node_helper :: [Char] -> [Char] -> [([Char], [Char])] -> [Char]
+entity_node_helper relation_name node_name entity_list =
+  concat [create_contains_entity relation_name node_name entity | entity <- entity_list]
+
+textToCypher :: FilePath -> [Char] -> IO [Char]
+textToCypher file_path meta_file_path = do
+  let prelude_nodes = neo4j_category_node_defs
+  putStrLn "+++++++++++++++++ prelude node defs:"
+  print prelude_nodes
+  word_tokens <- filePathToWordTokens file_path
+  contents <- filePathToString file_path
+  putStrLn $ "** contents:\n" ++ contents ++ "\n"
+  meta_data <- readMetaFile meta_file_path
+  putStrLn "++ meta_data:"
+  print meta_data
+  let people = peopleNames word_tokens
+  let companies = companyNames word_tokens
+  putStrLn "^^^^ companies:"
+  print companies
+  let countries = countryNames word_tokens
+  let cities = cityNames word_tokens
+  let broadcast_networks = broadcastNetworkNames word_tokens
+  let political_parties = politicalPartyNames word_tokens
+  let trade_unions = tradeUnionNames word_tokens
+  let universities = universityNames word_tokens
+  let a_summary = summarizeS contents
+  let the_categories = bestCategories word_tokens
+  let filtered_categories =
+        map (uri_from_category . fst) $
+        filter (\(name, value) -> value > 0.3) the_categories
+  putStrLn "\nfiltered_categories:"
+  print filtered_categories
+  let (node1_name, node1) = create_neo4j_node (uri meta_data)
+  let summary1 = create_summary_node (uri meta_data) a_summary
+  let category1 =
+        concat
+          [ create_neo4j_link node1_name "Category" cat
+          | cat <- filtered_categories
+          ]
+  let pp = entity_node_helper "ContainsPersonDbPediaLink" node1_name people
+  let cmpny = entity_node_helper "ContainsCompanyDbPediaLink" node1_name companies
+  let cntry = entity_node_helper "ContainsCountryDbPediaLink" node1_name countries
+  let citys = entity_node_helper "ContainsCityDbPediaLink" node1_name cities
+  let bnet = entity_node_helper "ContainsBroadcastNetworkDbPediaLink" node1_name broadcast_networks
+  let ppart = entity_node_helper "ContainsPoliticalPartyDbPediaLink" node1_name political_parties
+  let tunion = entity_node_helper "ContainsTradeUnionDbPediaLink" node1_name trade_unions
+  let uni = entity_node_helper "ContainsUniversityDbPediaLink" node1_name universities
+  return $ concat [node1, summary1, category1, pp, cmpny, cntry, citys, bnet, ppart, tunion, uni]
+~~~~~~~~
+
+
+## Top Level API Code for Handling Knowledge Graph Data Generation
+
+
+API.hs:
+
+{lang="haskell",linenos=on}
+~~~~~~~~
+module Apis
+  ( processFilesToRdf
+  , processFilesToNeo4j
+  ) where
+
+import FileUtils
+import GenNeo4jCypher
+import GenTriples (textToTriples)
+
+import qualified Database.SQLite.Simple as SQL
+
+import Control.Monad (mapM)
+import Data.String.Utils (replace)
+import System.Directory (getDirectoryContents)
+
+import Data.Typeable (typeOf)
+
+processFilesToRdf :: FilePath -> FilePath -> IO ()
+processFilesToRdf dirPath outputRdfFilePath = do
+  files <- getDirectoryContents dirPath :: IO [FilePath]
+  let filtered_files = filter isTextFile files
+  let full_paths = [dirPath ++ "/" ++ fn | fn <- filtered_files]
+  putStrLn "full_paths:"
+  print full_paths
+  let r =
+        [textToTriples fp1 (replace ".txt" ".meta" fp1) | fp1 <- full_paths] :: [IO [Char]]
+  tripleL <-
+    mapM (\fp -> textToTriples fp (replace ".txt" ".meta" fp)) full_paths
+  let tripleS = concat tripleL
+  putStrLn tripleS
+  writeFile outputRdfFilePath tripleS
+
+processFilesToNeo4j :: FilePath -> FilePath -> IO ()
+processFilesToNeo4j dirPath outputRdfFilePath = do
+  files <- getDirectoryContents dirPath :: IO [FilePath]
+  let filtered_files = filter isTextFile files
+  let full_paths = [dirPath ++ "/" ++ fn | fn <- filtered_files]
+  putStrLn "full_paths:"
+  print full_paths
+  let prelude_node_defs = neo4j_category_node_defs
+  putStrLn
+    ("+++++  type of prelude_node_defs is: " ++
+     (show (typeOf prelude_node_defs)))
+  print prelude_node_defs
+  --let r =
+  --      [textToCypher fp1 (replace ".txt" ".meta" fp1) | fp1 <- full_paths] :: [IO [Char]]
+  cypher_dataL <-
+    mapM (\fp -> textToCypher fp (replace ".txt" ".meta" fp)) full_paths
+  let cypher_dataS = concat cypher_dataL
+  putStrLn cypher_dataS
+  writeFile outputRdfFilePath $ prelude_node_defs ++ cypher_dataS
+~~~~~~~~
 
 
