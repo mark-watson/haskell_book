@@ -302,7 +302,7 @@ textToTriples file_path meta_file_path = do
   --putStrLn "a_summary:"
   --print a_summary
   --print $ summarize contents
-  -- <source document URI> <http://knowledgebooks.com/schema/summaryOf> text of summary
+
   let summary_triples =
         generate_triple
           (uri meta_data)
@@ -316,7 +316,6 @@ textToTriples file_path meta_file_path = do
             cat
           | cat <- filtered_categories
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsPersonDbPediaLink> <dbpedia link>
   let people_triples1 =
         concat
           [ generate_triple
@@ -325,7 +324,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- people
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutPersonName> <literal of person name>
   let people_triples2 =
         concat
           [ generate_triple
@@ -334,7 +332,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- people
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsCompanyDbPediaLink> <dbpedia link>
   let company_triples1 =
         concat
           [ generate_triple
@@ -343,7 +340,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- companies
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCompanyName> <literal of company name>
   let company_triples2 =
         concat
           [ generate_triple
@@ -352,7 +348,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- companies
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsCountryDbPediaLink> <dbpedia link>
   let country_triples1 =
         concat
           [ generate_triple
@@ -361,7 +356,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- countries
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCountryName> <literal of company name>
   let country_triples2 =
         concat
           [ generate_triple
@@ -370,7 +364,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- countries
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsCityDbPediaLink> <dbpedia link>
   let city_triples1 =
         concat
           [ generate_triple
@@ -379,7 +372,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- cities
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutCityName> <literal of city name>
   let city_triples2 =
         concat
           [ generate_triple
@@ -388,7 +380,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- cities
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsBroadCastDbPediaLink> <dbpedia link>
   let bnetworks_triples1 =
         concat
           [ generate_triple
@@ -397,7 +388,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- broadcast_networks
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutBroadCastName> <literal of broadcast network name>
   let bnetworks_triples2 =
         concat
           [ generate_triple
@@ -406,7 +396,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- broadcast_networks
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsPoliticalPartyDbPediaLink> <dbpedia link>
   let pparties_triples1 =
         concat
           [ generate_triple
@@ -415,7 +404,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- political_parties
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutPoliticalPartyName> <literal of political party name>
   let pparties_triples2 =
         concat
           [ generate_triple
@@ -424,7 +412,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- political_parties
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsTradeUnionDbPediaLink> <dbpedia link>
   let unions_triples1 =
         concat
           [ generate_triple
@@ -433,7 +420,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- trade_unions
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutTradeUnionName> <literal of trade union name>
   let unions_triples2 =
         concat
           [ generate_triple
@@ -442,7 +428,6 @@ textToTriples file_path meta_file_path = do
             (make_literal (fst pair))
           | pair <- trade_unions
           ]
-  -- <source document URI> <http://knowledgebooks.com/schema/containsUniversityDbPediaLink> <dbpedia link>
   let universities_triples1 =
         concat
           [ generate_triple
@@ -451,7 +436,6 @@ textToTriples file_path meta_file_path = do
             (snd pair)
           | pair <- universities
           ]
-  -- <dbpedia link> <http://knowledgebooks.com/schema/aboutUniversityName> <literal of university name>
   let universities_triples2 =
         concat
           [ generate_triple
@@ -553,16 +537,19 @@ filterChars = filter (\c -> c /= '?' && c /= '=' && c /= '<' && c /= '>')
 create_neo4j_node :: [Char] -> ([Char], [Char])
 create_neo4j_node uri =
   let name =
-        (map repl (filterChars (replace "https://" "" (replace "http://" "" uri)))) ++ "_" ++ (map toLower node_type)
+        (map repl (filterChars
+                    (replace "https://" "" (replace "http://" "" uri)))) ++
+                    "_" ++
+                    (map toLower node_type)
       node_type =
         if isInfixOf "dbpedia" uri
           then "DbPedia"
           else "News"
       new_node =
         "CREATE (" ++
-        name ++
-        ":" ++
-        node_type ++ " {name:\"" ++ (replace " " "_" name) ++ "\", uri:\"" ++ uri ++ "\"})\n"
+        name ++ ":" ++
+        node_type ++ " {name:\"" ++ (replace " " "_" name) ++
+        "\", uri:\"" ++ uri ++ "\"})\n"
    in (name, new_node)
 
 create_neo4j_link :: [Char] -> [Char] -> [Char] -> [Char]
@@ -581,18 +568,23 @@ create_summary_node uri summary =
 
 create_entity_node :: ([Char], [Char]) -> [Char]
 create_entity_node entity_pair = 
-  "CREATE (" ++ (replace " " "_" (fst entity_pair)) ++  ":Entity {name:\"" ++ (fst entity_pair) ++ "\", uri:\"" ++ (snd entity_pair) ++ "\"})\n"
+  "CREATE (" ++ (replace " " "_" (fst entity_pair)) ++ 
+  ":Entity {name:\"" ++ (fst entity_pair) ++ "\", uri:\"" ++
+  (snd entity_pair) ++ "\"})\n"
 
 create_contains_entity :: [Char] -> [Char] -> ([Char], [Char]) -> [Char]
 create_contains_entity relation_name source_uri entity_pair =
   let new_person_node = create_entity_node entity_pair
-      new_link = create_neo4j_link source_uri relation_name (replace " " "_" (fst entity_pair))
+      new_link = create_neo4j_link source_uri
+                   relation_name
+                   (replace " " "_" (fst entity_pair))
   in
     (new_person_node ++ new_link)
 
 entity_node_helper :: [Char] -> [Char] -> [([Char], [Char])] -> [Char]
 entity_node_helper relation_name node_name entity_list =
-  concat [create_contains_entity relation_name node_name entity | entity <- entity_list]
+  concat [create_contains_entity
+           relation_name node_name entity | entity <- entity_list]
 
 textToCypher :: FilePath -> [Char] -> IO [Char]
 textToCypher file_path meta_file_path = do
@@ -633,11 +625,16 @@ textToCypher file_path meta_file_path = do
   let cmpny = entity_node_helper "ContainsCompanyDbPediaLink" node1_name companies
   let cntry = entity_node_helper "ContainsCountryDbPediaLink" node1_name countries
   let citys = entity_node_helper "ContainsCityDbPediaLink" node1_name cities
-  let bnet = entity_node_helper "ContainsBroadcastNetworkDbPediaLink" node1_name broadcast_networks
-  let ppart = entity_node_helper "ContainsPoliticalPartyDbPediaLink" node1_name political_parties
-  let tunion = entity_node_helper "ContainsTradeUnionDbPediaLink" node1_name trade_unions
-  let uni = entity_node_helper "ContainsUniversityDbPediaLink" node1_name universities
-  return $ concat [node1, summary1, category1, pp, cmpny, cntry, citys, bnet, ppart, tunion, uni]
+  let bnet = entity_node_helper "ContainsBroadcastNetworkDbPediaLink"
+                                node1_name broadcast_networks
+  let ppart = entity_node_helper "ContainsPoliticalPartyDbPediaLink"
+                                node1_name political_parties
+  let tunion = entity_node_helper "ContainsTradeUnionDbPediaLink"
+                                  node1_name trade_unions
+  let uni = entity_node_helper "ContainsUniversityDbPediaLink"
+                               node1_name universities
+  return $ concat [node1, summary1, category1, pp, cmpny, cntry, citys, bnet,
+                   ppart, tunion, uni]
 ~~~~~~~~
 
 
@@ -673,7 +670,9 @@ processFilesToRdf dirPath outputRdfFilePath = do
   putStrLn "full_paths:"
   print full_paths
   let r =
-        [textToTriples fp1 (replace ".txt" ".meta" fp1) | fp1 <- full_paths] :: [IO [Char]]
+        [textToTriples fp1 (replace ".txt" ".meta" fp1)
+        |
+        fp1 <- full_paths] :: [IO [Char]]
   tripleL <-
     mapM (\fp -> textToTriples fp (replace ".txt" ".meta" fp)) full_paths
   let tripleS = concat tripleL
@@ -692,8 +691,6 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
     ("+++++  type of prelude_node_defs is: " ++
      (show (typeOf prelude_node_defs)))
   print prelude_node_defs
-  --let r =
-  --      [textToCypher fp1 (replace ".txt" ".meta" fp1) | fp1 <- full_paths] :: [IO [Char]]
   cypher_dataL <-
     mapM (\fp -> textToCypher fp (replace ".txt" ".meta" fp)) full_paths
   let cypher_dataS = concat cypher_dataL
