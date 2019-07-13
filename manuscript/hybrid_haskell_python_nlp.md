@@ -54,15 +54,52 @@ This is not a Python programming book and I will not discuss the simple Python w
 TBD
 
 
+{lang="haskell",linenos=on}
+~~~~~~~
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+
+-- reference: http://www.serpentine.com/wreq/tutorial.html
+module NlpWebClient
+  ( nlpClient, NlpResponse
+  ) where
+
+import Control.Lens
+import Data.ByteString.Lazy.Char8 (unpack)
+import Data.Maybe (fromJust)
+import Network.URI.Encode as E -- encode is also in Data.Aeson
+import Network.Wreq
+
+import Text.JSON.Generic
+
+data NlpResponse = NlpResponse {entities::[String], tokens::[String]} deriving (Show, Data, Typeable)
+
+base_url = "http://127.0.0.1:8008?text="
+
+nlpClient :: [Char] -> IO NlpResponse
+nlpClient query = do
+  putStrLn $ "\n\n***  Processing " ++ query
+  r <- get $ base_url ++ (E.encode query) ++ "&no_detail=1"
+  let ret = (decodeJSON (unpack (fromJust (r ^? responseBody)))) :: NlpResponse
+  return ret
+~~~~~~~
+
+The main comman line program for using the client library:
+
 {lang="haskell",linenos=off}
 ~~~~~~~
+module Main where
 
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
+import NlpWebClient
+    
+main :: IO ()
+main = do
+  putStrLn "Enter text (all on one line)"
+  s <- getLine
+  response <- (nlpClient s) :: IO NlpResponse
+  putStr "response from NLP server:\n"
+  putStrLn $ show response
+  main
 ~~~~~~~
 
 
