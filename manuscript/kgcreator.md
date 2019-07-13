@@ -43,6 +43,7 @@ Before you write either an RDF statement or a Neo4J Cypher data import statement
   check <- blackboard_check_key (fst entity_pair)
   if check
      ....
+~~~~~~~
 
 and after writing a RDF statement or a Neo4J Cypher data import statement, write it to the temportary SQLite database using something like:
 

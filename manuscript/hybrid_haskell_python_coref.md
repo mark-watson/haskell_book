@@ -1,5 +1,7 @@
 # Hybrid Haskell and Python For Coreference Resolution
 
+Here we will write a Haskell client for using a server written in Python that performs coreference resolution (more on this later). There is some common material in this chapter and the chapter *Hybrid Haskell and Python Natural Language Processing* because I wanted both chapters to be self contained.
+
 Coreference resolution is also called anaphora resolution and is the process for replacing pronouns in text with the original nouns, proper nouns, or noun phrases that the pronouns refer to.
 
 Before discussing setting up the Python library for performing coreference analysis and the Haskell client, let's run the client so you can see and understand anaphora resolution:
@@ -27,6 +29,7 @@ I recommend that you use virtual Python environments when using Python applicati
 ~~~~~~~~
 pip install spacy==2.1.0
 pip install neuralcoref 
+pip install falcon
 ~~~~~~~~
 
 As I write this chapter the *neuralcoref* model and library require a slightly older version of SpaCy (the current latest version is 2.1.4).
@@ -51,4 +54,52 @@ This is not a Python programming book and I will not discuss the simple Python w
 ## Understanding the Haskell Coreference Client Code
 
 TBD
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
+
+
+{lang="haskell",linenos=off}
+~~~~~~~
+
+~~~~~~~
 
