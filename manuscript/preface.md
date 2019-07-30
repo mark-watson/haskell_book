@@ -6,9 +6,11 @@ It took me over a year learning Haskell before I became comfortable with the lan
 
 ## Additional Material in the Second Edition
 
-I have added a few larger projects to the second edition as well as improved the introduction to Haskell and tutorial material.
+In addition to updating the introduction to Haskell and tutorial material, I have added a few larger projects to the second edition.
 
 The project **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
+
+The project **HybridHaskellPythonNlp** is a hybrid project: a Python web service that provides access to the SpaCy natural language processing (NLP) library and select NLP deep learning models and a Haskell client for accessing this service. It sometimes makes sense to develop polyglot applications (i.e., applications written in multiple programming languages) to take advantage of language specific libraries and frameworks. We will also use a similar hybrid example **HybridHaskellPythonCorefAnaphoraResolution** that uses another deeplearning model to replace pronouns in text with the original nouns that the pronouns refer to. This is a common processing step for systems that extract information from text.
 
 
 ## A Request from the Author
