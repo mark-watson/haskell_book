@@ -1,6 +1,6 @@
 # Hybrid Haskell and Python For Coreference Resolution
 
-Here we will write a Haskell client for using a server written in Python that performs coreference resolution (more on this later). There is some common material in this chapter and the chapter *Hybrid Haskell and Python Natural Language Processing* because I wanted both chapters to be self contained.
+Here we will write a Haskell client for using a server written in Python that performs coreference resolution (more on this later). There is some common material in this chapter and the chapter *Hybrid Haskell and Python Natural Language Processing* because I wanted both chapters to be self contained. The code for this chapter can be found in the dubdirectory **HybridHaskellPythonCorefAnaphoraResolution**.
 
 Coreference resolution is also called anaphora resolution and is the process for replacing pronouns in text with the original nouns, proper nouns, or noun phrases that the pronouns refer to.
 
@@ -53,53 +53,56 @@ This is not a Python programming book and I will not discuss the simple Python w
 
 ## Understanding the Haskell Coreference Client Code
 
+The code for the library for fetching data from the Python service is in the subdirectory **src** in the file **CorefWebClient.hs**.
+
 TBD
 
-{lang="haskell",linenos=off}
+{lang="haskell",linenos=on}
+~~~~~~~
+{-# LANGUAGE OverloadedStrings #-}
+
+-- reference: http://www.serpentine.com/wreq/tutorial.html
+module CorefWebClient
+  ( corefClient
+  ) where
+
+import Control.Lens
+import Data.ByteString.Lazy.Char8 (unpack)
+import Data.Maybe (fromJust)
+import Network.URI.Encode (encode)
+import Network.Wreq
+
+base_url = "http://127.0.0.1:8000?text="
+
+corefClient :: [Char] -> IO [Char]
+corefClient query = do
+  putStrLn $ "\n\n***  Processing " ++ (encode query)
+  r <- get $ base_url ++ (encode query) ++ "&no_detail=1"
+  putStrLn $ "status code: " ++ (show (r ^. responseStatus . statusCode))
+  putStrLn $ "content type: " ++ (show (r ^? responseHeader "Content-Type"))
+  putStrLn $ "response body: " ++ (unpack (fromJust (r ^? responseBody)))
+  return $ unpack (fromJust (r ^? responseBody))
 ~~~~~~~
 
+The code for the main application is in the subdirectory **app** in the file **Main.hs**.
+
+
+{lang="haskell",linenos=on}
+~~~~~~~
+module Main where
+
+import CorefWebClient
+
+main :: IO ()
+main = do
+  putStrLn "Enter text (all on one line)"
+  s <- getLine
+  response <- corefClient s
+  putStr "response from coreference server:\t"
+  putStrLn $ show response
+  main
 ~~~~~~~
 
+## Wrapup for Using the Python Coreference NLP Service
 
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
-
-{lang="haskell",linenos=off}
-~~~~~~~
-
-~~~~~~~
-
+The example in this chapter is fairly simple but shows a technique that I often use for using libraries and frameworks that are not written in Haskell: wrap the service implemented in another programming language is a REST web service. While it is possible to use a foreign function interface (FFI) to call out to code written in other languages I find for my own work that I prefer calling out to a separate service especially when I run other services on remote servers so I do not need to run them on my development laptop. For production it is also useful to be able to easily scale horizontally across servers.

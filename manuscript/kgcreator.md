@@ -6,7 +6,7 @@ This application works by identifying entities in text. Example entity types are
 
 There are two versions of this project that deal with generating duplicate data in  two ways:
 
-- As either Neo4J Cypher import data or RDF triples are created, store generated data in a SQLite embedded database. Check this database before writing new output data.
+- As either Neo4J Cypher data or RDF triples data are created, store generated data in a SQLite embedded database. Check this database before writing new output data.
 - Ignore the problem of generating duplicate data and filter out duplicates in the outer processing pipeline that uses the Knowledge Graph Creator as one processing step.
 
 For my own work I choose the second method since filtering duplicates is as easy as a few Makefile targets (the following listing is in the file **Makefile** in the directory
@@ -30,7 +30,7 @@ cypher:
 	rm -f out.cypher
 ~~~~~~~~
 
-Because it makes a better example for this book because the implementation is simpler.
+We will use this second approach but the next section provides sufficient information and a link to alternative code in case you are interested in using SQLite to prevent duplicate data generation.
 
 ### Notes for Using SQLite to Avoid Duplicates
 
@@ -52,15 +52,17 @@ and after writing a RDF statement or a Neo4J Cypher data import statement, write
   blackboard_write newStatementString
 ~~~~~~~
 
+For the rest of the chapter we will use the approach of not keeping track of generated data in SQListe and instead remove duplicates during postprocessing.
+
 ## Code Layout For the KGCreator Project and strategies for sharing Haskell code between projects
 
-There are several ways to reuse code from multiple local Haskell projects:
+We will reuse the code for finding entities that we studied in an earlier chapter. There are several ways to reuse code from multiple local Haskell projects:
 
-- In a project's cabal file, use relative paths to the source code for other projects. This is my preferred way to work but has the drawback that the stack command *sdist* to make a distribution tarball will not work with relative paths. If this is a problem for you then creak relative symbolic file links to the source directories in other projects.
-- In yur project's stack.yaml file, add the other project's name and path as a *extra-deps*.
+- In a project's cabal file, use relative paths to the source code for other projects. This is my preferred way to work but has the drawback that the stack command *sdist* to make a distribution tarball will not work with relative paths. If this is a problem for you then create relative symbolic file links to the source directories in other projects.
+- In your project's stack.yaml file, add the other project's name and path as a *extra-deps*.
 - In library projects, define a *packages* definition and install the library globally on your system.
 
-I almost always use the first method on my projects with dependencies on other local projects I work on and this is also the approach we use here. The relavent lines in the file KGCreator.cabal are:
+I almost always use the first method on my projects with dependencies on other local projects I work on and this is also the approach we use here. The relevant lines in the file KGCreator.cabal are:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -144,7 +146,7 @@ We will use the top level code that we developer earlier that is located in the 
 
 The KGCreator Haskell application looks in a specified directory for text files to process. For each file with a **.txt** extension there should be a matching file with the extension **.meta** that contains a single line: the URI of the web location where the corresponding text was found. The reason we need this is that we want to create graph knowledge bases of information found in text sources and the original location of the data is important to preserve.
 
-We have not looked at an example of using command line arguments yet so let's go into some detail.
+We have not looked at an example of using command line arguments yet so let's go into some detail on how we do this.
 Previously when we have defined an output target executable in our **.cabal** file,
 in this case *KGCreator-exe*, we can use stack to build the executable and run it with:
 
@@ -153,15 +155,17 @@ in this case *KGCreator-exe*, we can use stack to build the executable and run i
 stack build --fast --exec KGCreator-exe"
 ~~~~~~~~
 
-Now, we have an executabel that requires two arguments: a source inoput directory and the file root for generated RDF and Cypher output files. We can pass command line arguments using this notation:
+Now, we have an executable that requires two arguments: a source input directory and the file root for generated RDF and Cypher output files. We can pass command line arguments using this notation:
 
 {lang="bash",linenos=off}
 ~~~~~~~~
 stack build --fast --exec "KGCreator-exe test_data outtest"
 ~~~~~~~~
 
-TBD
+The two command line arguments are:
 
+- **test_data** which is the file path of a local directory containing the input files
+- **outtest** which is the root file name for generated Neo4J Cypher and RDF output files
 
 
 {lang="haskell",linenos=on}
@@ -185,7 +189,22 @@ main
     _ -> error "too many arguments"
 ~~~~~~~~
 
+Here we use **getArgs** to fetch a list of command line arguments and verify that at least to arguments have been provided.
+
 ## Top Level Code for Generating RDF
+
+The code for generating RDF and for generating Neo4J Cypher data is similar. We start with the code to generate RDF triples. Before we look at the code, let's start with a few lines of generated RDF:
+
+{linenos=off}
+~~~~~~~~
+<http://dbpedia.org/resource/The_Wall_Street_Journal> 
+  <http://knowledgebooks.com/schema/aboutCompanyName> 
+  "Wall Street Journal" .
+<https://newsshop.com/june/z902.html>
+  <http://knowledgebooks.com/schema/containsCountryDbPediaLink>
+  <http://dbpedia.org/resource/Canada> .
+~~~~~~~~
+
 
 
 {lang="haskell",linenos=on}
@@ -468,9 +487,21 @@ textToTriples file_path meta_file_path = do
       ]
 ~~~~~~~~
 
+TBD, discuss this long code listing
+
 ## Top Level Code for Generating Cypher Input Data for Neo4J
 
+Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but it practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example.
 
+ Before we look at the code, let's start with a few lines of generated Neo4J Cypher import data:
+
+{linenos=off}
+~~~~~~~~
+CREATE (newsshop_com_june_z902_html_news)-[:ContainsCompanyDbPediaLink]->(Wall_Street_Journal)
+CREATE (Canada:Entity {name:"Canada", uri:"<http://dbpedia.org/resource/Canada>"})
+CREATE (newsshop_com_june_z902_html_news)-[:ContainsCountryDbPediaLink]->(Canada)
+CREATE (summary_of_abcnews_go_com_US_violent_long_lasting_tornadoes_threaten_oklahoma_texas_storyid63146361:Summary {name:"summary_of_abcnews_go_com_US_violent_long_lasting_tornadoes_threaten_oklahoma_texas_storyid63146361", uri:"<https://abcnews.go.com/US/violent-long-lasting-tornadoes-threaten-oklahoma-texas/story?id=63146361>", summary:"Part of the system that delivered severe weather to the central U.S. over the weekend is moving into the Northeast today, producing strong to severe storms -- damaging winds, hail or isolated tornadoes can't be ruled out. Severe weather is forecast to continue on Tuesday, with the western storm moving east into the Midwest and parts of the mid-Mississippi Valley."})
+~~~~~~~~
 
 
 {lang="haskell",linenos=on}
@@ -638,11 +669,11 @@ textToCypher file_path meta_file_path = do
                    ppart, tunion, uni]
 ~~~~~~~~
 
+TBD, discuss this long code listing
 
 ## Top Level API Code for Handling Knowledge Graph Data Generation
 
-
-API.hs:
+So far we have looked at processing command line arguments and processing individual input files. Now we look at higher level utility APIs for processing an entire directory of input files. The following listing shows the file API.hs:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -699,4 +730,8 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
   writeFile outputRdfFilePath $ prelude_node_defs ++ cypher_dataS
 ~~~~~~~~
 
+TBD discuss last long listing
 
+## Wrapup for Automating the Creation of Knowledge Graphs
+
+The code in this chapter will provide yuo with a good start for creating both test knowledge graphs and for generating data for production. In practice, generated data should be reviewed before use and additional data manually generated as needed. It is good practice to document required manual changes because this documentation can be used in the requirements for updating the code in this chapter to more closely match your knowledge graph requirements.
