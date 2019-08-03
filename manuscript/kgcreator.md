@@ -30,11 +30,13 @@ cypher:
 	rm -f out.cypher
 ~~~~~~~~
 
+Here the Haskell KGCreator application we develop here writes output files *out.n3* (N3 is a RDF data format) and *out.cypher* (Cypher is the import output format and query language for the Neo4J open source and commercial graph database). The **awk** commands remove duplicate lines and write de-duplicated data to *output.n3* and *output.cypher*.
+
 We will use this second approach but the next section provides sufficient information and a link to alternative code in case you are interested in using SQLite to prevent duplicate data generation.
 
 ### Notes for Using SQLite to Avoid Duplicates
 
-If you want to use the first method you can start with the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils**. first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad.
+If you want to use the first method in the last section for avoiding generating duplicate data then you can start with the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils**. first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad.
 
 Before you write either an RDF statement or a Neo4J Cypher data import statement, check to see if the statement has already been written using something like:
 
@@ -52,7 +54,7 @@ and after writing a RDF statement or a Neo4J Cypher data import statement, write
   blackboard_write newStatementString
 ~~~~~~~
 
-For the rest of the chapter we will use the approach of not keeping track of generated data in SQListe and instead remove duplicates during postprocessing.
+For the rest of the chapter we will use the approach of not keeping track of generated data in SQLite and instead remove duplicates during postprocessing using the standard **awk** command line utility.
 
 ## Code Layout For the KGCreator Project and strategies for sharing Haskell code between projects
 
@@ -106,8 +108,7 @@ library
       ../NlpTool/src/nlp/data
 ~~~~~~~~
 
-TBD: discuss relevant lines
-
+This is a standard looking *cabal* file except for lines 37 and 38 where the source paths reference the example code for the **NlpTool** application developed in a previous chapter. The exposed module **BlackBoard** is not used but I leave it in the *cabal* file in case you want to experiment with recording generated data in SQLite to avoid data duplication. You are likely to also want to use **BlackBoard** if you modify this example to continuously process incoming data in a production system. This is left as an exercise.
 
 Before going into too much detail on the implementation let's look at the layout of the project code:
 
@@ -132,19 +133,19 @@ src/toplevel:
 Apis.hs
 ~~~~~~~~
 
-TBD describe code
+As mentioned before, we are using the Haskell source fies in a relative path **../NlpTool/src/...** and the local **src** directory. We discuss this code in the next few sections.
 
 ## The Main Event: Detecting Entities in Text
 
 A primary task in KGCreator is to identify entities (people, places, etc.) in text and then we will create RDF and Neo4J Cypher data statements using these entities, knowledge of the origin of text data and general relationships between entities.
 
-We will use the top level code that we developer earlier that is located in the directory **src/nlp** (please see the chapter **Natural Language Processing Tools** for more detail):
+We will use the top level code that we developer earlier that is located in the directory **../NlpTool/src/nlp** (please see the chapter **Natural Language Processing Tools** for more detail):
 
 - Categorize.hs - categorizes text into categories like news, religion, business, politics, science, etc.
 - Entities.hs - identifies entities like people, companies, places, new broadcast networks, labor unions, etc. in text
 - Summarize.hs - creates an extractive summary of text
 
-The KGCreator Haskell application looks in a specified directory for text files to process. For each file with a **.txt** extension there should be a matching file with the extension **.meta** that contains a single line: the URI of the web location where the corresponding text was found. The reason we need this is that we want to create graph knowledge bases of information found in text sources and the original location of the data is important to preserve.
+The KGCreator Haskell application looks in a specified directory for text files to process. For each file with a **.txt** extension there should be a matching file with the extension **.meta** that contains a single line: the URI of the web location where the corresponding text was found. The reason we need this is that we want to create graph knowledge data from information found in text sources and the original location of the data is important to preserve. In other words, we want to know where the data elements in our knowledge graph came from.
 
 We have not looked at an example of using command line arguments yet so let's go into some detail on how we do this.
 Previously when we have defined an output target executable in our **.cabal** file,
@@ -167,6 +168,9 @@ The two command line arguments are:
 - **test_data** which is the file path of a local directory containing the input files
 - **outtest** which is the root file name for generated Neo4J Cypher and RDF output files
 
+If you are using KGCreator in production, then you will want to copy the compiled and linked executable file **KGCreator-exe** to somewhere on your *PATH* like */usr/local/bin*.
+
+The following listing shows the file **app/Main.hs**, the main program for this example that handles command line arguments and calls two top level functions in **src/toplevel/Apis.hs**:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -176,9 +180,7 @@ import System.Environment (getArgs)
 import Apis (processFilesToRdf, processFilesToNeo4j)
 
 main :: IO ()
-main
-  --  TBD: add command line argument processing
- = do
+main = do
   args <- getArgs
   case args of
     [] -> error "must supply an input directory containing text and meta files"
@@ -189,9 +191,9 @@ main
     _ -> error "too many arguments"
 ~~~~~~~~
 
-Here we use **getArgs** to fetch a list of command line arguments and verify that at least to arguments have been provided.
+Here we use **getArgs** in line8 to fetch a list of command line arguments and verify that at least to arguments have been provided. Then we call the functions **processFilesToRdf** and **processFilesToNeo4j** and the functions they call in the next three sections.
 
-## Top Level Code for Generating RDF
+## Utility Code for Generating RDF
 
 The code for generating RDF and for generating Neo4J Cypher data is similar. We start with the code to generate RDF triples. Before we look at the code, let's start with a few lines of generated RDF:
 
@@ -205,7 +207,15 @@ The code for generating RDF and for generating Neo4J Cypher data is similar. We 
   <http://dbpedia.org/resource/Canada> .
 ~~~~~~~~
 
+The next listing shows the file **src/sw/GenTriples.hs** that finds entities like broadcast network names, city names, company names, people's names, political party names, and university names in text and generates RDF triple data. If you need to add more entity types for your own applications, then use the following steps:
 
+- Look at the format of entity data for the **NlpTool** example and add names for the new entity type you  are adding.
+- Add a utility function to find instances of the new entity type to **NlpTools**. For example, if you are adding a new entity type "park names", then copy the code for **companyNames** to **parkNames**, modify as necessary, and export **parkNames**.
+- In the following code, add new code for the new entity helper function after lines 10, 97, 151, and 261. Use the code for **companyNames** as an example.
+
+The map *category_to_uri_map** created in lines 36 to 84 maps a topic name to a lin ked Data URI that describes the topic. For example, we would not refer to an information source as being about the topic "economics", but would instead refer to a linked data URI like **<http://knowledgebooks.com/schema/topic/economics>**. The utility function **uri_from_categor** takes a text description of a topic like "economy" and converts it to an appropriate URI using the map *category_to_uri_map**.
+
+The utility function **textToTriple** takes a file path to a text input file and a path to  meta file path, calculates the text string representing the generated triples for the input text file, and returns the result wrapped in an IO monad.
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -487,9 +497,10 @@ textToTriples file_path meta_file_path = do
       ]
 ~~~~~~~~
 
-TBD, discuss this long code listing
+The code in this file could be shortened but having repetitive code for each entity type hopefully makes it easier for you to understand how it works.
 
-## Top Level Code for Generating Cypher Input Data for Neo4J
+
+## Utility Code for Generating Cypher Input Data for Neo4J
 
 Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but it practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example.
 
@@ -503,6 +514,9 @@ CREATE (newsshop_com_june_z902_html_news)-[:ContainsCountryDbPediaLink]->(Canada
 CREATE (summary_of_abcnews_go_com_US_violent_long_lasting_tornadoes_threaten_oklahoma_texas_storyid63146361:Summary {name:"summary_of_abcnews_go_com_US_violent_long_lasting_tornadoes_threaten_oklahoma_texas_storyid63146361", uri:"<https://abcnews.go.com/US/violent-long-lasting-tornadoes-threaten-oklahoma-texas/story?id=63146361>", summary:"Part of the system that delivered severe weather to the central U.S. over the weekend is moving into the Northeast today, producing strong to severe storms -- damaging winds, hail or isolated tornadoes can't be ruled out. Severe weather is forecast to continue on Tuesday, with the western storm moving east into the Midwest and parts of the mid-Mississippi Valley."})
 ~~~~~~~~
 
+The following listing shows the file **src/sw/GenNeo4jCypher.hs**. This code is very similar to the code for generating RDF in the last section. The same notes for adding your own new entity notes in the last section are also relevant here.
+
+Notice that we import in line 29 the map **category_to_uri_map** that was defined in the last section. The function **neo4j_category_node_defs** defined in lines 35 to 43 creates category graph nodes for each category in the map **category_to_uri_map**.  These nodes will be referenced by graph nodes created in the functions **create_neo4j_node**, **create_neo4j_lin**, **create_summary_node**, and **create_entity_node**. The top level function is **textToCypher** that is similar to the function **textToTriples** in the last section.
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -669,11 +683,14 @@ textToCypher file_path meta_file_path = do
                    ppart, tunion, uni]
 ~~~~~~~~
 
-TBD, discuss this long code listing
+Because the top level function is **textToCypher** returns a string wrapped in a monad, it is possibe to add "debug"" print statements in **textToCypher**. I left many such debug statements in the example code to help you understand the data that is being operated on. I leave it as an exercise to remove these print statements if you use this code in your own projects and no longer need to see the debug output.
+
 
 ## Top Level API Code for Handling Knowledge Graph Data Generation
 
-So far we have looked at processing command line arguments and processing individual input files. Now we look at higher level utility APIs for processing an entire directory of input files. The following listing shows the file API.hs:
+So far we have looked at processing command line arguments and processing individual input files. Now we look at higher level utility APIs for processing an entire directory of input files. The following listing shows the file API.hs that contains the two top level helper functions we saw in **app/Main.hs**.
+
+The functions **processFilesToRdf** and **processFilesToNeo4j** both have the function type signature **FilePath->FilePath->IO()** and are very similar except for calling different helper functions to generate RDF triples or Cypher input graph data:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -730,7 +747,7 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
   writeFile outputRdfFilePath $ prelude_node_defs ++ cypher_dataS
 ~~~~~~~~
 
-TBD discuss last long listing
+Since both of these functions return IO monads, I could add "debug" print statements that should be helpful in understanding the data being operated on.
 
 ## Wrapup for Automating the Creation of Knowledge Graphs
 

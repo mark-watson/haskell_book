@@ -1,8 +1,10 @@
 # Hybrid Haskell and Python Natural Language Processing
 
-Here we will write a Haskell client for using a Natural Language Processing (NLP) server written in Python. There is some common material in this chapter and the chapter *Hybrid Haskell and Python For Coreference Resolution* because I wanted both chapters to be self contained.
+Here we will write a Haskell client for using a Natural Language Processing (NLP) server written in Python. There is some common material in this chapter and the next chapter *Hybrid Haskell and Python For Coreference Resolution* because I wanted both chapters to be self contained.
 
 ## Example Use of the Haskell NLP Client
+
+Before learning how to use the Python NLP server code and understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:
 
 ~~~~~~~~
 $ stack build --fast --exec HybridHaskellPythonNlp-exe
@@ -14,11 +16,13 @@ NlpResponse {entities = ["John Smith/PERSON","Mexico/GPE","Pepsi/ORG"],
 Enter text (all on one line)
 ~~~~~~~~
 
+Notice on line 5 that each or the three entities is tagged with the entity type. **GPE** is the tag for a country and the tag **ORG** can refer to an entity that is a company or a non-profit organization.
 
-TBD
-
+There is some overlap in functionality between the Python SpaCy NLP library and my pure Haskell code in the **NLP** **Tools** chapter. SpaCy has the advantage of using state of the art deep learning models.
 
 ## Setting up the Python NLP Server
+
+I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions assuming that you have the utiities **pip**, and **python** installed. I recommend installing Python and Pip using [Anaconda](https://anaconda.org/anaconda/conda).
 
 The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** where you will work when performing a one time initialization. After the server is installed then you can run it from the command line from any directory on your laptop.
 
@@ -30,7 +34,7 @@ python -m spacy download en
 pip install falcon
 ~~~~~~~~
 
-Then change directory to the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** and install the coref server:
+Then change directory to the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** and install the NLP server:
 
 ~~~~~~~~
 cd HybridHaskellPythonNlp/python_spacy_nlp_server
@@ -48,10 +52,9 @@ I use deep learning models written in Python using TensorFlow or PyTorch in appl
 This is not a Python programming book and I will not discuss the simple Python wrapping code but if you are also a Python developer you can easily read and understand the code.
 
 
-
 ## Understanding the Haskell NLP Client Code
 
-TBD
+The Python server returns JSON file. We saw earlier the use of the Haskell **aeson** library for parsing JSON data stored as a string into Haskell native data. We also used the **wreq** library to access remote web services. We use both of these libraries here:
 
 
 {lang="haskell",linenos=on}

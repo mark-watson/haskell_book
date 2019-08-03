@@ -1,6 +1,6 @@
 # Hybrid Haskell and Python For Coreference Resolution
 
-Here we will write a Haskell client for using a server written in Python that performs coreference resolution (more on this later). There is some common material in this chapter and the chapter *Hybrid Haskell and Python Natural Language Processing* because I wanted both chapters to be self contained. The code for this chapter can be found in the dubdirectory **HybridHaskellPythonCorefAnaphoraResolution**.
+Here we will write a Haskell client for using a server written in Python that performs coreference resolution (more on this later). There is some common material in this chapter and the last chapter *Hybrid Haskell and Python Natural Language Processing* because I wanted both chapters to be self contained. The code for this chapter can be found in the subdirectory **HybridHaskellPythonCorefAnaphoraResolution**.
 
 Coreference resolution is also called anaphora resolution and is the process for replacing pronouns in text with the original nouns, proper nouns, or noun phrases that the pronouns refer to.
 
@@ -55,7 +55,7 @@ This is not a Python programming book and I will not discuss the simple Python w
 
 The code for the library for fetching data from the Python service is in the subdirectory **src** in the file **CorefWebClient.hs**.
 
-TBD
+We will use techniques for accessing remote web services using the **wreq** library, using the **lens** library for accessing the reponse from the Python server, and using the **aeson** library to parse JSON data encoded in a string to native Haskell data:
 
 {lang="haskell",linenos=on}
 ~~~~~~~
@@ -85,7 +85,6 @@ corefClient query = do
 ~~~~~~~
 
 The code for the main application is in the subdirectory **app** in the file **Main.hs**.
-
 
 {lang="haskell",linenos=on}
 ~~~~~~~
