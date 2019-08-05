@@ -16,7 +16,7 @@ NlpResponse {entities = ["John Smith/PERSON","Mexico/GPE","Pepsi/ORG"],
 Enter text (all on one line)
 ~~~~~~~~
 
-Notice on line 5 that each or the three entities is tagged with the entity type. **GPE** is the tag for a country and the tag **ORG** can refer to an entity that is a company or a non-profit organization.
+Notice on line 5 that each of the three entities is tagged with the entity type. **GPE** is the tag for a country and the tag **ORG** can refer to an entity that is a company or a non-profit organization.
 
 There is some overlap in functionality between the Python SpaCy NLP library and my pure Haskell code in the **NLP** **Tools** chapter. SpaCy has the advantage of using state of the art deep learning models.
 
@@ -24,7 +24,7 @@ There is some overlap in functionality between the Python SpaCy NLP library and 
 
 I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions assuming that you have the utiities **pip**, and **python** installed. I recommend installing Python and Pip using [Anaconda](https://anaconda.org/anaconda/conda).
 
-The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** where you will work when performing a one time initialization. After the server is installed then you can run it from the command line from any directory on your laptop.
+The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** where you will work when performing a one time initialization. After the server is installed you can then run it from the command line from any directory on your laptop.
 
 I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. First install the dependencies:
 
@@ -41,13 +41,13 @@ cd HybridHaskellPythonNlp/python_spacy_nlp_server
 python setup.py install
 ~~~~~~~~
 
-Once you install the server, then you can run it from any directory on your laptop or server using:
+Once you install the server, you can run it from any directory on your laptop or server using:
 
 ~~~~~~~~
 spacynlpserver
 ~~~~~~~~
 
-I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I need a REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has light weight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
+I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use a REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
 
 This is not a Python programming book and I will not discuss the simple Python wrapping code but if you are also a Python developer you can easily read and understand the code.
 

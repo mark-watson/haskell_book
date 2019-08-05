@@ -1,6 +1,6 @@
 # Linked Data and the Semantic Web
 
-I am going to show you how to query semantic web data sources on the web and provide examples for how you might use this data in applications. I have written two previous books on the semantic web, one covering Common Lisp and the other covering JVM languages Java, Scala, Clojure, and Ruby. You can get free PDF versions on the [book page of www.makwatson.com](http://www.markwatson.com/books/). If you enjoy the lite introduction in this chapter then please do download a free copy of my semantic web book for more material on RDF, RDFS, and SPARQL.
+I am going to show you how to query semantic web data sources on the web and provide examples for how you might use this data in applications. I have written two previous books on the semantic web, one covering Common Lisp and the other covering JVM languages Java, Scala, Clojure, and Ruby. You can get free PDF versions on the [book page of www.markwatson.com](http://www.markwatson.com/books/). If you enjoy the light introduction in this chapter then please do download a free copy of my semantic web book for more material on RDF, RDFS, and SPARQL.
 
 I like to think of the semantic web and linked data resources as:
 

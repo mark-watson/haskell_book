@@ -30,13 +30,13 @@ cypher:
 	rm -f out.cypher
 ~~~~~~~~
 
-Here the Haskell KGCreator application we develop here writes output files *out.n3* (N3 is a RDF data format) and *out.cypher* (Cypher is the import output format and query language for the Neo4J open source and commercial graph database). The **awk** commands remove duplicate lines and write de-duplicated data to *output.n3* and *output.cypher*.
+The Haskell KGCreator application we develop here writes output files *out.n3* (N3 is a RDF data format) and *out.cypher* (Cypher is the import output format and query language for the Neo4J open source and commercial graph database). The **awk** commands remove duplicate lines and write de-duplicated data to *output.n3* and *output.cypher*.
 
 We will use this second approach but the next section provides sufficient information and a link to alternative code in case you are interested in using SQLite to prevent duplicate data generation.
 
-### Notes for Using SQLite to Avoid Duplicates
+### Notes for Using SQLite to Avoid Duplicates (Optional Material)
 
-If you want to use the first method in the last section for avoiding generating duplicate data then you can start with the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils**. first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad.
+We saw two methods of avoiding duplicates in  generated data in the last section. If you want to use the first method for avoiding generating duplicate data you can then modify the example code by using the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils** and implement the logic seen below for checking new generated data to see if it is in the SQLite database. This first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad and is left as an exercise, otherwise skip this section.
 
 Before you write either an RDF statement or a Neo4J Cypher data import statement, check to see if the statement has already been written using something like:
 
@@ -55,6 +55,8 @@ and after writing a RDF statement or a Neo4J Cypher data import statement, write
 ~~~~~~~
 
 For the rest of the chapter we will use the approach of not keeping track of generated data in SQLite and instead remove duplicates during postprocessing using the standard **awk** command line utility.
+
+This section is optional. In the rest of this chapter we use the example code in **knowledge_graph_creator_pure**.
 
 ## Code Layout For the KGCreator Project and strategies for sharing Haskell code between projects
 
@@ -139,7 +141,7 @@ As mentioned before, we are using the Haskell source fies in a relative path **.
 
 A primary task in KGCreator is to identify entities (people, places, etc.) in text and then we will create RDF and Neo4J Cypher data statements using these entities, knowledge of the origin of text data and general relationships between entities.
 
-We will use the top level code that we developer earlier that is located in the directory **../NlpTool/src/nlp** (please see the chapter **Natural Language Processing Tools** for more detail):
+We will use the top level code that we developed earlier that is located in the directory **../NlpTool/src/nlp** (please see the chapter **Natural Language Processing Tools** for more detail):
 
 - Categorize.hs - categorizes text into categories like news, religion, business, politics, science, etc.
 - Entities.hs - identifies entities like people, companies, places, new broadcast networks, labor unions, etc. in text
@@ -149,7 +151,7 @@ The KGCreator Haskell application looks in a specified directory for text files 
 
 We have not looked at an example of using command line arguments yet so let's go into some detail on how we do this.
 Previously when we have defined an output target executable in our **.cabal** file,
-in this case *KGCreator-exe*, we can use stack to build the executable and run it with:
+in this case *KGCreator-exe*, we could use stack to build the executable and run it with:
 
 {lang="bash",linenos=off}
 ~~~~~~~~
@@ -191,7 +193,7 @@ main = do
     _ -> error "too many arguments"
 ~~~~~~~~
 
-Here we use **getArgs** in line8 to fetch a list of command line arguments and verify that at least to arguments have been provided. Then we call the functions **processFilesToRdf** and **processFilesToNeo4j** and the functions they call in the next three sections.
+Here we use **getArgs** in line8 to fetch a list of command line arguments and verify that at least two arguments have been provided. Then we call the functions **processFilesToRdf** and **processFilesToNeo4j** and the functions they call in the next three sections.
 
 ## Utility Code for Generating RDF
 
@@ -213,7 +215,7 @@ The next listing shows the file **src/sw/GenTriples.hs** that finds entities lik
 - Add a utility function to find instances of the new entity type to **NlpTools**. For example, if you are adding a new entity type "park names", then copy the code for **companyNames** to **parkNames**, modify as necessary, and export **parkNames**.
 - In the following code, add new code for the new entity helper function after lines 10, 97, 151, and 261. Use the code for **companyNames** as an example.
 
-The map *category_to_uri_map** created in lines 36 to 84 maps a topic name to a lin ked Data URI that describes the topic. For example, we would not refer to an information source as being about the topic "economics", but would instead refer to a linked data URI like **<http://knowledgebooks.com/schema/topic/economics>**. The utility function **uri_from_categor** takes a text description of a topic like "economy" and converts it to an appropriate URI using the map *category_to_uri_map**.
+The map *category_to_uri_map** created in lines 36 to 84 maps a topic name to a linked Data URI that describes the topic. For example, we would not refer to an information source as being about the topic "economics", but would instead refer to a linked data URI like **<http://knowledgebooks.com/schema/topic/economics>**. The utility function **uri_from_categor** takes a text description of a topic like "economy" and converts it to an appropriate URI using the map *category_to_uri_map**.
 
 The utility function **textToTriple** takes a file path to a text input file and a path to  meta file path, calculates the text string representing the generated triples for the input text file, and returns the result wrapped in an IO monad.
 
@@ -502,7 +504,7 @@ The code in this file could be shortened but having repetitive code for each ent
 
 ## Utility Code for Generating Cypher Input Data for Neo4J
 
-Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but it practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example.
+Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but in practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example.
 
  Before we look at the code, let's start with a few lines of generated Neo4J Cypher import data:
 
@@ -683,7 +685,7 @@ textToCypher file_path meta_file_path = do
                    ppart, tunion, uni]
 ~~~~~~~~
 
-Because the top level function is **textToCypher** returns a string wrapped in a monad, it is possibe to add "debug"" print statements in **textToCypher**. I left many such debug statements in the example code to help you understand the data that is being operated on. I leave it as an exercise to remove these print statements if you use this code in your own projects and no longer need to see the debug output.
+Because the top level function is **textToCypher** returns a string wrapped in a monad, it is possible to add "debug"" print statements in **textToCypher**. I left many such debug statements in the example code to help you understand the data that is being operated on. I leave it as an exercise to remove these print statements if you use this code in your own projects and no longer need to see the debug output.
 
 
 ## Top Level API Code for Handling Knowledge Graph Data Generation
@@ -751,4 +753,4 @@ Since both of these functions return IO monads, I could add "debug" print statem
 
 ## Wrapup for Automating the Creation of Knowledge Graphs
 
-The code in this chapter will provide yuo with a good start for creating both test knowledge graphs and for generating data for production. In practice, generated data should be reviewed before use and additional data manually generated as needed. It is good practice to document required manual changes because this documentation can be used in the requirements for updating the code in this chapter to more closely match your knowledge graph requirements.
+The code in this chapter will provide you with a good start for creating both test knowledge graphs and for generating data for production. In practice, generated data should be reviewed before use and additional data manually generated as needed. It is good practice to document required manual changes because this documentation can be used in the requirements for updating the code in this chapter to more closely match your knowledge graph requirements.

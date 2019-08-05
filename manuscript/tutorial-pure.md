@@ -945,7 +945,7 @@ map' f (x:xs) = f x : map' f xs
 
 In line 2 we do not need parenthesis around **f x** because function application has a higher precidence than the operator **:** which adds an element to the beginning of a list.
 
-Are you pleased with how concise this definition of a map function is? Is concise code like **map'** readable to you? Speaking of someone who has written hundreds of thousands of lines of Java code for customers, let me tell you that I love the conciseness and readability of Haskell! I appreciate the Java ecosystem with many useful libraries and frameworks and augmented like fine languages like Clojure and JRuby, but in my opinion using Haskell is a more enjoyable and generally more productive language and programming environment.
+Are you pleased with how concise this definition of a map function is? Is concise code like **map'** readable to you? Speaking as someone who has written hundreds of thousands of lines of Java code for customers, let me tell you that I love the conciseness and readability of Haskell! I appreciate the Java ecosystem with many useful libraries and frameworks and augmented like fine languages like Clojure and JRuby, but in my opinion using Haskell is a more enjoyable and generally more productive language and programming environment.
 
 Let's experiment with our **map'** function:
 
@@ -1216,7 +1216,7 @@ makeList :: (Enum t, Num t) => t -> [t]
 *Main> 
 ~~~~~~~~
 
-In line 2 we see that for any type **t** the function signature is **t -> [t]** where the compiler determines that **t** is constrained to be a **Num** or **Enum** by examining how the input variable is used as a range parameter for contructing a list. Let's make a new function that works on any type:
+In line 2 we see that for any type **t** the function signature is **t -> [t]** where the compiler determines that **t** is constrained to be a **Num** or **Enum** by examining how the input variable is used as a range parameter for constructing a list. Let's make a new function that works on any type:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~

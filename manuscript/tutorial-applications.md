@@ -1,6 +1,6 @@
 # Tutorial on Writing Haskell Applications
 
-We will use what you have learned in the last two chapters to write applications that combine pure Haskell code with impure code to deal with I/O and network programming. You will then see many longer examples of complete Haskell applications in the second section of this book.
+We will use what you have learned in the last two chapters to write applications that combine pure Haskell code with impure code to deal with I/O and network programming. You will then see many longer examples of complete Haskell applications in the second section.
 
 ## Writing Command Line Applications in Haskell
 

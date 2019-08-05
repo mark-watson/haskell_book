@@ -89,7 +89,7 @@ Much of the complexity in this example is implemented in *Table.hs* which define
 - resetTable :: [Card] -> Table -> Int -> Table. Given a new randomized card deck, a table, and a new number of other players, generate a new table.
 - scoreHands :: Table -> Table. Given a table, score all dealt hands and generate a new table with these scores. There is no table type score data, rather, we "score" by changing the number of chips all of the players (inclding the dealer) has.
 - dealCardToUser :: Table -> Int -> Table. For the game user, always deal a card. For the dealer and other players, deal another card if their hand score is less than 17.
-- handOver :: Table -> Bool. Determine is a hand is over.
+- handOver :: Table -> Bool. Determine if the current hand is over.
 - setPlayerPasses :: Table -> Table. Call this function when the payer passes. Other players and dealer are then played out automatically.
 
 The implementation in the file *Table.hs* is fairly simple, with the exception of the use of Haskell lenses to access nested data in the table type. I will discuss the use of lenses after the program listing, but: as you are reading the code look out for variables starting with the underscore character **\_** that alerts the *Lens* system that it should create data accessors for these variables:

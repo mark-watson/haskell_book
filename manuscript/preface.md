@@ -33,7 +33,7 @@ The first section of this book contains two chapters:
 
 After working through these tutorial chapters you will understand enough of Haskell development to understand and be able to make modifications for your own use of the cookbook examples in the second section. Some of the general topics will be covered again in the second book section that contains longer sample applications. For example, you will learn the basics for interacting with Sqlite and Postgres databases in the tutorial on impure Haskell code but you will see a much longer example later in the book when I provide code that implements a natural language processing (NLP) interface to relational databases.
 
-The second section of this book contains the following recipes implemented as complete programs:
+The second section contains the following recipes implemented as complete programs:
 
 - Textprocessing CSV Files
 - Textprocessing JSON Files
@@ -99,7 +99,7 @@ Ok, modules loaded: Main.
 *Main>
 ~~~~~~~~
 
-If you don't want to run the example in a REPL in order to experiment with it interactively then you can just run it via stack using:
+If you don't want to run the example in a REPL in order to experiment with it interactively you can then just run it via stack using:
 
 {line-numbers=off}
 ~~~~~~~~
