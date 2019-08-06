@@ -22,7 +22,7 @@ There is some overlap in functionality between the Python SpaCy NLP library and 
 
 ## Setting up the Python NLP Server
 
-I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions assuming that you have the utiities **pip**, and **python** installed. I recommend installing Python and Pip using [Anaconda](https://anaconda.org/anaconda/conda).
+I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions assuming that you have the utilities **pip**, and **python** installed. I recommend installing Python and Pip using [Anaconda](https://anaconda.org/anaconda/conda).
 
 The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** where you will work when performing a one time initialization. After the server is installed you can then run it from the command line from any directory on your laptop.
 

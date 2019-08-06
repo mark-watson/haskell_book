@@ -55,7 +55,8 @@ This is not a Python programming book and I will not discuss the simple Python w
 
 The code for the library for fetching data from the Python service is in the subdirectory **src** in the file **CorefWebClient.hs**.
 
-We will use techniques for accessing remote web services using the **wreq** library, using the **lens** library for accessing the reponse from the Python server, and using the **aeson** library to parse JSON data encoded in a string to native Haskell data:
+We will use techniques for accessing remote web services using the **wreq** library and using the **lens** library for accessing the response from the Python server. Here the response is plain text with pronouns replaced by the nouns that they represent. We don't use the **aeson** library to parse JSON data as we did in the previous chapter.
+
 
 {lang="haskell",linenos=on}
 ~~~~~~~

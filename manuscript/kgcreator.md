@@ -4,6 +4,11 @@ The large project described here processes raw text inputs and generates data fo
 
 This application works by identifying entities in text. Example entity types are people, companies, country names, city names, broadcast network names, political party names, and university names. We saw earlier code for detecting entities in the chapter on natural language processing (NLP) and we will reuse this code. We will discuss later three strategies for reusing code from different projects.
 
+The following figure shows part of a Neo4J Knowledge Graph created with the example code. This graph has shortened labels in displayed nodes but Neo4J offers a web browser-based console that lets you interactively explore Knowledge Graphs. We don't cover setting up Neo4J here so please use the [Neo4J documentation](https://neo4j.com/docs/operations-manual/current/introduction/). As an introduction to RDF data, the semantic web, and linked data you can get free copies of my two books [Practical Semantic Web and Linked Data Applications, Common Lisp Edition](http://markwatson.com/opencontentdata/book_lisp.pdf) and [Practical Semantic Web and Linked Data Applications, Java, Scala, Clojure, and JRuby Edition](http://markwatson.com/opencontentdata/book_java.pdf).
+
+{width=60%}
+![Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.jpg)
+
 There are two versions of this project that deal with generating duplicate data in  two ways:
 
 - As either Neo4J Cypher data or RDF triples data are created, store generated data in a SQLite embedded database. Check this database before writing new output data.
@@ -36,13 +41,13 @@ We will use this second approach but the next section provides sufficient inform
 
 ### Notes for Using SQLite to Avoid Duplicates (Optional Material)
 
-We saw two methods of avoiding duplicates in  generated data in the last section. If you want to use the first method for avoiding generating duplicate data you can then modify the example code by using the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils** and implement the logic seen below for checking new generated data to see if it is in the SQLite database. This first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad and is left as an exercise, otherwise skip this section.
+We saw two methods of avoiding duplicates in  generated data in the last section. If you want to use the first method for avoiding generating duplicate data, I leave it as an exercise but here are some notes to get you started: you can then modify the example code by using the utility function **Blackboard.h** in the directory **knowledge_graph_creator_pure/src/fileutils** and implement the logic seen below for checking new generated data to see if it is in the SQLite database. This first method as it also is a good example for wrapping the embedded SQLite library in an IO Monad and is left as an exercise, otherwise skip this section.
 
 Before you write either an RDF statement or a Neo4J Cypher data import statement, check to see if the statement has already been written using something like:
 
 {lang="haskell",linenos=off}
 ~~~~~~~
-  check <- blackboard_check_key (fst entity_pair)
+  check <- blackboard_check_key new_data_uri
   if check
      ....
 ~~~~~~~
@@ -110,7 +115,7 @@ library
       ../NlpTool/src/nlp/data
 ~~~~~~~~
 
-This is a standard looking *cabal* file except for lines 37 and 38 where the source paths reference the example code for the **NlpTool** application developed in a previous chapter. The exposed module **BlackBoard** is not used but I leave it in the *cabal* file in case you want to experiment with recording generated data in SQLite to avoid data duplication. You are likely to also want to use **BlackBoard** if you modify this example to continuously process incoming data in a production system. This is left as an exercise.
+This is a standard looking *cabal* file except for lines 37 and 38 where the source paths reference the example code for the **NlpTool** application developed in a previous chapter. The exposed module **BlackBoard** (line 8) is not used but I leave it in the *cabal* file in case you want to experiment with recording generated data in SQLite to avoid data duplication. You are likely to also want to use **BlackBoard** if you modify this example to continuously process incoming data in a production system. This is left as an exercise.
 
 Before going into too much detail on the implementation let's look at the layout of the project code:
 
@@ -504,7 +509,7 @@ The code in this file could be shortened but having repetitive code for each ent
 
 ## Utility Code for Generating Cypher Input Data for Neo4J
 
-Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but in practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example.
+Now we will generate Neo4J Cypher data. In order to keep the implementation simple, both the RDF and Cypher generation code starts with raw text and performs the NLP analysis to find entities. This example could be refactored to perform the NLP analysis just one time but in practice you will likely be working with either RDF or NEO4J and so you will probably extract just the code you need from this example (i.e., either the RDF or Cypher generation code).
 
  Before we look at the code, let's start with a few lines of generated Neo4J Cypher import data:
 

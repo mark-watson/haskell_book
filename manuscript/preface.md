@@ -44,12 +44,13 @@ The second section contains the following recipes implemented as complete progra
 - Using Sqlite and Postgres relational databases
 - Play a simple version of Blackjack card game
 
+A new third section (added in 2019 for the second edition) has three examples that were derived by my own work.
 
 ## Code Examples
 
 The code examples in this book are licensed under two software licenses and you can choose the license that works best for your needs: Apache 2 and GPL 3. To be clear, you can use the examples in commercial projects under the Apache 2 license and if you like to write Free (Libre) software then use the GPL 3 license.
 
-We will use *stack* as a build system for all code examples. The code examples are provided as 15 separate *stack* based projects. These examples [are found on github](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
+We will use *stack* as a build system for all code examples. The code examples are provided as 22 separate *stack* based projects. These examples [are found on github](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
 
 
 
@@ -66,7 +67,7 @@ I have spent many years engaged in object oriented programming starting with CLO
 
 I wrote printed books for publishers like Springer-Verlag, McGraw-Hill, and Morgan Kaufman before I started self-publishing my own books. I prefer eBooks because I can update already published books and update the code examples for eBooks.
 
-I encourage you to periodically check for updates to both this book and the code examples on the [leanpub.com web page for this book](https://leanpub.com/haskell-cookbook).
+I encourage you to periodically check for free updates to both this book and the code examples on the [leanpub.com web page for this book](https://leanpub.com/haskell-cookbook).
 
 
 ## Setting Up Your Development Environment
@@ -75,7 +76,7 @@ I strongly recommend that you use the *stack* tool from the [stack website](http
 
 It is important for you to learn the basics of using *stack* before jumping into this book because I have set up all of the example programs using stack.
 
-The github repository for the examples in this book is [located here[are found on github](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
+The github repository for the examples in this book is located at [github.com/mark-watson/haskell_tutorial_cookbook_examples](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
 
 Many of the example listings for code examples are partial or full listing of files in my github repository. I show the file name, the listing, and the output. To experiment with the example yourself you need to load it and execute the main function; for example, if the example file is TestSqLite1.hs in the sub-directory Database, then from the top level directory in the git repository for the book examples you would do the following:
 
@@ -116,15 +117,17 @@ $ Database git:(master) > stack build --exec TestSqlite1
 
 I include *README.md* files in the project directories with specific instructions.
 
-If you are an Emacs user I recommend that you follow the instructions in Appendix A, load the tutorial files into an Emacs buffer, build an example and open a REPL frame. If one is not already open type control-c control-l, switch to the REPL frame, and run the **main** function. When you make changes to the tutorial files, doing another control-c control-l will re-build the example in less than a second. In addition to using Emacs I occasionally use the IntelliJ Community Edition (free) IDE with the Haskell plugin, the TextMate editor (OS X only) with the Haskell plugin, or the GNU GEdit editor (Linux only).
+I now use VSCode for most of my Haskell development. With the Haskell plugins VSCode offers auto-completion while typing and highlights syntax errors. Previously I use other editor for Haskell development. If you are an Emacs user I recommend that you follow the instructions in Appendix A, load the tutorial files into an Emacs buffer, build an example and open a REPL frame. If one is not already open type control-c control-l, switch to the REPL frame, and run the **main** function. When you make changes to the tutorial files, doing another control-c control-l will re-build the example in less than a second. In addition to using Emacs I occasionally use the IntelliJ Community Edition (free) IDE with the Haskell plugin, the TextMate editor (OS X only) with the Haskell plugin, or the GNU GEdit editor (Linux only).
 
-Whether you use Emacs or run a REPL in a terminal window (command window if you are using Windows) the important thing is to get used to and enjoy the interactive style of development that Haskell provides.
+Appendix A also shows you how to setup the **stack* Haskell build tool.
+
+Whether you use Emacs/VSCode or run a REPL in a terminal window (command window if you are using Windows) the important thing is to get used to and enjoy the interactive style of development that Haskell provides.
 
 ## Why Haskell?
 
 I have been using Lisp programming languages professionally since 1982. Lisp languages are flexible and appropriate for many problems. Some might dissagree with me but I find that Haskell has most of the advantages of Lisp with the added benefit of being strongly typed. Both Lisp and Haskell support a style of development using an interactive shell (or "repl").
 
-What does being a strongly typed language mean? In a practical sense it means that you will often encounter syntax errors caused by type mismatches that you will need to fix before your code will compile (or run in the GHCi shell interpreter). Once your code compiles it will likely work, barring a logic error. The other benefit  that you can get is having to write fewer unit tests - at least that is my experience. So, using a strongly typed language is a tradeoff. When I don't use Haskell I tend to use dynamic languages like Clojure and Ruby.
+What does being a strongly typed language mean? In a practical sense it means that you will often encounter syntax errors caused by type mismatches that you will need to fix before your code will compile (or run in the GHCi shell interpreter). Once your code compiles it will likely work, barring a logic error. The other benefit  that you can get is having to write fewer unit tests - at least that is my experience. So, using a strongly typed language is a tradeoff. When I don't use Haskell I tend to use dynamic languages like Common Lisp or Python.
 
 ## Enjoy Yourself
 
@@ -132,4 +135,4 @@ I have worked hard to make learning Haskell as easy as possible for you. If you 
 
 ## Acknowledgements
 
-I would like to thank my wife Carol Watson for editing the manuscript for this book. I would like to thank Roy Marantz for reporting an error in the text.
+I would like to thank my wife Carol Watson for editing the manuscript for this book. I would like to thank Roy Marantz for reporting an error in the text of the first edition.
