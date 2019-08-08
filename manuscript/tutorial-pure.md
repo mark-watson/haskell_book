@@ -2,7 +2,7 @@
 
 Pure Haskell code has no side effects and if written properly is easy to read and understand. I am assuming that you have installed *stack* using the directions in Appendix A. It is important to keep a Haskell interactive **repl** open as you read the material in this book and experiment with the code examples as you read. I don't believe that you will be able to learn the material in this chapter unless you work along trying the examples and experimenting with them in an open Haskell repl!
 
-The directory **Pure** in the git repository contains the examples for this chapter. Many of the examples contain a small bit of impure code in a **main** function. We will cover how this impure code works in the next chapter. Here is an example of impure code, contained insde a **main** function that you will see in this chapter:
+The directory **Pure** in the git repository contains the examples for this chapter. Many of the examples contain a small bit of impure code in a **main** function. We will cover how this impure code works in the next chapter. Here is an example of impure code, contained inside a **main** function that you will see in this chapter:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~

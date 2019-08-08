@@ -135,4 +135,4 @@ I have worked hard to make learning Haskell as easy as possible for you. If you 
 
 ## Acknowledgements
 
-I would like to thank my wife Carol Watson for editing the manuscript for this book. I would like to thank Roy Marantz for reporting an error in the text of the first edition.
+I would like to thank my wife Carol Watson for editing the manuscript for this book. I would like to thank Roy Marantz and Michel Bénard for reporting an errors.
