@@ -24,7 +24,7 @@ In this example notice that the words "He" and "it" in the second sentence are r
 
 ## Installing the Python Coreference Server
 
-I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. First install the dependencies:
+I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. If you want to install the **neuralcoref** library using **pip** you must use and older version of **spaCy**. First install the dependencies:
 
 ~~~~~~~~
 pip install spacy==2.1.0
@@ -32,9 +32,19 @@ pip install neuralcoref
 pip install falcon
 ~~~~~~~~
 
-As I write this chapter the *neuralcoref* model and library require a slightly older version of SpaCy (the current latest version is 2.1.4).
+As I write this chapter the *neuralcoref* model and library require a slightly older version of **spaCy** (the current latest version is 2.3.0).
 
-Then change directory to the subdirectory **python_coreference_anaphora_resolution_server** and install the coref server:
+If you want to instead use the latest version of **spaCy** then install **neuralcoref** from source:
+
+~~~~~~~~
+pip install spacy
+git clone https://github.com/huggingface/neuralcoref.git
+cd neuralcoref
+python setup.py install
+pip install falcon
+~~~~~~~~
+
+After installing all dependencies, then change directory to the subdirectory **python_coreference_anaphora_resolution_server** and install the coref server:
 
 ~~~~~~~~
 cd python_coreference_anaphora_resolution_server

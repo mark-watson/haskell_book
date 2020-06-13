@@ -87,7 +87,7 @@ nlpClient query = do
   return ret
 ~~~~~~~
 
-The main comman line program for using the client library:
+The main command line program for using the client library:
 
 {lang="haskell",linenos=off}
 ~~~~~~~
