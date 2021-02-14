@@ -7,7 +7,7 @@ The directory **Pure** in the git repository contains the examples for this chap
 {lang="haskell",linenos=off}
 ~~~~~~~~
 main = do
-  putStrLn ("1 + 2 = " ++ show (+ 1 2))
+  putStrLn ("1 + 2 = " ++ show (1 + 2))
 ~~~~~~~~
 
 I ask you to treat these small bits of impure code in this chapter as a "black box" and wait for the next chapter for a fuller explanation.
