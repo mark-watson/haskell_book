@@ -15,7 +15,7 @@ The project **HybridHaskellPythonNlp** is a hybrid project: a Python web service
 
 ## A Request from the Author
 
-I spent time writing this book to help you, dear reader. I release this book under the Creative Commons "share and share alike, no modifications, no commercial reuse" license and set the minimum purchase price to $5.00 in order to reach the most readers. Under this license you can share a PDF version of this book with your friends and coworkers. If you found this book on the web (or it was given to you) and if it provides value to you then please consider doing one of the following to support my future writing efforts and also to support future updates to this book:
+I spent time writing this book to help you, dear reader. I release this book under the Creative Commons "share and share alike, no modifications, no commercial reuse" license and set the minimum purchase price to $5.00 in order to reach the most readers. You can also download a free copy from [my website](https://markwatson.com/books). Under this license you can share a PDF version of this book with your friends and coworkers. If you found this book on the web (or it was given to you) and if it provides value to you then please consider doing one of the following to support my future writing efforts and also to support future updates to this book:
 
 - Purchase a copy of this book at [leanpub.com/haskell-cookbook](https://leanpub.com/haskell-cookbook)
 - [Hire me as a consultant](http://markwatson.com/)
