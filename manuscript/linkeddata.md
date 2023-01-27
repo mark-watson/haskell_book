@@ -118,9 +118,12 @@ main = do
   print abstracts
 ~~~~~~~~
 
-The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 23-24 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I cover the use of **HXT** and the **HandsomeSoup** parsing libraries in the next chapter.
+The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 23-24 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
 
-In the **main** function, we use the utility function **simpleHttp** in line 20 to fetch the results as a ByteString and in line 21 we unback this to a regular Haskell String.
+We use **runX** to execute a series of operations on an XML document (the **doc** variable). We first select all elements in **doc** that have the CSS class **binding** using the **css** function. Next we extract the value of the **name** attribute from each selected element using **getAttrValue** and also extract the text inside the element using the function **deep**.
+The **&&&** operator is used to combine the two values for the name attribute and the element text into a tuple.
+
+In the **main** function, we use the utility function **simpleHttp** in line 20 to fetch the results as a ByteString and in line 21 we unpack this to a regular Haskell String.
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
