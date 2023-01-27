@@ -238,7 +238,10 @@ main = do
   print nn
 ~~~~~~~~
 
-This example should be extended with additional noise characters and stop words, depending on your application.
+This example should be extended with additional noise characters and stop words, depending on your application. The function **cleanText** simply uses substring replacements.
+
+Let's look more closely at **removeStopWords** that takes a single argument **s**, which is expected to be a string. **removeStopWords** uses a combination of several functions to remove stop words from the input string. The function **words** is used to split the input string **s** into a list of words.
+Then, the function **filter** is used to remove any words that match a specific condition. Here the condition is defined as a lambda function, which is passed as the first argument to the filter function. The lambda function takes a single argument **x** and returns a Boolean value indicating whether the word should be included in the output or not. The lambda function uses function **notElem** to check whether the lowercased version of the word **x** is present in a predefined list of stop words. Finally, we use the function **intercalate** to join the remaining words back into a single string. The first argument to function ** intercalate** is the separator that should be used to join the words, in this case, it's a single space.
 
 Here is the output from this example:
 

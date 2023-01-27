@@ -16,8 +16,7 @@ We will be using function **get** in the **Network.Wreq** module that has a type
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
-get
-  :: String -> IO (Response Data.ByteString.Lazy.Internal.ByteString)
+get::String -> IO (Response Data.ByteString.Lazy.Internal.ByteString)
 ~~~~~~~~
 
 We will be using the **OverloadedStrings** language extension to facilitate using both **[Char]** strings and **ByteString** data types. Note: In the GHCi repl you can use **:set -XOverloadedStrings**.

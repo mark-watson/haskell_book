@@ -2,7 +2,7 @@
 
 Pure Haskell code has no side effects and if written properly is easy to read and understand. I am assuming that you have installed *stack* using the directions in Appendix A. It is important to keep a Haskell interactive **repl** open as you read the material in this book and experiment with the code examples as you read. I don't believe that you will be able to learn the material in this chapter unless you work along trying the examples and experimenting with them in an open Haskell repl!
 
-The directory **Pure** in the git repository contains the examples for this chapter. Many of the examples contain a small bit of impure code in a **main** function. We will cover how this impure code works in the next chapter. Here is an example of impure code, contained inside a **main** function that you will see in this chapter:
+The directory **Pure** in the git repository contains the examples for this chapter. Many of the examples contain a small bit of impure code in a **main** function. We will cover how this impure code works in the next chapter but let's look at a short example of impure code that is contained inside a **main** function:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
@@ -10,9 +10,13 @@ main = do
   putStrLn ("1 + 2 = " ++ show (1 + 2))
 ~~~~~~~~
 
-I ask you to treat these small bits of impure code in this chapter as a "black box" and wait for the next chapter for a fuller explanation.
+The function **main** is the entry point of this short two line program. When the program is run, the main function will be executed.
 
-Pure Haskell code performs no I/O, network access, access to shared in-memory datastructures, etc.
+Here the function **main** uses the **do** notation to execute a single IO action, but **do** can also execute a sequence of actions. The **putStrLn** function prints a string to the console. The printed string is constructed by concatenating three parts: "1 + 2 = ", the result of the expression 1 + 2 (which is 3), and the string representation of this result, which is obtained by calling the function **show**.
+
+It's worth noting that **putStrLn** writes a string to the standard output and also writes a new line character to the console. In general, the function **show** is used to convert any value to a string, here it is converting the result of 1+2 to string to concatenate it with the previous string.
+
+Pure Haskell code performs no I/O, network access, access to shared in-memory data structures, etc.
 
 The first time you build an example program with *stack* it may take a while since library dependencies need to be loaded from the web. In each example directory, after an initial **stack build** or **stack ghci** (to run the repl) then you should not notice this delay.
 
@@ -196,7 +200,7 @@ Like all programming languages, Haskell has operator precedence rules as these e
 13
 ~~~~~~~~
 
-The examples in lines 1-4 illustrate that the multiplication operator has a higher precidence than the addition operator.
+The examples in lines 1-4 illustrate that the multiplication operator has a higher precedence than the addition operator.
 
 {lang="haskell",line-numbers=off}
 ~~~~~~~~
@@ -324,7 +328,11 @@ data MyColors = Orange | Red | Blue | Green | Silver
  deriving (Show)
 ~~~~~~~~
 
-This example is incomplete so we will modify it soon. Line 1 defines the possible values for our new type **MyColors**. On line 2, we are asking the Haskell compiler to automatically generate a function **show** that can convert a value to a string. **show** is a standard function and in general we want it defined for all types. **show** converts an instance to a string value.
+This code defines a new data type in Haskell named **MyColors** that has five values: **Orange**, **Red**, **Blue**, **Green** or **Silver**. The keyword **data** is used to define a new data type, and the "|" symbol is used to separate the different possible values (also known as constructors) of the type.
+
+The **deriving (Show)** clause at the end of the line tells the compiler to automatically generate an implementation of the **Show** type class for the **MyColors** type. In other words, we are asking the Haskell compiler to automatically generate a function **show** that can convert a value to a string. **show** is a standard function and in general we want it defined for all types. **show** converts an instance to a string value. This allows instances of **MyColors** to be converted to strings using the function **show**.
+
+The **MyColors** type defined here is an enumeration (i.e., it is a fixed set of values), it's an algebraic data type with no associated fields. This means that the type **MyColors** can only take one of the five values defined: **Orange**, **Red**, **Blue**, **Green** or **Silver**. There is another way to think about this. This code defines a new data type called **MyColors** with five constructors **Orange**, **Red**, **Blue**, **Green** or **Silver**.
 
 {lang="haskell",line-numbers=on}
 ~~~~~~~~
@@ -1030,6 +1038,10 @@ main = do
   print $ numberOpinion 2
 ~~~~~~~~
 
+The code in lines 3-7 defines the function **numberOpinion** that takes a single argument "n". We use a **case** expression to match the value of **n** against several possible cases. Each of these cases is defined using the **->** operator, followed by an expression to be evaluated if the case is matched.
+
+The first case, **0 -> 'Too low'** matches the value of **n** against 0, if the value of "n" is 0, the function will return the string "Too low". The second case, **1 -> 'just right'** matches the value of **n** against 1, if the value of **n** is 1, the function will return the string "just right".
+The last case is different in that it is a *catch all* case using the **_** as a wild card match. So, **_ -> 'OK, that is a number'** matches any other values of **n**: if the value of **nn** is not 0 or 1 the function will return the string "OK, that is a number".
 
 
 ### If Then Else expressions
