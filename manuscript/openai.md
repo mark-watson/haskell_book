@@ -1,12 +1,10 @@
 # Using the OpenAI Large Language Model APIs in Haskell
 
-*Note: this chapter is a work in progress*
+Here we will use the library **openai-hs** written by Alexander Thiemann. The GitHub repository for his library is [https://github.com/agrafix/openai-hs/tree/main/openai-hs](https://github.com/agrafix/openai-hs/tree/main/openai-hs).
 
-Here we will use the library ** openai-hs** written by Alexander Thiemann. The GitHub repository for his library and the example code we will use is [https://github.com/agrafix/openai-hs/tree/main/openai-hs](https://github.com/agrafix/openai-hs/tree/main/openai-hs).
+In the development of practical AI systems, LLMs like those provided by OpenAI, Anthropic, and Hugging Face have emerged as pivotal tools for numerous applications including natural language processing, generation, and understanding. These models, powered by deep learning architectures, encapsulate a wealth of knowledge and computational capabilities. As a Haskell enthusiast embarking on the journey of intertwining the elegance of Haskell with the power of these modern language models, you might also want to experiment with the OpenAI Python examples that are much more complete than what we look at here.
 
-In the development of practical AI systems, LLMs like those provided by OpenAI, Anthropic, and Hugging Face have emerged as pivotal tools for numerous applications including natural language processing, generation, and understanding. These models, powered by deep learning architectures, encapsulate a wealth of knowledge and computational capabilities. As a Haskell enthusiast embarking on the journey of intertwining the elegance of Racket with the power of these modern language models, you might also want to experiment with the OpenAI Python examples that are much more complete than what we look at here.
-
-OpenAI provides an API for developers to access models like GPT-4o. The OpenAI API is designed with simplicity and ease of use in mind, making it a favorable choice for developers. It provides endpoints for different types of interactions, be it text completion, translation, or semantic search among others. We will use the completion API in this chapter. The robustness and versatility of the OpenAI API make it a valuable asset for anyone looking to integrate advanced language understanding and generation capabilities into their applications.
+OpenAI provides an API for developers to access models like GPT-4o. The OpenAI API is designed with simplicity and ease of use in mind, making it a common choice for developers. It provides endpoints for different types of interactions, be it text completion, translation, or semantic search among others. We will use the text completion API in this chapter. The robustness and versatility of the OpenAI API make it a valuable asset for anyone looking to integrate advanced language understanding and generation capabilities into their applications.
 
 ## Example Client Code
 
@@ -18,7 +16,7 @@ The core of the program is the **completionRequestToString** function. This func
 
 An OpenAI client is instantiated using **makeOpenAIClient**, passing the API key, the HTTP manager, and an integer 4, which represents a maximum number of retries. The code then constructs a **ChatCompletionRequest**, specifying the model to use (in this case, **ModelId** "gpt-4o") and the messages to send. The messages consist of a single **ChatMessage** with the user’s prompt, setting **chmContent** to **Just (T.pack prompt)** and **chmRole** to "user". All other optional parameters in the request are left as Nothing, implying default values will be used.
 
-The function then sends the chat completion request using completeChat client request and pattern matches on the result to handle both success and failure cases. If the request fails **(Left failure)**, it returns a string representation of the failure. On success **(Right success)**, it extracts the assistant’s reply from the **chrChoices** field. It unpacks the content from Text to String, handling the case where content might be absent by providing a default message “No content”.
+The function then sends the chat completion request using **completeChat** client request and pattern matches on the result to handle both success and failure cases. If the request fails **(Left failure)**, it returns a string representation of the failure. On success **(Right success)**, it extracts the assistant’s reply from the **chrChoices** field. It unpacks the content from Text to String, handling the case where content might be absent by providing a default message “No content”.
 
 Finally, the function **main** serves as the entry point of the program. It calls **completionRequestToString** with the prompt "Write a hello world program in Haskell" and prints the assistant’s response using **putStrLn**. This demonstrates how to use the function in a real-world scenario, providing a complete example of sending a prompt to the OpenAI API and displaying the result.
 
@@ -76,7 +74,7 @@ main = do
     putStrLn response
 ```
 
-Here is sample output generated by the **gpt-4o** ApenAI model:
+Here is sample output generated by the **gpt-4o** OpenAI model:
 
 ```text
 $ cabal build
@@ -110,6 +108,7 @@ For completeness, here is a partial listing of the OpenAiApiClient.cabal file:
 ```haskell
 name:                OpenAiApiClient
 version:             0.1.0.0
+author:              Mark watson and the author of OpenAI Client library Alexander Thiemann
 build-type:          Simple
 cabal-version:       >=1.10
 
