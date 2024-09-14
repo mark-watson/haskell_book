@@ -6,6 +6,13 @@ In the development of practical AI systems, LLMs like those provided by OpenAI, 
 
 OpenAI provides an API for developers to access models like GPT-4o. The OpenAI API is designed with simplicity and ease of use in mind, making it a common choice for developers. It provides endpoints for different types of interactions, be it text completion, translation, or semantic search among others. We will use the text completion API in this chapter. The robustness and versatility of the OpenAI API make it a valuable asset for anyone looking to integrate advanced language understanding and generation capabilities into their applications.
 
+While we use the GPT-4o model here, you can substitute the following models:
+
+- GPT-4o - expensive to run, for complex multi-step tasks
+- GPT-4o-mini - inexpensive to run, for simpler tasks (this is the default model I use)
+- o1-preview - very expensive to run, most capable model that has massive knowledge of the real world and can solve complex multi-step reasoning problems.
+- o1-mini - slightly less expensive to run than o1-preview, less real world knowledge and simpler reasoning capabilities.
+
 ## Example Client Code
 
 This Haskell program demonstrates how to interact with the OpenAI ChatCompletion API using the Openai-hs library. The code sends a prompt to the OpenAI API and prints the assistant’s response to the console. It’s a practical example of how to set up an OpenAI client, create a request, handle the response, and manage potential errors in a Haskell application.
