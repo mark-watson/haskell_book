@@ -4,6 +4,7 @@ section1.md
 tutorial-pure.md
 tutorial-impure.md
 section2.md
+openai.md
 textprocessing.md
 nlptool.md
 linkeddata.md

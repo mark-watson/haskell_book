@@ -6,6 +6,7 @@ I expect you, dear reader, to have studied and absorbed the tutorial material on
 
 This section contains the following "recipe" applications:
 
+- Using the OpenAI APIs for text completion
 - Textprocessing CSV Files
 - Textprocessing JSON Files
 - Using sqlite and Postgres databases

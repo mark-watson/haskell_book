@@ -8,5 +8,114 @@ In the development of practical AI systems, LLMs like those provided by OpenAI, 
 
 OpenAI provides an API for developers to access models like GPT-4o. The OpenAI API is designed with simplicity and ease of use in mind, making it a favorable choice for developers. It provides endpoints for different types of interactions, be it text completion, translation, or semantic search among others. We will use the completion API in this chapter. The robustness and versatility of the OpenAI API make it a valuable asset for anyone looking to integrate advanced language understanding and generation capabilities into their applications.
 
+## Example Client Code
 
+This Haskell program demonstrates how to interact with the OpenAI ChatCompletion API using the Openai-hs library. The code sends a prompt to the OpenAI API and prints the assistant’s response to the console. It’s a practical example of how to set up an OpenAI client, create a request, handle the response, and manage potential errors in a Haskell application.
+
+Firstly, the code imports necessary modules and libraries. It imports **OpenAI.Client** for interacting with the OpenAI API and **Network.HTTP.Client** along with **Network.HTTP.Client.TLS** for handling HTTP requests over TLS. The **System.Environment** module is used to access environment variables, specifically to retrieve the OpenAI API key. Additionally, **Data.Text** is imported for efficient text manipulation, and **Data.Maybe** is used for handling optional values.
+
+The core of the program is the **completionRequestToString** function. This function takes a String argument **prompt** and returns an IO String, representing the assistant’s response. Inside this function, an HTTP manager with TLS support is created using **newManager tlsManagerSettings**. Then, it retrieves the OpenAI API key from the OPENAI_KEY environment variable using getEnv "OPENAI_KEY" and packs it into a **Text type** with **T.pack**.
+
+An OpenAI client is instantiated using **makeOpenAIClient**, passing the API key, the HTTP manager, and an integer 4, which represents a maximum number of retries. The code then constructs a **ChatCompletionRequest**, specifying the model to use (in this case, **ModelId** "gpt-4o") and the messages to send. The messages consist of a single **ChatMessage** with the user’s prompt, setting **chmContent** to **Just (T.pack prompt)** and **chmRole** to "user". All other optional parameters in the request are left as Nothing, implying default values will be used.
+
+The function then sends the chat completion request using completeChat client request and pattern matches on the result to handle both success and failure cases. If the request fails **(Left failure)**, it returns a string representation of the failure. On success **(Right success)**, it extracts the assistant’s reply from the **chrChoices** field. It unpacks the content from Text to String, handling the case where content might be absent by providing a default message “No content”.
+
+Finally, the function **main** serves as the entry point of the program. It calls **completionRequestToString** with the prompt "Write a hello world program in Haskell" and prints the assistant’s response using **putStrLn**. This demonstrates how to use the function in a real-world scenario, providing a complete example of sending a prompt to the OpenAI API and displaying the result.
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+import OpenAI.Client
+
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
+import System.Environment (getEnv)
+import qualified Data.Text as T
+import Data.Maybe (fromMaybe)
+
+-- example derived from the openai-client library documentation
+
+completionRequestToString :: String -> IO String
+completionRequestToString prompt = do
+    manager <- newManager tlsManagerSettings
+    apiKey <- T.pack <$> getEnv "OPENAI_KEY"
+    let client = makeOpenAIClient apiKey manager 4
+    let request = ChatCompletionRequest
+                 { chcrModel = ModelId "gpt-4o"
+                 , chcrMessages =
+                    [ ChatMessage
+                        { chmContent = Just (T.pack prompt)
+                        , chmRole = "user"
+                        , chmFunctionCall = Nothing
+                        , chmName = Nothing
+                        }
+                    ]
+                 , chcrFunctions = Nothing
+                 , chcrTemperature = Nothing
+                 , chcrTopP = Nothing
+                 , chcrN = Nothing
+                 , chcrStream = Nothing
+                 , chcrStop = Nothing
+                 , chcrMaxTokens = Nothing
+                 , chcrPresencePenalty = Nothing
+                 , chcrFrequencyPenalty = Nothing
+                 , chcrLogitBias = Nothing
+                 , chcrUser = Nothing
+                 }
+    result <- completeChat client request
+    case result of
+        Left failure -> return (show failure)
+        Right success ->
+            case chrChoices success of
+                (ChatChoice {chchMessage = ChatMessage {chmContent = content}} : _) ->
+                    return $ fromMaybe "No content" $ T.unpack <$> content
+                _ -> return "No choices returned"
+
+main :: IO ()
+main = do
+    response <- completionRequestToString "Write a hello world program in Haskell"
+    putStrLn response
+```
+
+Here is sample output generated by the **gpt-4o** ApenAI model:
+
+```text
+$ cabal build
+Build profile: -w ghc-9.8.1 -O1
+$ cabal run  
+Sure! Here is a simple "Hello, World!" program in Haskell:
+
+  main :: IO ()
+  main = putStrLn "Hello, World!"
+
+Explanation:
+- `main :: IO ()` declares that `main` is an I/O action that returns no meaningful value (indicated by `()`).
+- `putStrLn "Hello, World!"` is the I/O action that outputs the string "Hello, World!" followed by a newline.
+
+To run this program:
+1. Save the code in a file, for example, `hello.hs`.
+2. Open a terminal.
+3. Navigate to the directory containing `hello.hs`.
+4. Run the program using the Haskell compiler/interpreter (GHC). You can do this by running:
+
+   runhaskell hello.hs
+
+or by compiling it and then running the executable:
+
+   ghc -o hello hello.hs
+   ./hello
+```
     
+For completeness, here is a partial listing of the OpenAiApiClient.cabal file:
+
+```haskell
+name:                OpenAiApiClient
+version:             0.1.0.0
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable GenText
+  hs-source-dirs:      .
+  main-is:             GenText.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5, mtl >= 2.2.2, text, http-client >= 0.7.13.1, openai-hs, http-client-tls
+```
