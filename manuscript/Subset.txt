@@ -1,1 +1,4 @@
-openai.md
+preface.md
+section1.md
+tutorial-pure.md
+tutorial-impure.md
