@@ -3,11 +3,11 @@
 One of the great things about Haskell is that the language encourages us to think of our code in two parts:
 
 - Pure functional code (functions have no side effects) that is easy to write and test. Functional code tends to be shorter and less likely to be imperative (i.e., more functional, using maps and recursion, and less use of loops as in Java or C++).
-- Impure code that deals with side effects like file and network IO, maintaining state in a typesafe way, and isolate imperative code that has side effects.
+- Impure code that deals with side effects like file and network IO, maintaining state in a type safe way, and isolate imperative code that has side effects.
 
 In his excellent Functional Programming with Haskell class at [eDX](http://edx.org) Erik Meijer described pure code as being islands in the ocean and the ocean representing impure code. He says that it is a design decision how much of your code is pure (islands) and how much is impure (the ocean). This model of looking at Haskel programs works for me.
 
-My use the word "impure" is common for refering to Haskell code with side effects. Haskell is a purely functional language and side effects like I/O are best handled in a pure functional way using by wrapping pure values in **Mondads**.
+My use the word "impure" is common for referring to Haskell code with side effects. Haskell is a purely functional language and side effects like I/O are best handled in a pure functional way using by wrapping pure values in **Mondads**.
 
 In addition to showing you reusable examples of impure code that you will likely need in your own programs, a major theme of this chapter is handling impure code in a convenient type safe fashion. Any **Monad**, which wraps a single value, is used to safely manage state. I will introduce you to using **Monad** types as required for the examples in this chapter. This tutorial style introduction will prepare you for understanding the sample applications later.
 
@@ -350,7 +350,7 @@ main = do
   main
 ~~~~~~~~
 
-Note the use of recursion in line 11 to make this program loop forever until you use a *COntrol-c* to stop the program.
+Note the use of recursion in line 11 to make this program loop forever until you use a *Control-c* to stop the program.
 
 In line 10 we are using function **appendFile** to open a file, append a string to it, and then close the file. **appendFile** is of type **appendFile :: FilePath -> String -> IO ()**. It looks like we are passing a simple string as a file name instead of type **FilePath** but if you look up the definition of **FilePath** you will see that it is just an alias for string: **type FilePath = String**.
 
@@ -448,7 +448,7 @@ main = do
   print $ words fContents
 ~~~~~~~~
 
-I will run this twice: the first time without the file *temp.txt* present and a second time with *temp.txt* in the current durectory:
+I will run this twice: the first time without the file *temp.txt* present and a second time with *temp.txt* in the current directory:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
@@ -509,7 +509,7 @@ main = T.withSocketsDo $ do -- derived from library example
 
 The server accepts a string, reverses the string, and returns the reversed string to the client.
 
-I am assuming that you have done some network programming and are familiar with sockets, etc. The function **reverseStringLoop** defined in lines 9-13 accepts a socket as a parameter and returns a value of type **MonadIO** that wraps a byte-string value. In line 10 we use the **T.recv** function that takes two arguments: a socket and the maximum number of bytes to received from the client. The **case** expression reverses the received byte string, sends the reversed string back to the client, and recursively calls itself waiting for new data from the client. If the client breaks the socket connection, then the function retuns an empty **MonadIO()**.
+I am assuming that you have done some network programming and are familiar with sockets, etc. The function **reverseStringLoop** defined in lines 9-13 accepts a socket as a parameter and returns a value of type **MonadIO** that wraps a byte-string value. In line 10 we use the **T.recv** function that takes two arguments: a socket and the maximum number of bytes to received from the client. The **case** expression reverses the received byte string, sends the reversed string back to the client, and recursively calls itself waiting for new data from the client. If the client breaks the socket connection, then the function returns an empty **MonadIO()**.
 
 The **main** function defined in lines 15-21 listens on port 3000 for new client socket connections. In line 19, the function **T.acceptFork** accepts as an argument a socket value and a function to execute; the complete type is:
 
@@ -522,7 +522,7 @@ T.acceptFork
      -> ((T.Socket, T.SockAddr) -> IO ()) -> m GHC.Conc.Sync.ThreadId
 ~~~~~~~~
 
-Don't let line 3 scare you; the GHCi repl is just showing you where this type of **MonadIO** is defined. The return type refers to a thread ID that is passed to the function **forever :: Monad m => m a -> m b** that is defined in the module **Control.Monad** and lets the thread run until it teminates.
+Don't let line 3 scare you; the GHCi repl is just showing you where this type of **MonadIO** is defined. The return type refers to a thread ID that is passed to the function **forever :: Monad m => m a -> m b** that is defined in the module **Control.Monad** and lets the thread run until it terminates.
 
 The *network-simple* package is fairly high level and relatively simple to use. If you are interested you can find many client/server examples on the web that use the lower-level *network* package.
 
@@ -751,7 +751,7 @@ It is a matter of personal taste whether to code using bind or **do**. I almost 
 
 My goal in this book is to show you a minimal subset of Haskell that is relatively easy to understand and use for coding. However, a big part of using a language is reading other people's code so I do need to introduce a few more constructs that are widely used: applicative operators.
 
-Before we begin I need to introduce you to a new term: **Functor** which is a typeclass that defines only one method **fmap**. **fmap** is used to map a function over an **IO action** and has the type signature:
+Before we begin I need to introduce you to a new term: **Functor** which is a type class that defines only one method **fmap**. **fmap** is used to map a function over an **IO action** and has the type signature:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
@@ -796,7 +796,7 @@ Then we apply the pure function **reverse** to the values inside the **IO [Strin
             fmap reverse $ fileToWords "text1.txt"
 ~~~~~~~~
 
-Note that from the type of the **fmap** function, the input monad and output monad can wrap different types. For example, if we applied the function **head** to an **IO [String]** we would get an outut of **IO [Char]**.
+Note that from the type of the **fmap** function, the input monad and output monad can wrap different types. For example, if we applied the function **head** to an **IO [String]** we would get an output of **IO [Char]**.
 
 Finally we unwrap the [String] value inside the monad and set **words2** to this unwrapped value:
 
@@ -805,7 +805,7 @@ Finally we unwrap the [String] value inside the monad and set **words2** to this
   words2 <- fmap reverse $ fileToWords "text1.txt"
 ~~~~~~~~
 
-In summary, the **Functor** typeclass defines one method **fmap** that is useful for operating on data wrapped inside a monad.
+In summary, the **Functor** type class defines one method **fmap** that is useful for operating on data wrapped inside a monad.
 
 
 We will now implement a small application that finds common words in two text files, implementing the primary function three times, using:
@@ -1011,7 +1011,7 @@ trace :: String -> a -> a 	-- Defined in ‘Debug.Trace’
 traceShow :: Show a => a -> b -> b 	-- Defined in ‘Debug.Trace’
 ~~~~~~~~
 
-**trace** takes two arguments: the first is a string that that is written to stdout and the second is a function call to be evaluated. **traceShow** is like **trace* except that the first argument is cnverted to a tstring. The output from running this example is:
+**trace** takes two arguments: the first is a string that that is written to stdout and the second is a function call to be evaluated. **traceShow** is like **trace* except that the first argument is converted to a string. The output from running this example is:
 
 {linenos=off}
 ~~~~~~~~

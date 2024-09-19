@@ -12,7 +12,7 @@ main = do
 
 The function **main** is the entry point of this short two line program. When the program is run, the main function will be executed.
 
-Here the function **main** uses the **do** notation to execute a single IO action, but **do** can also execute a sequence of actions. The **putStrLn** function prints a string to the console. The printed string is constructed by concatenating three parts: "1 + 2 = ", the result of the expression 1 + 2 (which is 3), and the string representation of this result, which is obtained by calling the function **show**.
+Here the function **main** uses the **do** notation to execute a single IO action, but **do** can also execute a sequence of actions that can use impure Haskell code (i.e., code with side effects - as we cover in the next chapter). The **putStrLn** function prints a string to the console. The printed string is constructed by concatenating three parts: "1 + 2 = ", the result of the expression 1 + 2 (which is 3), and the string representation of this result, which is obtained by calling the function **show**.
 
 It's worth noting that **putStrLn** writes a string to the standard output and also writes a new line character to the console. In general, the function **show** is used to convert any value to a string, here it is converting the result of 1+2 to string to concatenate it with the previous string.
 
@@ -66,7 +66,7 @@ main = do
   putStrLn ("1 + 2 = " ++ show (sum2 1 2))
 ~~~~~~~~
 
-Line 1 defines a module named **Main**. The rest of this file is the definition of the module. This form of the module **do** expression exports all symbols so other code loading this module has access to **sum2** and **main**. If we only wanted to export **main** then we could use:
+Line 1 defines a module named **Main**. The rest of this file is the definition of the module. This form of the module **do** expression exports all symbols so other code loading this module has access to **sum2** and **main**. The function **sum2** takes two arguments, **x** and **y**, and returns their sum, **x + y**. If we only wanted to export **main** then we could use:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
@@ -97,7 +97,7 @@ sum2 :: Num a => a -> a -> a
 *Main> 
 ~~~~~~~~
 
-What if you want to build a standalone executable program from the example in **Smple.hs**? Here is an example:
+What if you want to build a standalone executable program from the example in **Simple.hs**? Here is an example:
 
 {linenos=on}
 ~~~~~~~~
@@ -486,7 +486,7 @@ Here you see that type **Num** and **Ord** are sub-types of type **Eq**, **Real*
 
 ## Functions Are Pure
 
-Again, it is worth pointing out that Haskell functions do not modify their inputs values. The common pattern is to pass immutable values to a function and modified values are returned. As a first example of this pattern we will look at the standard function **map** that takes two arguments: a function that converts a value of any type **a** to another type **b**, and a list of type **a**. Functions that take other functions as arguments are called **higher** **order** **functions**. The result is another list of the same length whose elements are of type **b** and the elements are calulated using the function passed as the first argument. Let's look at a simple example using the function **(+ 1)** that adds 1 to a value:
+Again, it is worth pointing out that Haskell functions do not modify their inputs values. The common pattern is to pass immutable values to a function and modified values are returned. As a first example of this pattern we will look at the standard function **map** that takes two arguments: a function that converts a value of any type **a** to another type **b**, and a list of type **a**. Functions that take other functions as arguments are called **higher** **order** **functions**. The result is another list of the same length whose elements are of type **b** and the elements are calculated using the function passed as the first argument. Let's look at a simple example using the function **(+ 1)** that adds 1 to a value:
 
 {lang="haskell",line-numbers=on}
 ~~~~~~~~
@@ -511,6 +511,22 @@ sum2 x y = x + y
 main = do
   putStrLn ("1 + 2 = " ++ show (sum2 1 2))
 ~~~~~~~~
+
+Please note that the last two lines of this listing is not pure code since we are creating a side effect of printing data. We will cover impure code in the next chapter but for now we briefly review to **do** construct:
+
+In Haskell, the **do** construct, especially when used with **main = do**, serves as a way to sequence multiple IO actions (operations that interact with the external world) in a clear and readable manner. It's syntactic sugar that makes it easier to work with monads, particularly the IO monad.
+
+Types of Impure Code Allowed within a do block:
+
+- Input/Output (I/O): Reading from files (readFile), writing to files (writeFile, appendFile), interacting with the console (getLine, putStrLn), and network communication.
+- State Management: Using monads like State or ST to manage mutable state within a purely functional context.
+- Exceptions: Handling runtime errors using functions like catch or try.
+- Foreign Function Interface (FFI): Calling external C libraries or interacting with other languages.
+- Concurrency: Spawning threads or using other concurrency primitives.
+- Time-related operations: Getting the current time, introducing delays, or working with timeouts.
+- Randomness: Generating random numbers or performing other non-deterministic actions.
+
+Essentially, any operation that has side effects or interacts with the world outside the pure functional realm of Haskell is considered impure and typically needs to be performed within the context of a do block or using other monadic constructs.
 
 For now let's just look at the mechanics of executing this file without using the REPL (started with *stack* **ghci**). We can simply build and run this example using *stack*, which is covered in some detail in Appendix A:
 
@@ -631,7 +647,16 @@ map :: (a -> b) -> [a] -> [b] 	-- Defined in ‘GHC.Base’
 
 ## Lazy Evaluation
 
-Haskell is refered to as a *lazy* *language* because expressions are not evaluated until they are used. Consider the following example:
+Haskell is referred to as a *lazy* *language*.
+
+In lazy evaluation, expressions are not evaluated until their results are absolutely necessary for the program's execution. This contrasts with eager evaluation, where expressions are evaluated as soon as they are encountered, regardless of whether their values are immediately needed.
+
+Benefits of Lazy Evaluation
+
+- Efficiency: By delaying computations until necessary, lazy evaluation can avoid performing unnecessary work, potentially leading to more efficient programs.
+- Flexibility: Lazy evaluation allows you to work with infinite data structures and perform operations on them without worrying about the entire structure being computed at once. Only the parts that are actually accessed will be evaluated.
+
+Consider the following example:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~
@@ -840,7 +865,7 @@ Ok, modules loaded: Main.
 20
 ~~~~~~~~
 
-This output is self explanatory except for line 7 that is the result of calling **testLetComprehension** that retuns an example list comprehension **[(a,b)|a<-[0..5],letb=10*a]**
+This output is self explanatory except for line 7 that is the result of calling **testLetComprehension** that returns an example list comprehension **[(a,b)|a<-[0..5],letb=10*a]**
 
 
 
@@ -921,7 +946,7 @@ Before generalizing the list manipuation process further, I would like to make a
 bumpList n (x:xs) = (n * x) : bumpList (n xs)
 ~~~~~~~~
 
-then the code still works correctly and is fairly readable. I would like you to get in the habit of avoiding extra uneeded parenthesis and one tool for doing this is running **hlint** (installing **hlint** is covered in Appendix A) on your Haskell code. Using **hlint** source file will provide warnings/suggestions like this:
+then the code still works correctly and is fairly readable. I would like you to get in the habit of avoiding extra unneeded parenthesis and one tool for doing this is running **hlint** (installing **hlint** is covered in Appendix A) on your Haskell code. Using **hlint** source file will provide warnings/suggestions like this:
 
 {lang="haskell",linenos=off}
 ~~~~~~~~
@@ -951,7 +976,7 @@ map' f [] = []
 map' f (x:xs) = f x : map' f xs
 ~~~~~~~~
 
-In line 2 we do not need parenthesis around **f x** because function application has a higher precidence than the operator **:** which adds an element to the beginning of a list.
+In line 2 we do not need parenthesis around **f x** because function application has a higher precedence than the operator **:** which adds an element to the beginning of a list.
 
 Are you pleased with how concise this definition of a map function is? Is concise code like **map'** readable to you? Speaking as someone who has written hundreds of thousands of lines of Java code for customers, let me tell you that I love the conciseness and readability of Haskell! I appreciate the Java ecosystem with many useful libraries and frameworks and augmented like fine languages like Clojure and JRuby, but in my opinion using Haskell is a more enjoyable and generally more productive language and programming environment.
 
@@ -969,7 +994,7 @@ Let's experiment with our **map'** function:
 
 Lines 1 and 3 should be understandable to you: we are creating a partial function like **(* 7)** and passing it to **map'** to apply to the list **[0..5]**.
 
-The syntax for the function in line 5 is called an *anonymous* *function*. Lisp programers, like myself, refer to this as a lambda expression. In any case, I often prefer using *anonymous* *functions* when a function will not be used elsewhere. In line 5 the argement to the anonymous inline function is **x** and the body of the function is **(x + 1) * 2**.
+The syntax for the function in line 5 is called an *anonymous* *function*. Lisp programers, like myself, refer to this as a lambda expression. In any case, I often prefer using *anonymous* *functions* when a function will not be used elsewhere. In line 5 the argument to the anonymous inline function is **x** and the body of the function is **(x + 1) * 2**.
 
 I do ask you to not get carried away with using too many anonymous inline functions because they can make code a little less readable. When we put our code in modules, by default every symbol (like function names) in the module is externally visible. However, if we explicitly export symbols in a module **do** expression then only the explicitly exported symbols are visible by other code that uses the module. Here is an example:
 

@@ -1,25 +1,22 @@
 # Preface
 
-This is the preface to the new second edition released summer of 2019.
+This is the preface the newest version of this book released September 2024.
 
-If you read my eBooks free online then please consider tipping me [https://markwatson.com/#tip](https://markwatson.com/#tip).
+If you read my eBooks free online then please consider hiring me for part time remote work: [https://markwatson.com/#tip](https://markwatson.com/#tip).
 
-It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at a few larger Haskell programs.
+It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at a few larger Haskell programs:
 
-## Additional Material in the Second Edition
-
-In addition to updating the introduction to Haskell and tutorial material, I have added a few larger projects to the second edition.
-
-The project **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
-
-The project **HybridHaskellPythonNlp** is a hybrid project: a Python web service that provides access to the SpaCy natural language processing (NLP) library and select NLP deep learning models and a Haskell client for accessing this service. It sometimes makes sense to develop polyglot applications (i.e., applications written in multiple programming languages) to take advantage of language specific libraries and frameworks. We will also use a similar hybrid example **HybridHaskellPythonCorefAnaphoraResolution** that uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to. This is a common processing step for systems that extract information from text.
+- **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
+- **HybridHaskellPythonNlp** is a hybrid project: a Python web service that provides access to the SpaCy natural language processing (NLP) library and select NLP deep learning models and a Haskell client for accessing this service.
+- **HybridHaskellPythonCorefAnaphoraResolution** that uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to.
+- Use of Large Language Models (LLMs) form OpenAI.
 
 
 ## A Request from the Author
 
-I spent time writing this book to help you, dear reader. I release this book under the Creative Commons "share and share alike, no modifications, no commercial reuse" license and set the minimum purchase price to $6.00 in order to reach the most readers. You can also read this (and all of my books) for free on my [my website](https://markwatson.com/books). Under this license you can share a PDF version of this book with your friends and coworkers. 
+I spent time writing this book to help you, dear reader. I release this book under the Creative Commons "share and share alike, no modifications, no commercial reuse" license and set the minimum purchase price to $7.99 in order to reach the most readers. You can also read this (and all of my eBooks) for free on [leanpub.com](https://leanpub.com/u/markwatson).
 
-If you would like to support my work please consider purchasing my books on [Leanpub](https://leanpub.com/u/markwatson) and star my git repositories that you find useful on [GitHub](https://github.com/mark-watson?tab=repositories&q=&type=public). You can also interact with me on social media on [Mastodon](https://mastodon.social/@mark_watson) and [Twitter](https://twitter.com/mark_l_watson).
+If you would like to support my work please consider purchasing my books on [Leanpub](https://leanpub.com/u/markwatson) and star my git repositories that you find useful on [GitHub](https://github.com/mark-watson?tab=repositories&q=&type=public). You can also interact with me on social media on [X/Twitter](https://twitter.com/mark_l_watson).
 
 I enjoy writing and your support helps me write new editions and updates for my books and to develop new book projects. Thank you!
 
@@ -118,17 +115,19 @@ $ Database git:(master) > stack build --exec TestSqlite1
 
 I include *README.md* files in the project directories with specific instructions.
 
-I now use VSCode for most of my Haskell development. With the Haskell plugins VSCode offers auto-completion while typing and highlights syntax errors. Previously I use other editor for Haskell development. If you are an Emacs user I recommend that you follow the instructions in Appendix A, load the tutorial files into an Emacs buffer, build an example and open a REPL frame. If one is not already open type control-c control-l, switch to the REPL frame, and run the **main** function. When you make changes to the tutorial files, doing another control-c control-l will re-build the example in less than a second. In addition to using Emacs I occasionally use the IntelliJ Community Edition (free) IDE with the Haskell plugin, the TextMate editor (OS X only) with the Haskell plugin, or the GNU GEdit editor (Linux only).
+I now use VSCode for most of my Haskell development. With the Haskell plugins VSCode offers auto-completion while typing and highlights syntax errors. Previously I use other editor for Haskell development. If you are an Emacs user I recommend that you follow the instructions in Appendix A, load the tutorial files into an Emacs buffer, build an example and open a REPL frame. If one is not already open type control-c control-l, switch to the REPL frame, and run the **main** function. When you make changes to the tutorial files, doing another control-c control-l will re-build the example in less than a second.
 
-Appendix A also shows you how to setup the **stack* Haskell build tool.
+Appendix A also shows you how to setup the **stack* Haskell build tool. As I update this book in September 2024 I have started using Cabal more often than Stack. The README files in the [code examples for this book](https://github.com/mark-watson/haskell_tutorial_cookbook_examples) usually have both stack and Cabal instructions for building and how to run the examples.
 
 Whether you use Emacs/VSCode or run a REPL in a terminal window (command window if you are using Windows) the important thing is to get used to and enjoy the interactive style of development that Haskell provides.
 
 ## Why Haskell?
 
-I have been using Lisp programming languages professionally since 1982. Lisp languages are flexible and appropriate for many problems. Some might dissagree with me but I find that Haskell has most of the advantages of Lisp with the added benefit of being strongly typed. Both Lisp and Haskell support a style of development using an interactive shell (or "repl").
+I have been using Lisp programming languages professionally since 1982. Lisp languages are flexible and appropriate for many problems. Some might disagree with me but I find that Haskell has most of the advantages of Lisp with the added benefit of being strongly typed. Both Lisp and Haskell support a style of development using an interactive shell (or "repl").
 
 What does being a strongly typed language mean? In a practical sense it means that you will often encounter syntax errors caused by type mismatches that you will need to fix before your code will compile (or run in the GHCi shell interpreter). Once your code compiles it will likely work, barring a logic error. The other benefit  that you can get is having to write fewer unit tests - at least that is my experience. So, using a strongly typed language is a tradeoff. When I don't use Haskell I tend to use dynamic languages like Common Lisp or Python.
+
+Haskell supports type safety, concurrency, and high performance applications.
 
 ## Enjoy Yourself
 

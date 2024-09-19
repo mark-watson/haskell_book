@@ -1,5 +1,7 @@
 # Appendix A - Haskell Tools Setup
 
+Here I discuss the *stack* build tool but as I update this book in September 2024, I now frequently just use *Cabal* to build and run projects. The README files for the examples in the [GitHub repository for this book](https://github.com/mark-watson/haskell_tutorial_cookbook_examples) usually have directions for both *stack* and *Cabal*.
+
 I recommend that if you are new to Haskell that you at least do a minimal installation of *stack* and work through the first chapter using an interactive REPL. After experimenting with the REPL then do please come back to Appendix A and install support for the editor of your choice (or an IDE) and hlint.
 
 ## stack
@@ -38,13 +40,7 @@ I have already created stack projects for the examples in this book. When you ha
 
 ## Emacs Setup
 
-There are several good alternatives to using the Emacs editor:
-
-- GEdit on Linux
-- TextMate on OS X
-- IntelliJ with the Haskell plugin (all platforms)
-
-I use all three of these alternatives on occasion, but Emacs with *haskell-mode* is my favorite environment. There are instructions for adding *haskell-mode* to Emacs on the [project home page on github](https://github.com/haskell/haskell-mode). If you follow these instructions you will have syntax hiliting and Emacs will understand Haskell indentation rules.
+There are several good alternatives to using the Emacs editor but Emacs with *haskell-mode* is my favorite environment. There are instructions for adding *haskell-mode* to Emacs on the [project home page on github](https://github.com/haskell/haskell-mode). If you follow these instructions you will have syntax hi-liting and Emacs will understand Haskell indentation rules.
 
 ## Do you want more of an IDE-like Development Environment?
 
