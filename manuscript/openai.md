@@ -2,6 +2,8 @@
 
 Here we will use the library **openai-hs** written by Alexander Thiemann. The GitHub repository for his library is [https://github.com/agrafix/openai-hs/tree/main/openai-hs](https://github.com/agrafix/openai-hs/tree/main/openai-hs).
 
+We will start by writing client code to call the OpenAI completion API for an arbitrary input text. We will then use this completion client code for a specialized application: finding all the place names in input text and returning them as a list of strings.
+
 In the development of practical AI systems, LLMs like those provided by OpenAI, Anthropic, and Hugging Face have emerged as pivotal tools for numerous applications including natural language processing, generation, and understanding. These models, powered by deep learning architectures, encapsulate a wealth of knowledge and computational capabilities. As a Haskell enthusiast embarking on the journey of intertwining the elegance of Haskell with the power of these modern language models, you might also want to experiment with the OpenAI Python examples that are much more complete than what we look at here.
 
 OpenAI provides an API for developers to access models like GPT-4o. The OpenAI API is designed with simplicity and ease of use in mind, making it a common choice for developers. It provides endpoints for different types of interactions, be it text completion, translation, or semantic search among others. We will use the text completion API in this chapter. The robustness and versatility of the OpenAI API make it a valuable asset for anyone looking to integrate advanced language understanding and generation capabilities into their applications.
@@ -36,6 +38,7 @@ import Network.HTTP.Client.TLS
 import System.Environment (getEnv)
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
+import Data.Text (splitOn)
 
 -- example derived from the openai-client library documentation
 
@@ -124,4 +127,45 @@ executable GenText
   main-is:             GenText.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5, mtl >= 2.2.2, text, http-client >= 0.7.13.1, openai-hs, http-client-tls
+```
+
+## Adding a Simple Application: Find Place Names in Input Text
+
+The example file **GenText.hs** contains a small application example that uses the function **completionRequestToString prompt** that we defined in the last section.
+
+Here we define a new function:
+
+```haskell
+findPlaces :: String -> IO [String]
+findPlaces text = do
+    let prompt = "Extract only the place names separated by commas from the following text:\n\n" ++ text
+    response <- completionRequestToString prompt 
+    -- Convert Text to String using T.unpack before filtering
+    let places = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response) 
+    -- Strip leading and trailing whitespace from each place name
+    return $ map (T.unpack . T.strip . T.pack) places
+```
+
+The function **findPlaces** extracts a list of place names from a given text using an LLM (Large Language Model).
+
+- It constructs a prompt instructing the LLM to extract only comma-separated place names.
+- It sends this prompt to the LLM using the **completionRequestToString** function.
+- It processes the LLM's response, splitting it into a list of potential place names, filtering out empty entries, and stripping leading/trailing whitespace.
+- It returns the final list of extracted place names.
+
+You should use the function **findPlaces** as a template for prompting the OpenAI completion models like GPT-4o to perform specific tasks.
+
+Given the example code:
+
+```haskell
+main :: IO ()
+main = do
+    places <- findPlaces "I visited London, Paris, and New York last year."
+    print places 
+```
+
+The output would look like:
+
+```
+["London","Paris","New York"]
 ```
