@@ -1,6 +1,6 @@
 # Web Scraping
 
-In my past work I usually used the Ruby scripting language for web scraping but as I use the Haskell language more often for projects both large and small I am now using Haskell for web scraping, data collection, and data cleaning tasks. If you worked through the tutorial chapter on impure Haskell programming then you already know most of what you need to understand this chapter. Here we will walk through a few short examples for common web scraping tasks.
+In my past work I usually used the Ruby and Python scripting languages for web scraping but as I use the Haskell language more often for projects both large and small I am now using Haskell for web scraping, data collection, and data cleaning tasks. If you worked through the tutorial chapter on impure Haskell programming then you already know most of what you need to understand this chapter. Here we will walk through a few short examples for common web scraping tasks.
 
 Before we start a tutorial about web scraping I want to point out that much of the information on the web is copyright and the first thing that you should do is to read the terms of service for web sites to insure that your use of web scraped data conforms with the wishes of the persons or organizations who own the content and pay to run scraped web sites.
 

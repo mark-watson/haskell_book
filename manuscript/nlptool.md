@@ -1,6 +1,8 @@
 # Natural Language Processing Tools
 
-The tools developed in this chapter are modules you can reuse in your programs. We will develop a command line program that reads a line of text from STDIN and writes sematic information as output to STDOUT. I have used this in a Ruby program by piping input text data to a forked process and reading the output which is a semantic representation of the input text.
+The tools developed in this chapter are modules you can reuse in your programs. We will develop a command line program that reads a line of text from STDIN and writes semantic information as output to STDOUT. I have used this in a Ruby program by piping input text data to a forked process and reading the output which is a semantic representation of the input text.
+
+*Note: we previously saw a small application of the OpenAI completion LLMs to find place names in input text. We could replace most of the examples in this chapter with calls to a LLM completion API with NLP specific prompts.*
 
 We will be using this example as an external dependency to a later example in the chapter **Knowledge Graph Creator**.
 
@@ -564,7 +566,7 @@ Before looking at the code example listing, let's see how the functions defined 
 ["NN","VBD","IN","DT","NN"]
 ~~~~~~~~
 
-Function **bigram** takes a list or words and returns a list of word pairs. We need the word pairs because parts of the tagging algorithm needs to see a word with its preceeding word. In an imperative language, I would loop over the words and for a word at index **i** I would have the word at index **i - 1**. In a functional language, we avoid using loops and in this case create a list of adjacent word pairs to avoid having to use an explicit loop. I like this style of functional programming but if you come from years of using imperative language like Java and C++ it takes some getting used to.
+Function **bigram** takes a list or words and returns a list of word pairs. We need the word pairs because parts of the tagging algorithm needs to see a word with its preceding word. In an imperative language, I would loop over the words and for a word at index **i** I would have the word at index **i - 1**. In a functional language, we avoid using loops and in this case create a list of adjacent word pairs to avoid having to use an explicit loop. I like this style of functional programming but if you come from years of using imperative language like Java and C++ it takes some getting used to.
 
 **tagHelper** converts a word into a list of the word and its likely tag. **substitute** applies **tagHelper** to a list of words, getting the most probable tag for each word. The function **fixTags** will occasionally override the default word tags based on a few rules that are derived from Eric Brill's paper [A Simple Rule-Based Part of Speech Tagger](http://aclweb.org/anthology/A92-1021).
 

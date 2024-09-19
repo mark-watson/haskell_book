@@ -1,6 +1,6 @@
 # Linked Data and the Semantic Web
 
-I am going to show you how to query semantic web data sources on the web and provide examples for how you might use this data in applications. I have written two previous books on the semantic web, one covering Common Lisp and the other covering JVM languages Java, Scala, Clojure, and Ruby. You can get free PDF versions on the [book page of www.markwatson.com](http://www.markwatson.com/books/). If you enjoy the light introduction in this chapter then please do download a free copy of my semantic web book for more material on RDF, RDFS, and SPARQL.
+I am going to show you how to query semantic web data sources on the web and provide examples for how you might use this data in applications. I have written two previous books on the semantic web, one covering Common Lisp and the other covering JVM languages Java, Scala, Clojure, and Ruby. You can read these recent eBooks online for free on [my Leanpub author’s page](https://leanpub.com/u/markwatson). If you enjoy the light introduction in this chapter then please do read my other eBooks that cover in more detail semantic web material on RDF, RDFS, and SPARQL.
 
 I like to think of the semantic web and linked data resources as:
 
@@ -31,7 +31,7 @@ Example RDF N3 triples (subject, predicate, object) might look like:
 
 Element of triples can be URIs or string constants. Triples are often written all on one line; I split it to three lines to fit the page width. Here the subject is the URI for my web site, the predicate is a URI defining an ownership relationship, and the object is a string literal.
 
-If you want to see details for any property or other URI you see, then "follow your nose" and open the URI in a web browser. For example remove the brackets from the [owner property URI <http://dbpedia.org/ontology/owner>](http://dbpedia.org/ontology/owner) and open it in a web browser. For working with RDF data programatically, it is convenient using full URI. For humans reading RDF, the N3 notation is better because it supports defining URI standard prefixes for use as abbreviations; for example:
+If you want to see details for any property or other URI you see, then "follow your nose" and open the URI in a web browser. For example remove the brackets from the [owner property URI <http://dbpedia.org/ontology/owner>](http://dbpedia.org/ontology/owner) and open it in a web browser. For working with RDF data programmatically, it is convenient using full URI. For humans reading RDF, the N3 notation is better because it supports defining URI standard prefixes for use as abbreviations; for example:
 
 {lang="sparql",linenos=off}
 ~~~~~~~~
@@ -255,5 +255,5 @@ Web browser names extracted from the query results in sq3:
 
 If you enjoyed the material on linked data and DBPedia then please do get a free copy of one of my semantic web books [on my website book page](http://www.markwatson.com/books/) as well as other SPARQL and linked data tutorials on the web.
 
-Structured and sematically labelled data, when it is available, is much easier to process and use effectively than raw text and HTML collected from web sites.
+Structured and semantically labelled data, when it is available, is much easier to process and use effectively than raw text and HTML collected from web sites.
 

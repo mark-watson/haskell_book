@@ -1,2 +1,2 @@
-tutorial-pure.md
-tutorial-impure.md
+brave_search.md
+
