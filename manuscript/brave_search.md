@@ -107,11 +107,11 @@ formatResult WebResult{..} =
   in T.intercalate " | " [titleText, urlText, descText]
 ```
 
-## Haskell Code Description for Brave Search Suggestions
+### Haskell Code Description for Brave Search Suggestions
 
 This Haskell code implements a function, `getSearchSuggestions`, that fetches search suggestions from the Brave Search API.
 
-### Functionality:
+#### Functionality:
 
 * **`getSearchSuggestions`:** 
     * Takes an API key and a search query as input.
@@ -122,7 +122,7 @@ This Haskell code implements a function, `getSearchSuggestions`, that fetches se
     * Extracts search results and formats them, including the original query.
     * Returns either an error message (if something went wrong) or a list of formatted search suggestions.
 
-### Key Features:
+#### Key Features:
 
 * **Data Types:**
     * Defines data types to model the JSON structure of the Brave Search API response, including `SearchResponse`, `QueryInfo`, `WebResults`, and `WebResult`.
@@ -135,7 +135,7 @@ This Haskell code implements a function, `getSearchSuggestions`, that fetches se
 * **Formatting:**
     * The `formatResult` function formats each search result into a user-friendly string, including the title, URL, and a shortened description.
 
-### Libraries Used:
+#### Libraries Used:
 
 * `Network.HTTP.Simple` - For making HTTP requests.
 * `Data.Aeson` - For JSON parsing and encoding.
@@ -144,12 +144,12 @@ This Haskell code implements a function, `getSearchSuggestions`, that fetches se
 * `Network.HTTP.Client` - For additional HTTP functionalities.
 * `Data.ByteString.Char8` and `Data.ByteString.Lazy.Char8` - For working with byte strings.
 
-### Language Extensions:
+#### Language Extensions:
 
 * `OverloadedStrings` - Allows the use of string literals as `Text` values.
 * `RecordWildCards` - Enables convenient access to record fields using wildcards.
 
-### Overall:
+#### Overall:
 
 This code provides a basic but functional way to interact with the Brave Search API to retrieve and format search suggestions. It demonstrates good practices in Haskell programming, including data modeling, error handling, and the use of relevant libraries.
 
