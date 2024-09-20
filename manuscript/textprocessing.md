@@ -15,8 +15,7 @@ The **Either** type *Either a b* contains either a *Left a* or a *Right b* value
 
 The destructuring trick in line 15 in the following listing lets us separate the head and rest of a list in one operation; for example:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *TestCSV> let z = [1,2,3,4,5]
 *TestCSV> z
 [1,2,3,4,5]
@@ -25,12 +24,11 @@ The destructuring trick in line 15 in the following listing lets us separate the
 1
 *TestCSV> xs
 [2,3,4,5]
-~~~~~~~~
+```
 
 Here is how to read a CSV file:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 module TestCSV where
 
 import Text.CSV (parseCSVFromFile, CSV)
@@ -48,26 +46,24 @@ main = do
   let header:rows = c -- destructure
   print header
   print rows
-~~~~~~~~
+```
 
 Function **readCsvFile** reads from a file and returns a **CSV**. What is a **CSV** type? You could search the web for documentation, but dear reader, if you have worked this far learning Haskell, by now you know to rely on the GHCi repl:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *TestCSV> :i CSV
 type CSV = [Text.CSV.Record] 	-- Defined in ‘Text.CSV’
 *TestCSV> :i Text.CSV.Record
 type Text.CSV.Record = [Text.CSV.Field] 	-- Defined in ‘Text.CSV’
 *TestCSV> :i Text.CSV.Field
 type Text.CSV.Field = String 	-- Defined in ‘Text.CSV’
-~~~~~~~~
+```
 
 So, a **CSV** is a list of records (rows in the spreadsheet file), each record is a list of fields (i.e., a string value).
 
 The output when reading the CVS file *test.csv* is:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 Prelude> :l TestCSV
 [1 of 1] Compiling TestCSV          ( TestCSV.hs, interpreted )
 Ok, modules loaded: TestCSV.
@@ -76,7 +72,7 @@ Ok, modules loaded: TestCSV.
 ["name","John Smith","June Jones"]
 ["name"," email"," age"]
 [["John Smith"," jsmith@acmetools.com"," 41"],["June Jones"," jj@acmetools.com"," 38"]]
-~~~~~~~~
+```
 
 
 ## JSON Data
@@ -87,8 +83,7 @@ The first example uses the module **Text.JSON.Generic** (from the *json* library
 
 In the first example, we set the language type to include DeriveDataTypeable so a new type definition can simply derive *Typeable* which allows the compiler to generate appropriate **encodeJSON** and **decodeJSON** functions for the type **Person** we define in the example:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module TestTextJSON where
@@ -105,12 +100,11 @@ main = do
   print d
   print $ name d
   print $ email d
-~~~~~~~~
+```
 
 Notice that in line 13 that I specified the expected type in the **decodeJSON** call. This is not strictly required, the Haskell GHC compiler knows what to do in this case. I specified the type for code readability. The Haskell compiler wrote the **name** and **email** functions for me and I use these functions in lines 15 and 16 to extract these fields. Here is the output from running this example:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 Prelude> :l TestTextJSON.hs 
 [1 of 1] Compiling TestTextJSON     ( TestTextJSON.hs, interpreted )
 Ok, modules loaded: TestTextJSON.
@@ -119,14 +113,13 @@ Ok, modules loaded: TestTextJSON.
 Person {name = "Sam", email = "sam@a.com"}
 "Sam"
 "sam@a.com"
-~~~~~~~~
+```
 
 The next example uses the *Aeson* library and is similar to this example.
 
 Using *Aeson*, we set a language type *DeriveGeneric*  and in this case have the **Person** class derive **Generic**. The School of Haskell has an [excellent Aeson tutorial](https://www.schoolofhaskell.com/school/starting-with-haskell/libraries-and-frameworks/text-manipulation/json) that shows a trick I use in this example: letting the compiler generate required functions for types **FromJSON** and **ToJSON** as seen in lines 12-13.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE DeriveGeneric #-}
 
 module TestJSON where
@@ -149,14 +142,13 @@ main = do
   print d
   print $ name d
   print $ email d
-~~~~~~~~
+```
 
 I use a short cut in line 19, assuming that the **Maybe** object returned from **decode** (which the compiler wrote automatically for the type **FromJSON**) contains a **Just** value instead of an empty **Nothing** value. So in line 19 I directly unwrap the **Just** value.
 
 Here is the output from running this example:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 Prelude> :l TestAESON.hs 
 [1 of 1] Compiling TestJSON         ( TestAESON.hs, interpreted )
 Ok, modules loaded: TestJSON.
@@ -165,7 +157,7 @@ Ok, modules loaded: TestJSON.
 Person {name = "Sam", email = "sam@a.com"}
 "Sam"
 "sam@a.com"
-~~~~~~~~
+```
 
 Line 5 shows the result of printing the JSON encoded string value created by the call to **encode** in line 17 of the last code example. Line 6 shows the decoded value of type **Person**, and lines 7 and 8 show the inner wrapped values in the **Person** data.
 
@@ -184,16 +176,14 @@ You might be asking why we would need to clean up text. Here are a few common us
 
 Notice the **module** statement on line 1 of the following listing: I am exporting functions **cleanText** and **removeStopWords** so they will be visible and available for use by any other modules that import this module. In line 6 we import **intercalate** which constructs a string from a space character and an [String]  (i.e., a list of strings); here is an example where instead of adding a space character between the strings joined together, I add "*" characters:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *CleanText> intercalate "*" ["the", "black", "cat"]
 "the*black*cat"
-~~~~~~~~
+```
 
 The function **cleanText** removes garbage characters and makes sure that any punctuation characters are surrounded by white space (this makes it easier, for example, to determine sentence boundaries). Function **removeStopWords** removes common words like "a", "the", etc. from text.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module CleanText (cleanText, removeStopWords)  where
 
 import Data.List.Split (splitOn)
@@ -236,7 +226,7 @@ main = do
   print ct
   let nn = removeStopWords ct
   print nn
-~~~~~~~~
+```
 
 This example should be extended with additional noise characters and stop words, depending on your application. The function **cleanText** simply uses substring replacements.
 
@@ -245,14 +235,13 @@ Then, the function **filter** is used to remove any words that match a specific 
 
 Here is the output from this example:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 *TestCleanText> :l CleanText.hs 
 [1 of 1] Compiling TestCleanText    ( CleanText.hs, interpreted )
 Ok, modules loaded: TestCleanText.
 *TestCleanText> main
 "The cat and all dog escaped . They were caught ."
 "cat dog escaped . They were caught ."
-~~~~~~~~
+```
 
 We will continue working with text in the next chapter.

@@ -6,7 +6,7 @@ Here we will write a Haskell client for using a Natural Language Processing (NLP
 
 Before learning how to use the Python NLP server code and understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:
 
-~~~~~~~~
+```{line-numbers: false}
 $ stack build --fast --exec HybridHaskellPythonNlp-exe
 Enter text (all on one line)
 John Smith went to Mexico to see the Pepsi plant
@@ -14,7 +14,7 @@ response from NLP server:
 NlpResponse {entities = ["John Smith/PERSON","Mexico/GPE","Pepsi/ORG"],
              tokens = ["John","Smith","went","to","Mexico","to","see","the","Pepsi","plant"]}
 Enter text (all on one line)
-~~~~~~~~
+```
 
 Notice on line 5 that each of the three entities is tagged with the entity type. **GPE** is the tag for a country and the tag **ORG** can refer to an entity that is a company or a non-profit organization.
 
@@ -28,24 +28,24 @@ The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp
 
 I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. First install the dependencies:
 
-~~~~~~~~
+```{line-numbers: false}
 pip install -U spacy
 python -m spacy download en
 pip install falcon
-~~~~~~~~
+```
 
 Then change directory to the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** and install the NLP server:
 
-~~~~~~~~
+```{line-numbers: false}
 cd HybridHaskellPythonNlp/python_spacy_nlp_server
 python setup.py install
-~~~~~~~~
+```
 
 Once you install the server, you can run it from any directory on your laptop or server using:
 
-~~~~~~~~
+```{line-numbers: false}
 spacynlpserver
-~~~~~~~~
+```
 
 I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use a REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
 
@@ -57,8 +57,7 @@ This is not a Python programming book and I will not discuss the simple Python w
 The Python server returns JSON file. We saw earlier the use of the Haskell **aeson** library for parsing JSON data stored as a string into Haskell native data. We also used the **wreq** library to access remote web services. We use both of these libraries here:
 
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: false}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
@@ -85,12 +84,11 @@ nlpClient query = do
   r <- get $ base_url ++ (E.encode query) ++ "&no_detail=1"
   let ret = (decodeJSON (unpack (fromJust (r ^? responseBody)))) :: NlpResponse
   return ret
-~~~~~~~
+```
 
 The main command line program for using the client library:
 
-{lang="haskell",linenos=off}
-~~~~~~~
+```haskell{line-numbers: false}
 module Main where
 
 import NlpWebClient
@@ -103,7 +101,7 @@ main = do
   putStr "response from NLP server:\n"
   putStrLn $ show response
   main
-~~~~~~~
+```
 
 ## Wrap Up for Using the Python SpaCy NLP Service
 

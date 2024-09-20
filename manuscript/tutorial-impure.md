@@ -16,37 +16,33 @@ In addition to showing you reusable examples of impure code that you will likely
 
 I showed you many examples of pure code in the last chapter but most examples in source files (as opposed to those shown in a GHCi repl) had a bit of impure code in them: the **main** function like the following that simply writes a string of characters to standard output:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 main = do
   print "hello world"
-~~~~~~~~
+```
 
 The type of function **main** is:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> :t main
 main :: IO ()
-~~~~~~~~
+```
 
 The **IO ()** monad is an IO value wrapped in a type safe way. Because Haskell is a lazy evaluation language, the value is not evaluated until it is used. Every **IO ()** action returns exactly one value. Think of the word "mono" (or "one") when you think of Monads because they always return one value. Monads are also used to connnect together parts of a program.
 
 What is it about the function **main** in the last example that makes its type an **IO ()**? Consider the simple **main** function here:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 module NoIO where
 
 main = do
   let i = 1 in
     2 * i
-~~~~~~~~
+```
 
 and its type:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> :l NoIO
 [1 of 1] Compiling NoIO             ( NoIO.hs, interpreted )
 Ok, modules loaded: NoIO.
@@ -55,26 +51,24 @@ Ok, modules loaded: NoIO.
 *NoIO> :t main
 main :: Integer
 *NoIO> 
-~~~~~~~~
+```
 
 OK, now you see that there is nothing special about a **main** function: it gets its type from the type of value returned from the function. It is common to have the return type depend on the function argument types. The first example returns a type **IO ()** because it returns a print **do** expression:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> :t print
 print :: Show a => a -> IO ()
 *Main> :t putStrLn
 putStrLn :: String -> IO ()
-~~~~~~~~
+```
 
 The function **print** shows the enclosing quote characters when displaying a string while **putStrLn** does not. In the first example, what happens when we stitch together several expressions that have type **IO ()**? Consider:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 main = do
   print 1
   print "cat"
-~~~~~~~~
+```
 
 Function **main** is still of type **IO ()**. You have seen **do** expressions frequently in examples and now we will dig into what the **do** expression is and why we use it.
 
@@ -82,8 +76,7 @@ The **do** notation makes working with monads easier. There are alternatives to 
 
 One thing to note is that if you are doing bindings inside a **do** expression using a **let** with a **in** expression, you need to wrap the bindings in a new (inner) **do** expression if there is more than one line of code following the **let** statement. The way to avoid requiring a nested **do** expression is to not use **in** in a **let** expression inside a **do** block of code. Yes, this sounds complicated but let's clear up any confusion by looking at the examples found in the file *ImPure/DoLetExample.hs* (you might also want to look at the similar example file *ImPure/DoLetExample2.hs* that uses *bind* operators instead of a **do** statement; we will look at *bind* operators in the next section):
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 module DoLetExample where
   
 example1 = do  -- good style
@@ -110,7 +103,7 @@ main = do
   example1
   example2
   example3
-~~~~~~~~
+```
 
 You should use the pattern in function **example1** and not the pattern in **example2**. The **do** expression is syntactic sugar that allows programmers to string together a sequence of operations that can mix pure and impure code.
 
@@ -126,37 +119,33 @@ Even though I find it easier to write and read code using **do**, many Haskell p
 
 The Monad type class defines the operators **>>=** and **return**. We turn to the GHCi repl to experiment with and learn about these operators:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> :t (>>)
 (>>) :: Monad m => m a -> m b -> m b
 *Main> :t (>>=)
 (>>=) :: Monad m => m a -> (a -> m b) -> m b
 *Main> :t return
 return :: Monad m => a -> m a
-~~~~~~~~
+```
 
 We start with the **return** function type **return :: Monad m => a -> m a** which tells us that for a monad **m** the function **return** takes a value and wraps it in a monad. We will see examples of the **return** function used to return a wrapped value from a function that returns **IO ()** values. The *bind* operator **(>>)** is used to evaluate two expressions in sequence. As an example, we can replace this **do** expression:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 main = do
   example1
   example2
   example3
-~~~~~~~~
+```
 
 with the following:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 main = example1 >> example2 >> example3
-~~~~~~~~
+```
 
 The operator **>>=** is similar to **>>** except that it evaluates the left hand expression and pipes its value into the right hand side expression. The left hand side expression is evaluated to some type of **IO ()** and the expression on the right hand side typically reads from the input **IO ()**. An example will make this simpler to understand:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 module DoLetExample3 where
   
 example3 =  putStrLn "Enter an integer number:" >>  getLine
@@ -166,12 +155,11 @@ example4 mv = do
   putStrLn $ "Number plus 2 = " ++ (show number)
 
 main = example3 >>= example4
-~~~~~~~~
+```
 
 Note that I could have used a **do** statement to define function **example3** but used a *bind* operator instead. Let's run this example and look at the function types. Please don't just quickly read through the following listing; when you understand what is happening in this example then for the rest of your life programming in Haskell things will be easier for you:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 *DoLetExample3> main
 Enter an integer number:
 1
@@ -193,7 +181,7 @@ x :: IO String
 Enter an integer number:
 3
 Number plus 2 = 5
-~~~~~~~~
+```
 
 The interesting part starts at line 11 when we define **x** to be the returned value from calling **example3**. Remember that Haskell is a lazy language: evaluation is postponed until a value is actually used.
 
@@ -206,8 +194,7 @@ Haskell is a "piecemeal" programming language as are the Lisp family of language
 
 The directory *CommandLineApps* contains two simple applications that interact with STDIO, that is to write to the console and read from the keyboard. The first example can be found in file *CommandLineApp/CommandLine1.hs*:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
   
 import System.IO
@@ -218,25 +205,23 @@ main = do
   s <- getLine
   putStrLn $ "As upper case:\t" ++ (map toUpper s)
   main
-~~~~~~~~
+```
 
 Lines 3 and 4 import the entire **System.IO** module (that is, import all exported symbols from **System.IO**) and just the function **toUpper** from module **Data.Char**. **System.IO** is a standard Haskell module and we do not have to do anything special to import it. The **Data.Char** is stored in the package **text**. The package **text** is contained in the library package **base** which is specified in the *CommandLineApp.cabal* configuration file that we will look at soon.
 
 Use of the **<-** assignment in line 8 in the last Haskell listing is important to understand. It might occur to you to leave out line 8 and just place the **getLine** function call directly in line 9, like this:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
   putStrLn $ "As upper case:\t" ++ (map toUpper getLine)
-~~~~~~~~
+```
 
 If you try this (please do!) you will see compilation errors like:
 
-{linenos=on}
-~~~~~~~~
+```{line-numbers: false}
   Couldn't match expected type ‘[Char]’ with actual type ‘IO String’
   In the second argument of ‘map’, namely ‘getLine’
   In the second argument of ‘(++)’, namely ‘(map toUpper getLine)’
-~~~~~~~~
+```
     
 The type of **getLine** is an **IO ()** that is a wrapped IO call. The value is not computed until it is used. The **<-** assignment in line 8 evaluates the IO call and unwraps the result of the IO operation so that it can be used.
 
@@ -244,8 +229,7 @@ I don't spend much time covering *stack* project configuration files in this boo
 
 The Haskell stack project in the **CommandLineApp** directory has five target applications as we can see in the **CommandLineApp.cabal** file. I am not going to go into much detail about the project cabal and stack.yaml files generated by stack when you create a new project except for configuration data that I had to add manually; in this case, I added two executable targets at the end of the cabal file (note: the project in the github repository for this book has more executable targets, I just show a few here):
 
-{linenos=on}
-~~~~~~~~
+```{line-numbers: true}
 executable CommandLine1
   hs-source-dirs:      .
   main-is:             CommandLine1.hs
@@ -275,14 +259,13 @@ executable GameLoop2
   main-is:             GameLoop2.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5, random
-~~~~~~~~
+```
 
 The executable name determines the compiled and linked executable file name. For line 1, an executable file "CommandLine1" (or "CommandLine1.exe"" on Windows) will be generated. The parameter **hs-source-dirs** is a comma separated list of source file directories. In this simple example all Haskell source files are in the project's top level directory "../". The **build-depends** is a comma separated list of module libraries; here we only use the base built-in modules packaged with Haskell.
 
 Let's use a GHCi repl to poke at this code and understand it better. The project defined in *CommandLineApp/CommandLineApp.cabal* contains many executable targets so when we enter a GHCi repl, the available targets are shown and you can choose one; in this case I am selecting the first target defined in the *cabal* file. In later GHCi repl listings, I will edit out this output for brevity:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 $ stack ghci
 
 * * * * * * * *
@@ -323,7 +306,7 @@ As upper case:	LINE 2
 Enter a line of text for test 1:
 ^C Interrupted.
 *Main> 
-~~~~~~~~
+```
 
 In line 36 the function **getLine** is of type **getLine :: IO String** which means that calling **getLine** returns a value that is a computation to get a line of text from *stdio* but the IO operation is not performed until the value is used.
 
@@ -335,8 +318,7 @@ We will use the example in file *CommandLine2.hs* in the next section which is s
 
 We will now look at a short example of doing file IO. We will write Haskell simple string values to a file. If you are using the more efficient Haskell Text values, the code is the same. Text values are more efficient than simple string values when dealing with a lot of data and we will later use a compiler setting to automatically convert between the underlying formats. The following listing shows *CommandLineApp/CommandLine2.hs*:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
   
 import System.IO
@@ -348,7 +330,7 @@ main = do
   putStrLn $ "As upper case:\t" ++ (map toUpper s)
   appendFile "temp.txt" $ s ++ "\n"
   main
-~~~~~~~~
+```
 
 Note the use of recursion in line 11 to make this program loop forever until you use a *Control-c* to stop the program.
 
@@ -356,8 +338,7 @@ In line 10 we are using function **appendFile** to open a file, append a string 
 
 Running this example in a GHCi repl, with much of the initial printout from running *stack ghci* not shown:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+{```haskell{line-numbers: false}
 $ stack ghci
 CommandLineApp-0.1.0.0: configure
 Specify main module to use (press enter to load none): 2
@@ -372,14 +353,13 @@ As upper case:	LINE 2
 Enter a line of text for test2:
 ^C Interrupted.
 *Main> 
-~~~~~~~~
+```
 
 The file *temp.txt* was just created.
 
 The next example used *ReadTextFile.hs* to read the file *temp.txt* and process the text by finding all words in the file:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
   
 import System.IO
@@ -390,12 +370,11 @@ main = do
   print entireFileAsString
   let allWords = words entireFileAsString
   print allWords
-~~~~~~~~
+```
 
 **readFile** is a high-level function because it manages for you reading a file and closing the file handle it uses internally. The built in function **words** splits a string on spaces and returns a list of strings **[String]** that are printed on line 7:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 $ stack ghci
 CommandLineApp-0.1.0.0: build
 Specify main module to use (press enter to load none): 3
@@ -408,23 +387,21 @@ Ok, modules loaded: ReadTextFile.
 readFile :: FilePath -> IO String
 *ReadTextFile> :type words
 words :: String -> [String]
-~~~~~~~~
+```
 
 What if the function **readFile** encounters an error? That is the subject for the next section.
 
 ## Error Handling in Impure Code
 I know you have been patiently waiting to see how we handle errors in Haskell code. Your wait is over! We will look at several common types of runtime errors and how to deal with them. In the last section we used the function **readFile** to read the contents of a text file *temp.txt*. What if *temp.txt* does not exist? Well, then we get an error like the following when running the example program in *ReadTextFile.hs*:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> main
 *** Exception: temp.txt: openFile: does not exist (No such file or directory)
-~~~~~~~~
+```
 
 Let's modify this last example in a new file *ReadTextFileErrorHandling.hs* that catches a file not found error. The following example is derived from the first example in Michael Snoyman's article [Catching all exceptions](https://www.schoolofhaskell.com/user/snoyberg/general-haskell/exceptions/catching-all-exceptions). This example does not work inside threads; if you need to catch errors inside a thread then see the second example in Michael's article.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
   
 import System.IO
@@ -446,12 +423,11 @@ main = do
   fContents <- safeFileReader "temp.txt"
   print fContents
   print $ words fContents
-~~~~~~~~
+```
 
 I will run this twice: the first time without the file *temp.txt* present and a second time with *temp.txt* in the current directory:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: true}
 *Main> :l ReadTextFileErrorHandling.hs 
 [1 of 1] Compiling Main             ( ReadTextFileErrorHandling.hs, interpreted )
 Ok, modules loaded: Main.
@@ -463,7 +439,7 @@ Error: temp.txt: openFile: does not exist (No such file or directory)
 *Main> main
 "line 1\nline 2\n"
 ["line","1","line","2"]
-~~~~~~~~
+```
 
 Until you need to handle runtime errors in a multi-threaded Haskell program, following this example should be sufficient. In the next section we look at Network IO.
 
@@ -482,8 +458,7 @@ We start by using a high level library, **network-simple** for both the client a
 
 The Haskell **Network** and **Network.Simple** modules use strings represented as **Data.ByteString.Char8** data so as seen in line 1 I set the language type *OverloadedStrings*. The following example in file *ClientServer/Server.hs* is derived from an example in the *network-simple* project:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Server where
@@ -505,7 +480,7 @@ main = T.withSocketsDo $ do -- derived from library example
     forever . T.acceptFork lsock $ \(sock, addr) -> do
       putStrLn $ "Connection from " ++ show addr
       reverseStringLoop sock
-~~~~~~~~
+```
 
 The server accepts a string, reverses the string, and returns the reversed string to the client.
 
@@ -513,14 +488,13 @@ I am assuming that you have done some network programming and are familiar with 
 
 The **main** function defined in lines 15-21 listens on port 3000 for new client socket connections. In line 19, the function **T.acceptFork** accepts as an argument a socket value and a function to execute; the complete type is:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 *Main> :t T.acceptFork
 T.acceptFork
   :: transformers-0.4.2.0:Control.Monad.IO.Class.MonadIO m =>
      T.Socket
      -> ((T.Socket, T.SockAddr) -> IO ()) -> m GHC.Conc.Sync.ThreadId
-~~~~~~~~
+```
 
 Don't let line 3 scare you; the GHCi repl is just showing you where this type of **MonadIO** is defined. The return type refers to a thread ID that is passed to the function **forever :: Monad m => m a -> m b** that is defined in the module **Control.Monad** and lets the thread run until it terminates.
 
@@ -528,19 +502,17 @@ The *network-simple* package is fairly high level and relatively simple to use. 
 
 We will develop a client application to talk with this server in the next section but if you want to immediately try the server, start it and then run *telnet* in another terminal window:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 Prelude> :l Server
 [1 of 1] Compiling Server           ( Server.hs, interpreted )
 Ok, modules loaded: Server.
 *Main> main
 Listening at 0.0.0.0:3000
-~~~~~~~~
+```
 
 And run *telnet*:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 $ telnet localhost 3000
 Trying 127.0.0.1...
 Connected to localhost.
@@ -549,7 +521,7 @@ Escape character is '^]'.
 54321
 The dog ran down the street
 teerts eht nwod nar god ehT
-~~~~~~~~
+```
 
 In the next section we write a simple client to talk with this service example.
 
@@ -558,8 +530,7 @@ In the next section we write a simple client to talk with this service example.
 
 I want to use automatic conversion between strings represented as **Data.ByteString.Char8** data and regular **[Char]** strings so as seen in line 1 I set the language type *OverloadedStrings* in the example in file *Client.hs*:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Client where
@@ -575,21 +546,20 @@ main = do
   case response of
     Just s -> putStrLn $ "Response: " ++ show s
     Nothing -> putStrLn "No response from server"
-~~~~~~~~
+```
 
 The function **T.connect** in line 9 accepts arguments for a host name, a port, and a function to call with the connection socket to the server and the server's address. The body of this inline function, defined in in the middle on line 9 and continuing in lines 10-15, prints the server address, sends a string "test123" to the server, and waits for a response back from the server (**T.recv** in line 12). The server response is printed, or a warning that no response was received.
 
 While the example in file *Server.hs* is running in another terminal, we can run the client interactively:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 Prelude> :l Client.hs 
 [1 of 1] Compiling Client           ( Client.hs, interpreted )
 Ok, modules loaded: Client.
 *Main main
 Connection established to 127.0.0.1:3000
 Response: "321tset"
-~~~~~~~~
+```
 
 
 ## A Haskell Game Loop that Maintains State Functionally
@@ -598,8 +568,7 @@ The example in this section can be found in the file *GameLoop2.hs* in the direc
 
 This is an important example because it demonstrates one way to maintain state in a functional way. We have a read-only game state value that is passed to the function **gameLoop** which modifies the read-only game state passed as an argument and returns a newly constructed game state as the function's returned value. This is a common pattern that we will see again later when we develop an application to play a simplified version of the card game Blackjack in the chapter "Haskell Program to Play the Blackjack Card Game."
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module GameLoop2 where
 
 import System.Random
@@ -622,7 +591,7 @@ main = do
   let gameState = GameState pTime 1
   print "Guess a number between 1 and 4"
   gameLoop gameState
-~~~~~~~~
+```
 
 You notice in line 12 that since we are inside of a **do** expression we can *lift* (or unwrap) the **IO String ()** value returned from **getLine** to a string value that we can use directly. This is a pattern we will use repeatedly. The value returned from **getLine** is not used until line 13 when we use function **read** to extract the value from the **IO String ()** value **getLine** returned.
 
@@ -630,8 +599,7 @@ In the **if** expression in lines 14-16 we check if the user has input the corre
 
 The following listing shows a sample session playing the number guessing game.
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 Prelude> :l GameLoop2.hs 
 [1 of 1] Compiling GameLoop2        ( GameLoop2.hs, interpreted )
 Ok, modules loaded: GameLoop2.
@@ -652,7 +620,7 @@ Enter a number:
 2
 GameState {numberToGuess = 2, numTries = 2}
 *GameLoop2> 
-~~~~~~~~
+```
 
 We will use this pattern for maintaining state in a game in the later chapter "Haskell Program to Play the Blackjack Card Game."
 
@@ -663,10 +631,9 @@ Except for the Client/Server example, so far we have been mostly using simple **
 
 Many Haskell libraries use the simple **String** type but the use of **Data.Text** is also common, especially in applications handling large amounts of string data. We have already seen examples of this in the client/server example programs. Fortunately Haskell is a strongly typed language that supports a language extension for automatically handling both simple strings and the more efficient text types. This language extension, as we have seen in a previous example, is activated by adding the following near the top of a Haskell source file:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 {-# LANGUAGE OverloadedStrings     #-}
-~~~~~~~~
+```
 
 As much as possible I am going to use simple strings in this book and when we need both simple strings and byte strings I will then use *OverloadedStrings* for automatic conversion. This conversion is performed by knowing the type signatures of data and functions in surrounding code. The compiler figures out what type of string is expected and does the conversion for you.
 
@@ -677,12 +644,11 @@ We have been casually using different types of **IO ()** monads. In this section
 
 Monads are types belonging to the Monad type class that specifies one operator and one function:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 class Monad m where
   (>>=) :: m a -> (a -> m b) -> m b
   return :: a -> m a
-~~~~~~~~
+```
 
 The **>>=** operator takes two arguments: a monad wrapping a value (type **a** in the above listing) and a function taking the same type **a** and returning a monad wrapping a new type **b**. The return value of **>>=** is a new monad wrapping a value of type **b**.
 
@@ -693,10 +659,9 @@ The Monad type class function **return** takes any value and wraps it in a new m
 
 The definition for the constructor of a State monad is:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 newtype State s a = State { runState :: s -> (a, s) }
-~~~~~~~~
+```
 
 So far we have been using **data** to define new types and **newtype** is similar except **newtype** acts during compile time and no type information is present at runtime. All monads contain a value and for the State monad this value is a function. The **>>=** operator is called the *bind* operator.
 
@@ -704,8 +669,7 @@ The accessor function **runState** provides the means to access the value in the
 
 In order to make the following example more clear, I implement the increment state function twice, once using the **do** notation that you are already familiar with and once using the **>>=** bind operator:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
 
 import Control.Monad.State
@@ -730,7 +694,7 @@ main = do
   print $ runState (mapState bumpVals incrementState) 1 -- (2,4)
   print $ evalState incrementState 1  -- 1 == return value
   print $ execState incrementState 1  -- 2 == final state
-~~~~~~~~
+```
 
 Here we have used two very different looking, yet equivalent, styles for accessing and modifying state monad values. In lines 6-9 we are using the **do** notation. The function **get** in line 7 returns one value: the value wrapped in a state monad. Function **put** in line 8 replaces the wrapped value in the state monad, in this example by incrementing its numeric value. Finally **return** wraps the value in a monad.
 
@@ -738,11 +702,10 @@ I am using the **runState** function defined in lines 20-24 that returns a tuple
 
 In lines 12-15 I reimplemented increment state using the *bind* function (**>>=**). We have seen before that **>>=** passes the value on its left side to the computation on its right side, that is function calls in lines 13-15:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
   \a -> put (a + 1)
   \b -> return a
-~~~~~~~~
+```
 
 It is a matter of personal taste whether to code using bind or **do**. I almost always use the **do** notation in my own code but I wanted to cover bind both in case you prefer that notation and so you can also read and understand Haskell code using bind. We continue looking at alternatives to the **do** notation in the next section.
 
@@ -753,15 +716,13 @@ My goal in this book is to show you a minimal subset of Haskell that is relative
 
 Before we begin I need to introduce you to a new term: **Functor** which is a type class that defines only one method **fmap**. **fmap** is used to map a function over an **IO action** and has the type signature:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
   fmap :: Functor f => (a -> b) -> f a -> f b
-~~~~~~~~
+```
   
 **fmap** can be used to apply a pure function like **(a -> b)** to an **IO a** and return a new **IO b** without unwrapping the original **IO ()**. The following short example (in file *ImPure/FmapExample.hs*) will let you play with this idea:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module FmapExample where
 
 fileToWords fileName = do
@@ -773,37 +734,33 @@ main = do
   print $ reverse words1
   words2 <- fmap reverse $ fileToWords "text1.txt"
   print words2
-~~~~~~~~
+```
 
 In lines 8-9 I am unwrapping the result of the **IO [String]** returned by the function **fileToWords** and then applying the pure function **words** to the unwrapped value. Wouldn't it be nice to operate on the words in the file without unwrapping the **[String]** value? You can do this using **fmap** as seen in lines 10-11. Please take a moment to understand what line 10 is doing. Here is line 10:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
   words2 <- fmap reverse $ fileToWords "text1.txt"
-~~~~~~~~
+```
 
 First we read the words in a file into an **IO [String]** monad:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
                            fileToWords "text1.txt"
-~~~~~~~~
+```
 
 Then we apply the pure function **reverse** to the values inside the **IO [String]** monad, creating a new copy:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
             fmap reverse $ fileToWords "text1.txt"
-~~~~~~~~
+```
 
 Note that from the type of the **fmap** function, the input monad and output monad can wrap different types. For example, if we applied the function **head** to an **IO [String]** we would get an output of **IO [Char]**.
 
 Finally we unwrap the [String] value inside the monad and set **words2** to this unwrapped value:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
   words2 <- fmap reverse $ fileToWords "text1.txt"
-~~~~~~~~
+```
 
 In summary, the **Functor** type class defines one method **fmap** that is useful for operating on data wrapped inside a monad.
 
@@ -816,18 +773,16 @@ We will now implement a small application that finds common words in two text fi
 
 Let's look at the types for these operators:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<*>) :: Applicative f => f (a -> b) -> f a -> f b
-~~~~~~~~
+```
 
 We will use both <$> and <*> in the function **commonWords3** in this example and I will explain how these operators work after the following program listing.
 
 This practical example will give you a chance to experiment more with Haskell (you do have a GHCi repl open now, right?). The source file for this example is in the file *ImPure/CommonWords.hs*:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module CommonWords where
 
 import Data.Set (fromList, toList, intersection)
@@ -859,7 +814,7 @@ main = do
   print cw2
   cw3 <- commonWords3 "text1.txt" "text2.txt"
   print cw3
-~~~~~~~~
+```
 
 The function **fileToWords** defined in lines 6-8 simply reads a file, as in the last example, maps contents of the file to lower case, uses **words** to convert a **String** to a **[String]** list of individual words, and uses the function **Data.Set.fromList** to create a set from a list of words that in general will have duplicates. We are retuning an **IO (Data.Set.Base.Set String)** value so we can later perform a set intersection operation. In other applications you might want to apply **Data.Set.toList**  before returning the value from **fileToWords** so the return type of the function would be **IO [String]**.
 
@@ -879,20 +834,18 @@ I hope that this example has at least provided you with "reading knowledge" of t
 
 We saw examples of list comprehensions in the last chapter on pure Haskell programming. We can use **return** to get lists values that are instances of type Monad:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Prelude> :t (return [])
 (return []) :: Monad m => m [t]
 *Prelude> :t (return [1,2,3])
 (return [1,2,3]) :: (Monad m, Num t) => m [t]
 *Prelude> :t (return ["the","tree"])
 (return ["the","tree"]) :: Monad m => m [[Char]]
-~~~~~~~~
+```
 
 We can get list comprehension behavior from the **do** notation (here I am using the GHCi repl **:{** and **:}** commands to enter multiple line examples):
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 *Main> :{
 *Main| do num <- [1..3]
 *Main|    animal <- ["parrot", "ant", "dolphin"]
@@ -901,7 +854,7 @@ We can get list comprehension behavior from the **do** notation (here I am using
 [(1,"parrot"),(1,"ant"),(1,"dolphin"),
  (2,"parrot"),(2,"ant"),(2,"dolphin"),
  (3,"parrot"),(3,"ant"),(3,"dolphin")]
-~~~~~~~~
+```
 
 I won't use this notation further but you now will recognize this pattern if you read it in other people's code.
 
@@ -911,8 +864,7 @@ In the example in this section we will see how to time a block of code (using tw
 
 The first way we time a block of code uses **getPOSIXTime** and can be used to time pure or impure code. The second method using **timeIt** takes an **IO ()** as an argument; in the following example I wrapped pure code in a **print** function call which returns an **IO ()** as its value. The last example in the file *TimerTest.hs* shows how to run impure code wrapped in a timeout.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
 
 import Data.Time.Clock.POSIX -- for getPOSIXTime
@@ -945,7 +897,7 @@ main = do
   timeout 100000 $ print $ last $ anyCalculationWillDo 4000
   timeout 100000 $ print $ last $ anyCalculationWillDo 40000
   print $ anyCalculationWillDo 5
-~~~~~~~~
+```
 
 I wanted a function that takes a while to run so for **anyCalculationWillDo** (lines 7 to 11) I implemented an inefficient prime number generator.
 
@@ -953,8 +905,7 @@ When running this example on my laptop, the last two timeout calls (lines 26 and
 
 The last line 32 of code prints out the first 5 prime numbers greater than 1 so you can see the results of calling the time wasting test function **anyCalculationWillDo**.
 
-{linenos=on}
-~~~~~~~~
+```{line-numbers: false}
 $ stack build --exec TimerTest
 1473610528.2177s
 20000000
@@ -969,7 +920,7 @@ CPU time:   0.25s
 173
 2741
 [2,3,5,7,11]
-~~~~~~~~
+```
 
 The **timeout** function is useful for setting a maximum time that you are willing to wait for a calculation to complete. I mostly use **timeout** for timing out operations fetching data from the web.
 
@@ -979,8 +930,7 @@ Inside an **IO** you can use print statements to understand what is going on in 
 
 As an example, I have rewritten the example from the last section to use Debug.Trace.trace and Debug.Trace.traceShow:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
 
 import Debug.Trace  (trace, traceShow) -- for debugging only!
@@ -999,22 +949,20 @@ anyCalculationWillDo' n =
                 
 main = do
   print $ anyCalculationWillDo 5
-~~~~~~~~
+```
 
 In line 3 we import the **trace** and **showTrace** functions:
 
-{linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 *Main> :info trace
 trace :: String -> a -> a 	-- Defined in ‘Debug.Trace’
 *Main> :info traceShow
 traceShow :: Show a => a -> b -> b 	-- Defined in ‘Debug.Trace’
-~~~~~~~~
+```
 
 **trace** takes two arguments: the first is a string that that is written to stdout and the second is a function call to be evaluated. **traceShow** is like **trace* except that the first argument is converted to a string. The output from running this example is:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 +++ anyCalculationWillDo: 5
    -- sieve n:5
 "     -- inside sieve recursion"
@@ -1023,7 +971,7 @@ traceShow :: Show a => a -> b -> b 	-- Defined in ‘Debug.Trace’
 "     -- inside sieve recursion"
 "     -- inside sieve recursion"
 [2,3,5,7,11]
-~~~~~~~~
+```
 
 I don't usually like using the **trace** functions because debugging with them involves slightly rewriting my code. My preference is to get low level code written interactively in the GHCI repl so it does not need to be debugged. I very frequently use print statement inside **IO**s since adding them requires no significant modification of my code.
 

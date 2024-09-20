@@ -22,42 +22,38 @@ In the last chapter "Natural Language Processing Tools" we resolved entities in 
 
 Example RDF N3 triples (subject, predicate, object) might look like:
 
-{lang="sparql",linenos=off}
-~~~~~~~~
+```sparql{line-numbers: false}
 <http://www.markwatson.com>
   <http://dbpedia.org/ontology/owner>
   "Mark Watson" .
-~~~~~~~~
+```
 
 Element of triples can be URIs or string constants. Triples are often written all on one line; I split it to three lines to fit the page width. Here the subject is the URI for my web site, the predicate is a URI defining an ownership relationship, and the object is a string literal.
 
 If you want to see details for any property or other URI you see, then "follow your nose" and open the URI in a web browser. For example remove the brackets from the [owner property URI <http://dbpedia.org/ontology/owner>](http://dbpedia.org/ontology/owner) and open it in a web browser. For working with RDF data programmatically, it is convenient using full URI. For humans reading RDF, the N3 notation is better because it supports defining URI standard prefixes for use as abbreviations; for example:
 
-{lang="sparql",linenos=off}
-~~~~~~~~
+```sparql{line-numbers: false}
 prefix ontology: <http://dbpedia.org/ontology/>
 
 <http://www.markwatson.com>
   ontology:owner
   "Mark Watson" .
-~~~~~~~~
+```
 
 If you wanted to find all things that I own (assuming this data was in a public RDF repository, which it isn't) then we might think to match the pattern:
 
 
-{lang="sparql",linenos=off}
-~~~~~~~~
+```sparql{line-numbers: false}
 prefix ontology: <http://dbpedia.org/ontology/>
 
 ?subject ontology:owner "Mark Watson"
-~~~~~~~~
+```
 
 And return all URIs matching the variable **?subject** as the query result. This is the basic idea of making SPARQL queries.
 
 The following SPARQL query will be implemented later in Haskell using the HSparql library:
 
-{lang="sparql",linenos=on}
-~~~~~~~~
+```sparql{line-numbers: false}
 prefix resource: <http://dbpedia.org/resource/>
 prefix dbpprop: <http://dbpedia.org/property/>
 prefix foaf: <http://xmlns.com/foaf/0.1/>
@@ -67,7 +63,7 @@ WHERE {
     ?s dbpprop:genre resource:Web_browser .
     ?s foaf:name ?name .
 } LIMIT 5
-~~~~~~~~
+```
 
 In this last SPARQL query example, the triple patterns we are trying to match are inside a *WHERE* clause. Notice that in the two triple patterns, the subject field of each is the variable **?s**. The first pattern matches all DBPedia triples with a predicate <http://dbpedia.org/property/genre> and an object equal to <http://dbpedia.org/resource/Web_browser>. We then find all triples with the same subject but with a predicate equal to <http://xmlns.com/foaf/0.1/name>.
 
@@ -75,15 +71,14 @@ Each result from this query will contain two values for variables **?s** and **?
 
 Sometimes when I am using a specific SPARQL query in an application, I don't bother defining prefixes and just use URIs in the query. As an example, suppose I want to return the Wikipedia (or DBPedia) abstract for IBM. I might use a query such as:
 
-{lang="sparql",linenos=on}
-~~~~~~~~
+```sparql{line-numbers: false}
 select * where {
   <http://dbpedia.org/resource/IBM>
   <http://dbpedia.org/ontology/abstract>
   ?o .
   FILTER langMatches(lang(?o), "EN")
 } LIMIT 100
-~~~~~~~~
+```
 
 If you try this query using the [web interface for DBPedia SPARQL queries](http://dbpedia.org/sparql/) you get just one result because of the FILTER option that only returns English language results. You could also use FR for French results, GE for German results, etc.
          
@@ -91,8 +86,7 @@ If you try this query using the [web interface for DBPedia SPARQL queries](http:
 
 One approach to query the DBPedia SPARQL endpoint is to build a HTTP GET request, send it to the SPARQL endpoint server, and parse the returned XML response. We will start with this simple approach. You will recognize the SPARQL query from the last section:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module HttpSparqlClient where
@@ -116,7 +110,7 @@ main = do
   abstracts <- runX $ doc >>> css "binding" >>>
                               (getAttrValue "name" &&& (deep getText))
   print abstracts
-~~~~~~~~
+```
 
 The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 23-24 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
 
@@ -125,8 +119,7 @@ The **&&&** operator is used to combine the two values for the name attribute an
 
 In the **main** function, we use the utility function **simpleHttp** in line 20 to fetch the results as a ByteString and in line 21 we unpack this to a regular Haskell String.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 Prelude> :l HttpSparqlClient.hs 
 [1 of 1] Compiling HttpSparqlClient ( HttpSparqlClient.hs, interpreted )
 Ok, modules loaded: HttpSparqlClient.
@@ -136,7 +129,7 @@ Abstracts:
 
 [("o","International Business Machines Corporation (commonly referred to as IBM) is an American multinational technology and consulting corporation, with corporate headquarters in Armonk, New York.
   ...)]
-~~~~~~~~
+```
 
 ## Querying Remote SPARQL Endpoints
 
@@ -144,8 +137,7 @@ We will write some code in this section to make the example query to get the nam
 
 The example in this section can be found in *SparqlClient/TestSparqlClient.hs*. In the **main** function notice how I have commented out printouts of the raw query results. Because Haskell is type safe, extracting the values wrapped in query results requires knowing RDF element return types. I will explain this matching after the program listing:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 -- simple experiments with the excellent HSparql library
 
 module Main where
@@ -207,8 +199,7 @@ main = do
   case sq3 of
     Just a -> print $ map (\[Bound (LNode (PlainLL s _))] -> s) a
     Nothing -> putStrLn "nothing"
-~~~~~~~~
-
+```
 
 ### Haskell Code for SPARQL Queries with HSparql
 
@@ -252,28 +243,25 @@ You will notice how I have commented out print statements in the last example. W
 
 If we print the value for **sq1**:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 Raw results of company abstract SPARQL query:
 
 Just [[Bound (LNode (PlainLL "Edinburgh University Press ...
-~~~~~~~~
+```
 
 we see that inside a **Just** we have a list of lists. Each inner list is a **Bound** wrapping types defined in HSparql. We would unwrap **sq1** using:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
   case sq1 of
     Just a -> print $ map (\[Bound (LNode (PlainLL s _))] -> s) a
     Nothing -> putStrLn "nothing"
-~~~~~~~~
+```
 
 In a similar way I printed out the values of **sq2** and **sq3** to see the form os **case** statement I would need to unwrap them.
 
 The output from this example with three queries to the DBPedia SPARQL endpoint is:
 
-{linenos=on}
-~~~~~~~~
+```{line-numbers: false}
 Web browser names extracted from the company abstract query results in sq1:
 
 ["Edinburgh University Press \195\168 una casa editrice scientifica di libri accademici e riviste, con sede a Edimburgo, in Scozia.","Edinburgh University Press \195\169 uma editora universit\195\161ria com base em Edinburgh, Esc\195\179cia.","Edinburgh University Press is a scholarly publisher of academic books and journals, based in Edinburgh, Scotland."]
@@ -285,7 +273,7 @@ The type of company is extracted from the company type query results in sq2:
 Web browser names extracted from the query results in sq3:
 
 ["Grail","ViolaWWW","Kirix Strata","SharkWire Online","MacWeb","Camino","eww","TenFourFox","WiseStamp","X-Smiles","Netscape Navigator 2","SimpleTest","AWeb","IBrowse","iCab","ANT Fresco","Netscape Navigator 9.0","HtmlUnit","ZAC Browser","ELinks","ANT Galio","Nintendo DSi Browser","Nintendo DS Browser","Netscape Navigator","NetPositive","OmniWeb","Abaco","Flock","Steel","Kazehakase","GNU IceCat","FreeWRL","UltraBrowser","AMosaic","NetCaptor","NetSurf","Netscape Browser","SlipKnot","ColorZilla","Internet Channel","Obigo Browser","Swiftfox","BumperCar","Swiftweasel","Swiftdove","IEs4Linux","MacWWW","IBM Lotus Symphony","SlimBrowser","cURL","FoxyTunes","Iceweasel","MenuBox","Timberwolf web browser","Classilla","Rockmelt","Galeon","Links","Netscape Navigator","NCSA Mosaic","MidasWWW","w3m","PointerWare","Pogo Browser","Oregano","Avant Browser","Wget","NeoPlanet","Voyager","Amaya","Midori","Sleipnir","Tor","AOL Explorer"]
-~~~~~~~~
+```
 
 ## Linked Data and Semantic Web Wrap Up
 

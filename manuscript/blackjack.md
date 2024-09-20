@@ -8,8 +8,7 @@ This example starts by asking how many players, besides the card dealer and the 
 
 I define the types for playing cards and an entire card deck in the file *Card.hs*:
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 module Card (Card, Rank, Suit, orderedCardDeck, cardValue) where
 
 import Data.Maybe (fromMaybe)
@@ -42,7 +41,7 @@ cardValue aCard =
   case (Data.Map.lookup (rank aCard) rankMap) of
     Just n -> n
     Nothing -> 0 -- should never happen
-~~~~~~~
+```
 
 This module defines essential components for representing and working with playing cards.
 
@@ -85,8 +84,7 @@ This module defines essential components for representing and working with playi
 
 As usual, the best way to understand this code is to go to the GHCi repl:
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 *Main Card RandomizedList Table> :l Card
 [1 of 1] Compiling Card             ( Card.hs, interpreted )
 Ok, modules loaded: Card.
@@ -99,14 +97,13 @@ orderedCardDeck :: [Card]
 Card {rank = Two, suit = Hearts}
 *Card> cardValue $ head orderedCardDeck
 2
-~~~~~~~
+```
 
 So, we have a sorted deck of cards and a utility function for returning the numerical value of a card (we always count ace cards as 11 points, deviating from standard Blackjack rules).
 
 The next thing we need to get is randomly shuffled lists. The [Haskell Wiki](https://wiki.haskell.org/Random_shuffle) has a good writeup on randomizing list elements and we are borrowing their function **randomizedList** (you can see the source code in the file *RandomizedList.hs*). Here is a sample use:
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 *Card> :l RandomizedList.hs 
 [1 of 1] Compiling RandomizedList   ( RandomizedList.hs, interpreted )
 Ok, modules loaded: RandomizedList.
@@ -114,7 +111,7 @@ Ok, modules loaded: RandomizedList.
 *RandomizedList Card> randomizedList orderedCardDeck
 [Card {rank = Queen, suit = Hearts},Card {rank = Six, suit = Diamonds},Card {rank = Five, suit = Clubs},Card {rank = Five, suit = Diamonds},Card {rank = Seven, suit = Clubs},Card {rank = Three, suit = Hearts},Card {rank = Four, suit = Diamonds},Card {rank = Ace, suit = Hearts},
   ...
-~~~~~~~
+```
 
 Much of the complexity in this example is implemented in *Table.hs* which defines the type **Table** and several functions to deal and score hands of dealt cards:
 
@@ -173,8 +170,7 @@ The code uses lenses (`makeLenses ''Table`) to provide convenient access and mod
 * `setPlayerPasses` simulates the user passing, triggering the dealer and other players to finish their turns.
 
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE TemplateHaskell #-}  -- for makeLens
 
 module Table (Table (..), createNewTable, setPlayerBet, showTable, initialDeal,
@@ -332,16 +328,15 @@ dealCardToUser aTable playerIndex
 handOver :: Table -> Bool
 handOver aTable =
   _userPasses aTable
-~~~~~~~
+```
 
 In line 48 we use the function **makeLenses** to generate access functions for the type **Table**. We will look in some detail at lines 54-56 where we use the lense **over** function to modify a nested value in a table, returning a new table:
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 setCardDeck :: [Card] -> Table -> Table
 setCardDeck newDeck =
   over cardDeck (\_ -> newDeck)
-~~~~~~~
+```
 
 The expression in line 3 evaluates to a partial function that takes another argument, a table, and returns a new table with the card deck modified. Function **over** expects a function as its second argument. In this example, the inline function ignores the argument it is called with, which would be the old card deck value, and returns the new card deck value which is placed in the table value.
 
@@ -349,17 +344,15 @@ Using lenses can greatly simplify the code to manipulate complex types.
 
 Another place where I am using lenses is in the definition of function **scoreHands** (lines 88-109). On line 109 we are using the **over** function to replace the old player betting chip counts with the new value we have just calculated:
 
-{lang="haskell",linenos=off}
-~~~~~~~
+```haskell{line-numbers: true}
   over chipStacks (\_ -> newChipStacks) aTable
-~~~~~~~
+```
 
 Similarly, we use **over** in line 113 to change the current player bet. In function **handOver** on line 157, notice how I am using the generated function **_userPasses** to extract the value of the user passes boolean flag from a table.
 
-The function **main**, defined in the file *Main.hs*, uses the code we have just seen to represent a table and modify a table, is fairly simple. A main game loop repetitively accepts game user imput, and calls the appropriate functions to modify the current table, producing a new table. Remember that the table data is immutable: we always generate a new table from the old table when we need to modify it.
+The function **main**, defined in the file *Main.hs*, uses the code we have just seen to represent a table and modify a table, is fairly simple. A main game loop repetitively accepts game user input, and calls the appropriate functions to modify the current table, producing a new table. Remember that the table data is immutable: we always generate a new table from the old table when we need to modify it.
 
-{lang="haskell",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 module Main where
 
 import Card   -- pure code
@@ -409,7 +402,7 @@ main = do
   cardDeck <- randomDeck
   let aTable = initialDeal cardDeck (createNewTable num) num
   gameLoop aTable num
-~~~~~~~
+```
 
 This module combines the previously defined `Card` and `Table` modules with an impure `RandomizedList` module to implement the main game loop of a simplified Blackjack-like card game.
 
@@ -447,8 +440,7 @@ This module combines the previously defined `Card` and `Table` modules with an i
 
 I encourage you to try playing the game yourself, but if you don't here is a sample game:
 
-{lang="text",linenos=on}
-~~~~~~~
+```haskell{line-numbers: true}
 *Main Card RandomizedList Table> main
 Start a game of Blackjack. Besides yourself, how many other
 players do you want at the table?
@@ -518,7 +510,7 @@ Current table data:
   Dealt card values: [[10,6,3,2],[10,7],[8,10,6]]
   Current player bet: 20
   Player pass: True
-~~~~~~~
+```
 
 Here the game user has four cards with values of [10,6,3,2] for a winning score of 21. The dealer has [10,7] for a score of 17 and the other player has [8,10,6], a value greater than 21 so the player went "bust."
 

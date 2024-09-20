@@ -5,8 +5,7 @@ We will use what you have learned in the last two chapters to write applications
 ## Writing Command Line Applications in Haskell
 
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Main where
   
 import System.IO
@@ -17,4 +16,4 @@ main = do
   s <- getLine
   putStrLn $ "As upper case:\t" ++ (map toUpper s)
   main
-~~~~~~~~
+```

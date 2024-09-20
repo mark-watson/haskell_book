@@ -9,8 +9,7 @@ We will use the [sqlite-simple](https://hackage.haskell.org/package/sqlite-simpl
 There are other good libraries for database connectivity like [Persistent](https://www.stackage.org/package/persistent) but I like sqlite-simple and it has a gentle learning curve so that is what we will use here. You will learn the basics of database connectivity in this and the next section. Setting up and using *sqlite* is easy because the *sqlite-simple* library includes the compiled code for *sqlite* so configuration requires only the file path to the database file.
 
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -53,7 +52,7 @@ main = do
     mapM_ print  r2
     
   close conn
-~~~~~~~~
+```
 
 This Haskell code interacts with an SQLite database named "test.db" using the `Database.SQLite.Simple` library. 
 
@@ -85,24 +84,21 @@ This Haskell code interacts with an SQLite database named "test.db" using the `D
 The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-sqlite* library. It can also be used to pass values for queries like:
 
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 r <- query_ conn "SELECT name FROM customers where id = ?" (Only 4::Int)
-~~~~~~~~
+```
 
 To run this example start by creating a sqlite database that is stored in the file *test.db*:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 sqlite3 test.db "create table test (id integer primary key, str text);"
-~~~~~~~~
+```
 
 Then build and run the example:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 stack build --exec TestSqLite1
-~~~~~~~~
+```
 
 
 ## Database Access for Postgres
@@ -113,36 +109,32 @@ In any case, you will need to have Postgres installed and set up with a user acc
 
 If you are using Ubuntu you can install Postgres and create a role using:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib postgresql-server-dev-9.5
 sudo -u postgres createuser --interactive
 Enter name of role to add: markw
 Shall the new role be a superuser? (y/n) y
-~~~~~~~~
+```
 
 
 We will need to install postgresql-server-dev-9.5 in order to use the Haskell Postgres bindings. Note that your version of Ubuntu Linux may have a different version of the server dev package which you can find using:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 aptitude search postgresql-dev
-~~~~~~~~
+```
 
 If you are using Mac OS X you can then install Postgres as an application which is convenient for development. A role is automatically created with the same name as your OS X "short name." You can use the "Open psql" button on the interface to open a command line shell that functions like the *psql* command on Ubuntu (or other Linux distributions).
 
 We will need to install postgresql-server-dev-9.5 in order to use the Haskell Postgres bindings. Note that your version of Ubuntu Linux may have a different version of the server dev package which you can find using:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 aptitude search postgresql-dev
-~~~~~~~~
+```
 
 You will then want to create a database named **haskell** and set the password for role/account **markw** to **test1** for running the example in this section:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 createdb haskell
 sudo -u postgres psql
 postgres=# alter user markw encrypted password 'test1';
@@ -157,12 +149,11 @@ CREATE TABLE
 haskell=#  insert into customers values (1, 'Acme Cement', 'info@acmecement.com');
 INSERT 0 1
 haskell=# \q
-~~~~~~~~
+```
 
 If you are not familiar with using Postgres then take a minute to experiment with using the *psql* command line utility to connect to the database you just created and peform practice queries:
 
-{lang="sql",linenos=off}
-~~~~~~~~
+```sql{line-numbers: false}
 markw=# \c haskell
 You are now connected to database "haskell" as user "markw".
 haskell=# \d
@@ -199,24 +190,22 @@ haskell=# select * from links;
 (3 rows)
 
 haskell=# 
-~~~~~~~~
+```
 
 You can change default database settings using **ConnectInfo**:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 ConnectInfo	 
   connectHost :: String
   connectPort :: Word16
   connectUser :: String
   connectPassword :: String
   connectDatabase :: String
-~~~~~~~~
+```
 
 In the following example on lines 9-10 I use **defaultConnectInfo** that lets me override just some settings, leaving the rest set at default values. The code to access a database using *simple-postgresql* is similar to that in the last section, with a few API changes.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -246,7 +235,7 @@ main = do
     mapM_ print  r2
     
   close conn
-~~~~~~~~
+```
 
 
 Certainly, let's break down the provided Haskell code and generate its Markdown description.
@@ -288,15 +277,13 @@ This Haskell code interacts with a PostgreSQL database named "haskell". It utili
 
 The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-postgresql* library. It can also be used to pass values for queries like:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 r <- query_ conn "SELECT name FROM customers where id = ?" (Only 4::Int)
-~~~~~~~~
+```
 
 The monad mapping function **mapM\_** using in line 22 is like **mapM** but is used when we do not need the resulting collection from executing the map operation. **mapM\_** is used for side effects, in this case extracting the value for a collection of **Only** values and printing them. I removed some output from building the example in the following listing:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: false}
 $ Database-postgres git:(master) > stack build --exec TestPostgres1
 TestDatabase-0.1.0.0: build
 Preprocessing executable 'TestPostgres1' for TestDatabase-0.1.0.0...
@@ -313,7 +300,7 @@ Preprocessing executable 'TestPostgres1' for TestDatabase-0.1.0.0...
 (2,"Biff Home Sales","info@biff.com")
 (3,"My Pens","info@mypens.com")
 (4,"Mary Smith","marys@acme.com")
-~~~~~~~~
+```
 
 Postgres is my default database and I use it unless there is a compelling reason not to. While work for specific customers has mandated using alternative data stores (e.g., BigTable while working at Google and MongoDB at Compass Labs), Postgres supports relational tables, free text search, and structured data like JSON.
 

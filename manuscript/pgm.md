@@ -6,17 +6,15 @@ We will be using the project [monad-bayes]() as described in the paper [Practica
 
 Loading the project for this chapter ingo a GHCI repl loads many modules so the default prompt is uncomfortably long so we can use the **:set prompt** command:
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: true}
 *Main Control.Monad.Bayes Control.Monad.Bayes.Class Control.Monad.Bayes.Conditional Control.Monad.Bayes.Coprimitive Control.Monad.Bayes.Deterministic Control.Monad.Bayes.Dist Control.Monad.Bayes.Empirical Control.Monad.Bayes.Inference Control.Monad.Bayes.LogDomain Control.Monad.Bayes.Particle Control.Monad.Bayes.Primitive Control.Monad.Bayes.Prior Control.Monad.Bayes.Rejection Control.Monad.Bayes.Sampler Control.Monad.Bayes.Trace Control.Monad.Bayes.Weighted>> :set prompt >
 >
-~~~~~~~~
+```
 
 The following show three types of probability distributions defined in **monad-bayes**:
 
 
-{lang="haskell",linenos=off}
-~~~~~~~~
+```haskell{line-numbers: true}
 > let u  = uniform 0 1
 >:t u
 u :: MonadDist m => m (CustomReal m)
@@ -55,4 +53,4 @@ n :: MonadDist m => m (CustomReal m)
 5
 >uniform_dice 
 2
-~~~~~~~~
+```
