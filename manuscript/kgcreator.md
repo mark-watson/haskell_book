@@ -6,13 +6,7 @@ This application works by identifying entities in text. Example entity types are
 
 The following figure shows part of a Neo4J Knowledge Graph created with the example code. This graph has shortened labels in displayed nodes but Neo4J offers a web browser-based console that lets you interactively explore Knowledge Graphs. We don't cover setting up Neo4J here so please use the [Neo4J documentation](https://neo4j.com/docs/operations-manual/current/introduction/). As an introduction to RDF data, the semantic web, and linked data you can get free copies of my two books [Practical Semantic Web and Linked Data Applications, Common Lisp Edition](http://markwatson.com/opencontentdata/book_lisp.pdf) and [Practical Semantic Web and Linked Data Applications, Java, Scala, Clojure, and JRuby Edition](http://markwatson.com/opencontentdata/book_java.pdf).
 
-{width=60%}
 ![Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.png)
-
-second try on image:
-
-[Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.png)
-
 
 There are two versions of this project that deal with generating duplicate data in  two ways:
 

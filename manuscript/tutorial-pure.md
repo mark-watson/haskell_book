@@ -478,7 +478,6 @@ Red
 
 The following diagram shows a partial type hierarchy of a few types included in the standard Haskell Prelude (this is derived from the [Haskell Report at haskell.org](https://www.haskell.org/onlinereport/basic.html)):
 
-{width=60%}
 ![Example Haskell Type Hierarchy](images/example_type_hierarchy.png)
 
 
