@@ -9,6 +9,11 @@ The following figure shows part of a Neo4J Knowledge Graph created with the exam
 {width=60%}
 ![Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.png)
 
+second try on image:
+
+[Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.png)
+
+
 There are two versions of this project that deal with generating duplicate data in  two ways:
 
 - As either Neo4J Cypher data or RDF triples data are created, store generated data in a SQLite embedded database. Check this database before writing new output data.
