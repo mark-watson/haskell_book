@@ -72,7 +72,8 @@ instance FromJSON WebResult where
 
 getSearchSuggestions :: String -> String -> IO (Either String [T.Text])
 getSearchSuggestions apiKey query = do
-  let url = "https://api.search.brave.com/res/v1/web/search?q=" ++ query ++ "&country=US&count=5"
+  let url = "https://api.search.brave.com/res/v1/web/search?q=" ++
+            query ++ "&country=US&count=5"
   
   request <- parseRequest url
   let requestWithHeaders = setRequestHeader "Accept" ["application/json"]
@@ -94,7 +95,8 @@ getSearchSuggestions apiKey query = do
             Right searchResponse@SearchResponse{..} -> do
               let originalQuery = original query
                   webResults = results web
-              let suggestions = "Original Query: " <> originalQuery : map formatResult webResults
+              let suggestions = "Original Query: " <>
+                  originalQuery : map formatResult webResults
               return $ Right suggestions
 
 formatResult :: WebResult -> T.Text
@@ -105,34 +107,52 @@ formatResult WebResult{..} =
   in T.intercalate " | " [titleText, urlText, descText]
 ```
 
-This code defines a module named **BraveSearch** which provides a function **getSearchSuggestions**.  This function takes an API key and a search query as input. It then makes a request to the Brave Search API to fetch search suggestions related to the given query. Finally, it parses the API response and returns the suggestions as a list of formatted text strings.
+## Haskell Code Description for Brave Search Suggestions
 
-The code imports necessary modules for HTTP requests, JSON parsing, text manipulation, exception handling, and working with ByteStrings.
+This Haskell code implements a function, `getSearchSuggestions`, that fetches search suggestions from the Brave Search API.
 
-Several data types are defined to represent the structure of the JSON response received from the Brave Search API:
+### Functionality:
 
-- SearchResponse: The top-level structure of the response.
-- QueryInfo: Contains information about the original search query.
-- WebResults: Contains a list of web search results.
-- WebResult: Represents a single web search result with its title, URL, description, etc.
+* **`getSearchSuggestions`:** 
+    * Takes an API key and a search query as input.
+    * Constructs a URL to send a request to the Brave Search API, specifying the query, country, and result count.
+    * Sets up the HTTP request with necessary headers, including the API key.
+    * Makes the request and handles potential network errors.
+    * Checks the response status code. If it's 200 (OK), proceeds to parse the JSON response.
+    * Extracts search results and formats them, including the original query.
+    * Returns either an error message (if something went wrong) or a list of formatted search suggestions.
 
-The **FromJSON** instances define how to parse JSON data into the corresponding Haskell data types using the **aeson** library.
+### Key Features:
 
-The **getSearchSuggestions** function
+* **Data Types:**
+    * Defines data types to model the JSON structure of the Brave Search API response, including `SearchResponse`, `QueryInfo`, `WebResults`, and `WebResult`.
+* **JSON Parsing:**
+    * Uses the `aeson` library to parse the JSON response into the defined data types.
+* **Error Handling:**
+    * Employs `try` from the `Control.Exception` module to gracefully handle potential network errors during the HTTP request.
+* **HTTP Request:**
+    * Utilizes the `Network.HTTP.Simple` library to make the HTTP request to the Brave Search API.
+* **Formatting:**
+    * The `formatResult` function formats each search result into a user-friendly string, including the title, URL, and a shortened description.
 
-- Construct API URL: creates the URL for the Brave Search API request by appending the query and other parameters.
-- Prepare HTTP Request: creates an HTTP request to the constructed URL. It sets the necessary headers:
-  -- “Accept": "application/json" to indicate that it expects a JSON response.
-  -- “X-Subscription-Token": apiKey to provide the API key for authentication.
-- Make HTTP Request and Handle Errors: tries to make the HTTP request and handle potential network errors. If there's a network error, it returns a Left value with an error message. If the request is successful, it checks the HTTP status code. If the status code is not 200 (OK), it returns a Left value with an HTTP error message. If the status code is 200, it proceeds to parse the response body.
-- Parse JSON Response: uses eitherDecode to parse the JSON response body.
--- If there's a JSON parsing error, it returns a Left value with an error message.
--- If parsing is successful, it extracts the original query and web results from the response.
-- Format Results: it formats each web result using the formatResult function. It prepends the original query to the list of formatted results.
-- Return Results: returns a Right value containing the list of formatted suggestions if everything is successful.Otherwise, it returns a Left value containing the error message.
-- formatResult Function: this function takes a WebResult and formats it into a text string by combining its title, URL, and a shortened description (if available).
+### Libraries Used:
 
-In summary this code enables you to fetch search suggestions from the Brave Search API by providing an API key and a search query. It handles network errors, HTTP errors, and JSON parsing errors gracefully. Finally, it presents the search suggestions in a user-friendly formatted text.
+* `Network.HTTP.Simple` - For making HTTP requests.
+* `Data.Aeson` - For JSON parsing and encoding.
+* `Data.Text` - For efficient text handling.
+* `Control.Exception` - For error handling.
+* `Network.HTTP.Client` - For additional HTTP functionalities.
+* `Data.ByteString.Char8` and `Data.ByteString.Lazy.Char8` - For working with byte strings.
+
+### Language Extensions:
+
+* `OverloadedStrings` - Allows the use of string literals as `Text` values.
+* `RecordWildCards` - Enables convenient access to record fields using wildcards.
+
+### Overall:
+
+This code provides a basic but functional way to interact with the Brave Search API to retrieve and format search suggestions. It demonstrates good practices in Haskell programming, including data modeling, error handling, and the use of relevant libraries.
+
 
 Here is an example **Main.hs** file to use this library:
 
