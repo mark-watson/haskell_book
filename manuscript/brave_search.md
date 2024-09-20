@@ -2,12 +2,13 @@
 
 You need to sign up for a free or paid for account on the [Brave search page](https://brave.com/search/api/) and set an environment variable to your assigned API key:
 
-{line-numbers: false}
-```
+```{line-numbers: false}
 export BRAVE_SEARCH_API_KEY = BSAgQ-Nc5.....
 ```
 
-Library **BraveSearch.hs**:
+The Brave Search API allows you to access Brave Search results directly within your applications or services. It provides developers with the ability to harness the privacy-focused and independent search capabilities of Brave, returning results for web searches, news, videos, and more. To obtain an API key, simply create an account on the Brave Search API website and subscribe to either the Free or one of the paid plans. The Brave Search API offers flexible pricing tiers, including a free option for testing and development, making it accessible to a wide range of users and projects. Currently you can call the AI 2000 times a month on the free tier.
+
+The library developed in this chapter is implemented in a single file **BraveSearch.hs**:
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
@@ -104,11 +105,12 @@ formatResult WebResult{..} =
   in T.intercalate " | " [titleText, urlText, descText]
 ```
 
-The code defines a module named **BraveSearch** which provides a function **getSearchSuggestions**.  This function takes an API key and a search query as input. It then makes a request to the Brave Search API to fetch search suggestions related to the given query. Finally, it parses the API response and returns the suggestions as a list of formatted text strings.
+This code defines a module named **BraveSearch** which provides a function **getSearchSuggestions**.  This function takes an API key and a search query as input. It then makes a request to the Brave Search API to fetch search suggestions related to the given query. Finally, it parses the API response and returns the suggestions as a list of formatted text strings.
 
 The code imports necessary modules for HTTP requests, JSON parsing, text manipulation, exception handling, and working with ByteStrings.
 
 Several data types are defined to represent the structure of the JSON response received from the Brave Search API:
+
 - SearchResponse: The top-level structure of the response.
 - QueryInfo: Contains information about the original search query.
 - WebResults: Contains a list of web search results.
@@ -120,8 +122,8 @@ The **getSearchSuggestions** function
 
 - Construct API URL: creates the URL for the Brave Search API request by appending the query and other parameters.
 - Prepare HTTP Request: creates an HTTP request to the constructed URL. It sets the necessary headers:
--- “Accept": "application/json" to indicate that it expects a JSON response.
--- “X-Subscription-Token": apiKey to provide the API key for authentication.
+  -- “Accept": "application/json" to indicate that it expects a JSON response.
+  -- “X-Subscription-Token": apiKey to provide the API key for authentication.
 - Make HTTP Request and Handle Errors: tries to make the HTTP request and handle potential network errors. If there's a network error, it returns a Left value with an error message. If the request is successful, it checks the HTTP status code. If the status code is not 200 (OK), it returns a Left value with an HTTP error message. If the status code is 200, it proceeds to parse the response body.
 - Parse JSON Response: uses eitherDecode to parse the JSON response body.
 -- If there's a JSON parsing error, it returns a Left value with an error message.
@@ -206,8 +208,7 @@ This test code provides a basic example of how to use the `getSearchSuggestions`
 
 Here is the output:
 
-{line-numbers: false}
-```
+```{line-numbers: false}
 $ cabal run     
 Enter a search query:
 find a consultant for AI and common lisp, and the semantic web
