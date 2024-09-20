@@ -1,6 +1,10 @@
 # Using the Brave Search API
 
-TBD
+You need to sign up for a free or paid for account on the [Brave search page](https://brave.com/search/api/) and set an environment variable to your assigned API key:
+
+<pre>
+export BRAVE_SEARCH_API_KEY = BSAgQ-Nc5.....
+</pre>
 
 Library **BraveSearch.hs**:
 
@@ -194,15 +198,14 @@ The code interacts with the `BraveSearch` module to demonstrate how to fetch and
         - `Right suggestions`:
            - If the call was successful and returned a list of search suggestions:
              - Prints "Search suggestions:" to the console.
-             - Uses `mapM_` to iterate over the `suggestions` list and print each suggestion in the following format:
-               - `- suggestion text` 
+             - Uses `mapM_` to iterate over the `suggestions` list and print each suggestion in the following format:  `- suggestion text` 
 
 
 This test code provides a basic example of how to use the `getSearchSuggestions` function from the `BraveSearch` module. 
 
 Here is the output:
 
-```
+<pre>
 $ cabal run     
 Enter a search query:
 find a consultant for AI and common lisp, and the semantic web
@@ -211,4 +214,4 @@ Search suggestions:
 - Title: Mark Watson: AI Practitioner and Lisp Hacker | URL: https://markwatson.com/ | Description: I am the author of 20+ books on Artificial Intelligence, <strong>Common</strong> <strong>Lisp</stron
 - Title: Lisp (programming language) - Wikipedia | URL: https://en.wikipedia.org/wiki/Lisp_(programming_language) | Description: Scheme is a statically scoped and properly tail-recursive dialect of <strong>the</strong> <strong>Li
 - Title: The Lisp approach to AI (Part 1). If you are a programmer that reads… | by Sebastian Valencia | AI Society | Medium | URL: https://medium.com/ai-society/the-lisp-approach-to-ai-part-1-a48c7385a913 | Description: If you are a programmer that reads about the history and random facts of this lovely craft
-```
+</pre>
