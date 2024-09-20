@@ -17,8 +17,8 @@ There are two versions of this project that deal with generating duplicate data 
 For my own work I choose the second method since filtering duplicates is as easy as a few Makefile targets (the following listing is in the file **Makefile** in the directory
 **haskell_tutorial_cookbook_examples/knowledge_graph_creator_pure**):
 
-{lang="bash",linenos=off}
-~~~~~~~~
+
+```bash{line-numbers: false}
 all: gendata rdf cypher
 
 gendata:
@@ -33,7 +33,7 @@ cypher:
 	echo "Removing duplicate Cypher statements"
 	awk '!visited[$$0]++' out.cypher > output.cypher
 	rm -f out.cypher
-~~~~~~~~
+```
 
 The Haskell KGCreator application we develop here writes output files *out.n3* (N3 is a RDF data format) and *out.cypher* (Cypher is the import output format and query language for the Neo4J open source and commercial graph database). The **awk** commands remove duplicate lines and write de-duplicated data to *output.n3* and *output.cypher*.
 
@@ -45,21 +45,19 @@ We saw two methods of avoiding duplicates in  generated data in the last section
 
 Before you write either an RDF statement or a Neo4J Cypher data import statement, check to see if the statement has already been written using something like:
 
-{lang="haskell",linenos=off}
-~~~~~~~
+```haskell{line-numbers: false}
   check <- blackboard_check_key new_data_uri
   if check
      ....
-~~~~~~~
+```
 
-and after writing a RDF statement or a Neo4J Cypher data import statement, write it to the temportary SQLite database using something like:
+and after writing a RDF statement or a Neo4J Cypher data import statement, write it to the temporary SQLite database using something like:
 
-{lang="haskell",linenos=off}
-~~~~~~~
+```haskell{line-numbers: false}
   blackboard_write newStatementString
-~~~~~~~
+```
 
-For the rest of the chapter we will use the approach of not keeping track of generated data in SQLite and instead remove duplicates during postprocessing using the standard **awk** command line utility.
+For the rest of the chapter we will use the approach of not keeping track of generated data in SQLite and instead remove duplicates during post-processing using the standard **awk** command line utility.
 
 This section is optional. In the rest of this chapter we use the example code in **knowledge_graph_creator_pure**.
 
@@ -73,8 +71,7 @@ We will reuse the code for finding entities that we studied in an earlier chapte
 
 I almost always use the first method on my projects with dependencies on other local projects I work on and this is also the approach we use here. The relevant lines in the file KGCreator.cabal are:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 library
   exposed-modules:
       CorefWebClient
@@ -113,7 +110,7 @@ library
       src/toplevel
       ../NlpTool/src/nlp
       ../NlpTool/src/nlp/data
-~~~~~~~~
+```
 
 This is a standard looking *cabal* file except for lines 37 and 38 where the source paths reference the example code for the **NlpTool** application developed in a previous chapter. The exposed module **BlackBoard** (line 8) is not used but I leave it in the *cabal* file in case you want to experiment with recording generated data in SQLite to avoid data duplication. You are likely to also want to use **BlackBoard** if you modify this example to continuously process incoming data in a production system. This is left as an exercise.
 
@@ -179,8 +176,7 @@ If you are using KGCreator in production, then you will want to copy the compile
 
 The following listing shows the file **app/Main.hs**, the main program for this example that handles command line arguments and calls two top level functions in **src/toplevel/Apis.hs**:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: false}
 module Main where
 
 import System.Environment (getArgs)
@@ -196,7 +192,7 @@ main = do
         processFilesToRdf   inputDir $ outputFileRoot ++ ".n3"
         processFilesToNeo4j inputDir $ outputFileRoot ++ ".cypher"
     _ -> error "too many arguments"
-~~~~~~~~
+```
 
 Here we use **getArgs** in line8 to fetch a list of command line arguments and verify that at least two arguments have been provided. Then we call the functions **processFilesToRdf** and **processFilesToNeo4j** and the functions they call in the next three sections.
 
@@ -204,15 +200,14 @@ Here we use **getArgs** in line8 to fetch a list of command line arguments and v
 
 The code for generating RDF and for generating Neo4J Cypher data is similar. We start with the code to generate RDF triples. Before we look at the code, let's start with a few lines of generated RDF:
 
-{linenos=off}
-~~~~~~~~
+```{line-numbers: false}
 <http://dbpedia.org/resource/The_Wall_Street_Journal> 
   <http://knowledgebooks.com/schema/aboutCompanyName> 
   "Wall Street Journal" .
 <https://newsshop.com/june/z902.html>
   <http://knowledgebooks.com/schema/containsCountryDbPediaLink>
   <http://dbpedia.org/resource/Canada> .
-~~~~~~~~
+```
 
 The next listing shows the file **src/sw/GenTriples.hs** that finds entities like broadcast network names, city names, company names, people's names, political party names, and university names in text and generates RDF triple data. If you need to add more entity types for your own applications, then use the following steps:
 
@@ -224,8 +219,7 @@ The map *category_to_uri_map** created in lines 36 to 84 maps a topic name to a 
 
 The utility function **textToTriple** takes a file path to a text input file and a path to  meta file path, calculates the text string representing the generated triples for the input text file, and returns the result wrapped in an IO monad.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module GenTriples
   ( textToTriples
   , category_to_uri_map
@@ -502,7 +496,7 @@ textToTriples file_path meta_file_path = do
       , category_triples
       , summary_triples
       ]
-~~~~~~~~
+```
 
 The code in this file could be shortened but having repetitive code for each entity type hopefully makes it easier for you to understand how it works:
 
@@ -558,8 +552,7 @@ The following listing shows the file **src/sw/GenNeo4jCypher.hs**. This code is 
 
 Notice that we import in line 29 the map **category_to_uri_map** that was defined in the last section. The function **neo4j_category_node_defs** defined in lines 35 to 43 creates category graph nodes for each category in the map **category_to_uri_map**.  These nodes will be referenced by graph nodes created in the functions **create_neo4j_node**, **create_neo4j_lin**, **create_summary_node**, and **create_entity_node**. The top level function is **textToCypher** that is similar to the function **textToTriples** in the last section.
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
 module GenNeo4jCypher
@@ -721,7 +714,7 @@ textToCypher file_path meta_file_path = do
                                node1_name universities
   return $ concat [node1, summary1, category1, pp, cmpny, cntry, citys, bnet,
                    ppart, tunion, uni]
-~~~~~~~~
+```
 
 This code generates Cypher queries to create nodes and relationships in a Neo4j graph database based on extracted information from text.
 
@@ -757,8 +750,7 @@ So far we have looked at processing command line arguments and processing indivi
 
 The functions **processFilesToRdf** and **processFilesToNeo4j** both have the function type signature **FilePath->FilePath->IO()** and are very similar except for calling different helper functions to generate RDF triples or Cypher input graph data:
 
-{lang="haskell",linenos=on}
-~~~~~~~~
+```haskell{line-numbers: true}
 module Apis
   ( processFilesToRdf
   , processFilesToNeo4j
@@ -810,7 +802,7 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
   let cypher_dataS = concat cypher_dataL
   putStrLn cypher_dataS
   writeFile outputRdfFilePath $ prelude_node_defs ++ cypher_dataS
-~~~~~~~~
+```
 
 Since both of these functions return IO monads, I could add "debug" print statements that should be helpful in understanding the data being operated on.
 
