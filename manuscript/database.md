@@ -55,6 +55,33 @@ main = do
   close conn
 ~~~~~~~~
 
+This Haskell code interacts with an SQLite database named "test.db" using the `Database.SQLite.Simple` library. 
+
+**Functionality:**
+
+1. **Imports `Database.SQLite.Simple`:** Includes necessary functions for working with SQLite databases.
+
+2. **`main` Function:**
+   - **Opens a connection to "test.db".**
+   - **Retrieves and prints table names:**
+     - Executes an SQL query to get table names from the `sqlite_master` table.
+     - Prints the table names using `mapM_`.
+   - **Retrieves and prints SQL to create 'test' table:**
+     - Queries the `sqlite_master` table for the SQL used to create the 'test' table.
+     - Prints the SQL statement.
+   - **Inserts a row and prints table data:**
+     - Inserts a new row with the string "test string 2" into the 'test' table.
+     - Selects all rows from the 'test' table.
+     - Prints the number of rows and the rows themselves.
+   - **Closes the database connection.**
+
+**Key Points:**
+
+- Demonstrates basic database interaction using Haskell and SQLite.
+- `query_` is used to execute SELECT queries, and `execute` is used for INSERT queries.
+- The code assumes the existence of the "test.db" database and the "test" table with the specified schema.
+
+
 The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-sqlite* library. It can also be used to pass values for queries like:
 
 
@@ -220,6 +247,44 @@ main = do
     
   close conn
 ~~~~~~~~
+
+
+Certainly, let's break down the provided Haskell code and generate its Markdown description.
+
+**Markdown Description**
+
+**Functionality**
+
+This Haskell code interacts with a PostgreSQL database named "haskell". It utilizes the `Database.PostgreSQL.Simple` library to establish a connection, retrieve and insert data into a "customers" table.
+
+**Code Breakdown**
+
+1. **Import `Database.PostgreSQL.Simple`**:  Imports necessary functions for working with PostgreSQL databases.
+
+2. **`main` Function**:
+   * **Establishes a connection**: 
+     - Connects to the "haskell" database using the default connection information.
+     - The connection specifies the username as "markw".
+
+   * **Retrieves and prints data from the "customers" table**:
+     - Executes an SQL query to fetch names from the "customers" table.
+     - Prints the retrieved names.
+
+   * **Inserts a row and prints table data**:
+     - Prepares a list of tuples `rows` representing the new data to be inserted.
+     - Executes an SQL INSERT query to add the new row to the "customers" table.
+     - Selects all rows from the "customers" table.
+     - Prints the number of rows and the rows themselves.
+
+   * **Closes the database connection**: 
+     - Terminates the established connection.
+
+**Key Points**
+
+- The code assumes a "customers" table with columns: `id` (integer), `name` (string), and `email` (string).
+- `query_` is used for SELECT queries, and `executeMany` is used for bulk INSERT queries.
+- The code provides a basic illustration of database interaction in Haskell using the `Database.PostgreSQL.Simple` library.
+
 
 The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-postgresql* library. It can also be used to pass values for queries like:
 

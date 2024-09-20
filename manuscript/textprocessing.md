@@ -107,7 +107,7 @@ main = do
   print $ email d
 ~~~~~~~~
 
-Notice that in line 14 that I specified the expected type in the **decodeJSON** call. This is not strictly required, the Haskell GHC compiler knows what to do in this case. I specified the type for code readability. The Haskell compiler wrote the **name** and **email** functions for me and I use these functions in lines 16 and 17 to extract these fields. Here is the output from running this example:
+Notice that in line 13 that I specified the expected type in the **decodeJSON** call. This is not strictly required, the Haskell GHC compiler knows what to do in this case. I specified the type for code readability. The Haskell compiler wrote the **name** and **email** functions for me and I use these functions in lines 15 and 16 to extract these fields. Here is the output from running this example:
 
 {lang="haskell",linenos=on}
 ~~~~~~~~

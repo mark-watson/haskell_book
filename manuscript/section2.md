@@ -7,6 +7,7 @@ I expect you, dear reader, to have studied and absorbed the tutorial material on
 This section contains the following "recipe" applications:
 
 - Using the OpenAI APIs for text completion
+- Using the Brave Search API
 - Textprocessing CSV Files
 - Textprocessing JSON Files
 - Using sqlite and Postgres databases
@@ -16,6 +17,6 @@ This section contains the following "recipe" applications:
 - Querying Semantic Web RDF Data Sources
 - Annotating English text with Wikipedia/DBPedia URIs for entities in the original text. Entities can be people, places, organizations, etc.
 - Play the Blackjack card game
-- Machine Learning
-- Probabilistic Graph Models
+
+
 

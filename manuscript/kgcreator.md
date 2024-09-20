@@ -7,7 +7,7 @@ This application works by identifying entities in text. Example entity types are
 The following figure shows part of a Neo4J Knowledge Graph created with the example code. This graph has shortened labels in displayed nodes but Neo4J offers a web browser-based console that lets you interactively explore Knowledge Graphs. We don't cover setting up Neo4J here so please use the [Neo4J documentation](https://neo4j.com/docs/operations-manual/current/introduction/). As an introduction to RDF data, the semantic web, and linked data you can get free copies of my two books [Practical Semantic Web and Linked Data Applications, Common Lisp Edition](http://markwatson.com/opencontentdata/book_lisp.pdf) and [Practical Semantic Web and Linked Data Applications, Java, Scala, Clojure, and JRuby Edition](http://markwatson.com/opencontentdata/book_java.pdf).
 
 {width=60%}
-![Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.jpg)
+![Part of a Knowledge Graph shown in Neo4J web application console](images/neo4j.png)
 
 There are two versions of this project that deal with generating duplicate data in  two ways:
 
@@ -504,7 +504,40 @@ textToTriples file_path meta_file_path = do
       ]
 ~~~~~~~~
 
-The code in this file could be shortened but having repetitive code for each entity type hopefully makes it easier for you to understand how it works.
+The code in this file could be shortened but having repetitive code for each entity type hopefully makes it easier for you to understand how it works:
+
+This code processes text from a given file and generates RDF triples (subject-predicate-object statements) based on the extracted information. 
+
+**Key Functionality**
+
+1. **`category_to_uri_map`**: A map defining the correspondence between categories and their URIs.
+2. **`uri_from_category`**:  Retrieves the URI associated with a category, or returns the category itself in quotes if not found in the map.
+3. **`textToTriples`**: 
+    * Takes file paths for the text and metadata files.
+    * Extracts various entities (people, companies, countries, etc.) and categories from the text.
+    * Generates RDF triples representing:
+        * Summary of the text
+        * Categories associated with the text
+        * Links between the text's URI and identified entities (people, companies, etc.)
+        * Additional information about each identified entity (e.g., name)
+    * Returns a concatenated string of all generated triples.
+
+**Pattern**
+
+The code repeatedly follows this pattern for different entity types:
+
+1. Identify entities of a certain type (e.g., `peopleNames`).
+2. Generate triples linking the text's URI to the entity's URI.
+3. Generate triples providing additional information about the entity itself.
+
+**Purpose**
+
+This code is designed for knowledge extraction and representation. It aims to transform unstructured text into structured RDF data, making it suitable for semantic web applications or knowledge graphs. 
+
+**Note:**
+
+* The code relies on external modules (`Categorize`, `Entities`, `FileUtils`, `Summarize`) for specific functionalities like categorization, entity recognition, file handling, and summarization.
+* The quality of the generated triples will depend on the accuracy of these external modules. 
 
 
 ## Utility Code for Generating Cypher Input Data for Neo4J
@@ -690,6 +723,31 @@ textToCypher file_path meta_file_path = do
                    ppart, tunion, uni]
 ~~~~~~~~
 
+This code generates Cypher queries to create nodes and relationships in a Neo4j graph database based on extracted information from text.
+
+**Core Functionality:**
+
+- `neo4j_category_node_defs`: Defines Cypher statements to create nodes for predefined categories.
+- `uri_from_category`: Placeholder, potentially for full URI mapping (not used in this code).
+- `create_neo4j_node`: Creates a Cypher statement to create a node representing either a DbPedia entity or a News article, based on the URI.
+- `create_neo4j_link`:  Creates a Cypher statement to create a relationship between two nodes.
+- `create_summary_node`: Creates a Cypher statement to create a node representing a summary of the text.
+- `create_entity_node`: Creates a Cypher statement to create a node representing an entity.
+- `create_contains_entity`: Creates Cypher statements to create an entity node and link it to a source node with a specified relationship.
+- `entity_node_helper`: Generates Cypher statements for creating entity nodes and relationships for a list of entities.
+- `textToCypher`:
+    - Processes text from a file and its metadata.
+    - Extracts various entities and categories from the text.
+    - Generates Cypher statements to:
+        - Create nodes for the text itself, its summary, and identified categories.
+        - Create nodes and relationships for entities (people, companies, etc.) mentioned in the text.
+    - Returns a concatenated string of all generated Cypher statements.
+
+**Purpose:**
+
+This code is designed to transform text into a structured representation within a Neo4j graph database. This allows for querying and analyzing relationships between entities and categories extracted from the text. 
+
+
 Because the top level function is **textToCypher** returns a string wrapped in a monad, it is possible to add "debug"" print statements in **textToCypher**. I left many such debug statements in the example code to help you understand the data that is being operated on. I leave it as an exercise to remove these print statements if you use this code in your own projects and no longer need to see the debug output.
 
 
@@ -756,6 +814,6 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
 
 Since both of these functions return IO monads, I could add "debug" print statements that should be helpful in understanding the data being operated on.
 
-## Wrapup for Automating the Creation of Knowledge Graphs
+## Wrap Up for Automating the Creation of Knowledge Graphs
 
 The code in this chapter will provide you with a good start for creating both test knowledge graphs and for generating data for production. In practice, generated data should be reviewed before use and additional data manually generated as needed. It is good practice to document required manual changes because this documentation can be used in the requirements for updating the code in this chapter to more closely match your knowledge graph requirements.

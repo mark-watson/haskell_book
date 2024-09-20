@@ -113,6 +113,6 @@ main = do
   main
 ~~~~~~~
 
-## Wrapup for Using the Python Coreference NLP Service
+## Wrap Up for Using the Python Coreference NLP Service
 
 The example in this chapter is fairly simple but shows a technique that I often use for using libraries and frameworks that are not written in Haskell: wrap the service implemented in another programming language is a REST web service. While it is possible to use a foreign function interface (FFI) to call out to code written in other languages I find for my own work that I prefer calling out to a separate service, especially when I run other services on remote servers so I do not need to run them on my development laptop. For production it is also useful to be able to easily scale horizontally across servers.

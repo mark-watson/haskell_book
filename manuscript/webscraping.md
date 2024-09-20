@@ -82,6 +82,31 @@ main = do
   fetchURI "http://markwatson.com"
 ~~~~~~~~
 
+
+This Haskell code utilizes the `wreq` library to perform simple HTTP requests and fetch data from various URIs. Let's analyze the core components:
+
+* **Import Statements**
+
+   * `Network.Wreq`:  The primary library for handling HTTP requests.
+   * `Control.Lens`:  Provides convenient lens operators like `^.`, `^?` for accessing data within complex structures.
+   * `Data.Maybe`:  Includes the `fromJust` function to safely extract values from `Maybe` types.
+
+* **`fetchURI` Function**
+
+   * This function takes a URI as input.
+   * It performs an HTTP GET request to the specified URI.
+   * It prints details about the response, including the status code, content type (if available), and the response body.
+   * Note: The use of `fromJust` assumes that the `responseBody` is always present in the response. In a real-world scenario, error handling would be essential to deal with potential missing response bodies.
+
+* **`main` Function**
+
+   * The `main` function demonstrates the usage of `fetchURI`.
+   * It makes HTTP requests to three different URIs:
+      * A JSON resource from DBPedia.
+      * An N3 RDF resource from DBPedia.
+      * A personal website ([http://markwatson.com](http://markwatson.com)).
+
+
 This example produces a lot of printout, so I a just showing a small bit here (the text from the body is not shown):
 
 {lang="haskell",linenos=on}
@@ -198,6 +223,30 @@ main = do
   putStrLn "\n\n ** ALL P ELEMENTS:\n"
   mapM_ putStrLn pText
 ~~~~~~~~
+
+
+This Haskell code utilizes the `HandsomeSoup` and `HXT` libraries to parse and extract specific elements from an HTML document fetched from the URL "[http://markwatson.com/](http://markwatson.com/)". Here's a breakdown of its functionality:
+
+1. **Import Libraries:** 
+   - `Text.XML.HXT.Core`: Provides core functions for HTML/XML parsing and transformation.
+   - `Text.HandsomeSoup`: Offers convenient CSS selector-based operations on parsed HTML.
+
+2. **`main` Function:**
+   - `fromUrl`: Fetches the HTML content from the specified URL.
+   - `runX`: Executes HXT transformations and returns the results.
+   - `css "a" ! "href"`: Extracts the values of the "href" attributes from all anchor (`<a>`) elements.
+   - `css "h2" ! "href"`: Extracts the values of the "href" attributes from all `<h2>` elements (likely to be an empty list since `<h2>` elements don't typically have "href" attributes).
+   - `css "img" ! "src"`: Extracts the values of the "src" attributes from all image (`<img>`) elements.
+   - `css "body" //> getText`: Extracts all text content within the `<body>` element.
+   - `css "p" //> getText`: Extracts all text content within all `<p>` (paragraph) elements.
+   - `mapM_ putStrLn`: Prints each extracted element on a separate line.
+
+
+**Key Points:**
+
+- This code demonstrates web scraping using `HandsomeSoup` for CSS selector-based extraction.
+- HXT transformations facilitate navigating and extracting data from the parsed HTML structure.
+- The actual output content will depend on the current structure of the "[http://markwatson.com/](http://markwatson.com/)" website.
 
 This example prints out several hundred lines; here is the first bit of output:
 

@@ -210,6 +210,42 @@ main = do
 ~~~~~~~~
 
 
+### Haskell Code for SPARQL Queries with HSparql
+
+This provided Haskell code demonstrates the use of the HSparql library to interact with a SPARQL endpoint (specifically, DBpedia) to perform semantic queries on linked data.
+
+#### SPARQL Query Definitions
+
+It begins by defining three SPARQL queries, each constructed using the `Query` monad provided by HSparql. These queries are:
+
+* **`webBrowserSelect`**: 
+   * This query aims to retrieve the names of entities categorized as web browsers. 
+   * It utilizes prefixes to simplify the representation of URIs within the query. 
+   * It selects entities (`x`) that have a "genre" property linking them to the concept of a "Web_browser" and then retrieves their "name."
+
+* **`companyAbstractSelect`**: 
+    * This query targets information about the "Edinburgh University Press." 
+    * It seeks to retrieve the "abstract" associated with this entity, which provides a concise summary or description.
+
+* **`companyTypeSelect`**:
+    * Similar to the previous query, this one focuses on the "Edinburgh University Press" but retrieves its "type," which indicates the category or class it belongs to within the DBpedia ontology.
+
+#### `main` Function
+
+The `main` function serves as the entry point of the program. It performs the following actions:
+
+1. **Query Execution**: It executes each of the defined SPARQL queries against the DBpedia SPARQL endpoint using the `selectQuery` function. This function returns the query results wrapped in a `Maybe` type to handle potential query failures.
+
+2. **Result Processing**: The code then pattern matches on the query results to extract and process the relevant information.  It handles both successful query results (`Just a`) and potential query failures (`Nothing`).
+
+3. **Output**: Finally, the extracted information (primarily names in this case) is printed to the console, providing the user with the desired results of the SPARQL queries.
+
+#### Summary
+
+In summary, this Haskell code showcases a practical example of how to leverage the HSparql library to interact with a SPARQL endpoint (DBpedia) to retrieve and process structured data from the Semantic Web. It demonstrates the construction of SPARQL queries, their execution, and the subsequent handling and presentation of query results. 
+
+
+
 **Notes on matching result types of query results:**
 
 You will notice how I have commented out print statements in the last example. When trying new queries you need to print out the results in order to know how to extract the wrapped query results. Let's look at a few examples:

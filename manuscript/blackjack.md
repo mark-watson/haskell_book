@@ -44,6 +44,45 @@ cardValue aCard =
     Nothing -> 0 -- should never happen
 ~~~~~~~
 
+This module defines essential components for representing and working with playing cards.
+
+**Data Types**
+
+* `Card`: A record type with two fields: 
+    * `rank :: Rank` - Represents the card's rank (e.g., Two, Queen, Ace).
+    * `suit :: Suit` - Represents the card's suit (e.g., Hearts, Spades).
+
+* `Suit`: An enumeration defining the four card suits: Hearts, Diamonds, Clubs, Spades. It derives `Eq` (equality), `Show` (string representation), `Enum` (enumeration capabilities), and `Ord` (ordering) for convenience.
+
+* `Rank`: An enumeration listing the thirteen card ranks, from Two to Ace. It also derives `Eq`, `Show`, `Enum`, and `Ord`.
+
+**Functions and Values**
+
+* `rankMap`: A `Data.Map` that associates each `Rank` with its corresponding numerical value in games like Blackjack.
+
+* `orderedCardDeck`: A list comprehension that generates a standard 52-card deck, sorted by rank within each suit.
+
+* `cardValue`: A function that takes a `Card` and returns its numerical value based on the `rankMap`. It uses pattern matching to handle the `Maybe` type returned by `Data.Map.lookup`.
+
+**Explanation**
+
+1.  **`Card` Data Type**: The core of the module. It defines a playing card as a combination of a `Rank` and a `Suit`.
+
+2.  **`Suit` and `Rank` Enumerations**: These provide a clear and type-safe representation of suits and ranks. Deriving `Enum` and `Ord` allows easy iteration and comparison.
+
+3.  **`rankMap`**: This map is crucial for assigning numerical values to cards, particularly in games where card values matter (e.g., Blackjack).
+
+4.  **`orderedCardDeck`**: This function generates a standard 52-card deck. It uses list comprehension to iterate over all `Rank` values (obtained from the keys of `rankMap`) and all `Suit` values (from `Hearts` to `Clubs`), creating a `Card` for each combination.
+
+5.  **`cardValue`**: This function retrieves the numerical value of a given card. It uses `Data.Map.lookup` to find the value associated with the card's rank in `rankMap`. The `case` expression handles the possibility of `lookup` returning `Nothing` (which should ideally never happen in this context).
+
+**Key Points**
+
+* The code provides a well-structured representation of playing cards in Haskell.
+* The use of enumerations enhances type safety and readability.
+* `Data.Map` is employed for efficient lookup of card values.
+* The `orderedCardDeck` function conveniently generates a standard deck of cards.
+
 As usual, the best way to understand this code is to go to the GHCi repl:
 
 {lang="haskell",linenos=on}
@@ -92,7 +131,47 @@ Much of the complexity in this example is implemented in *Table.hs* which define
 - handOver :: Table -> Bool. Determine if the current hand is over.
 - setPlayerPasses :: Table -> Table. Call this function when the payer passes. Other players and dealer are then played out automatically.
 
-The implementation in the file *Table.hs* is fairly simple, with the exception of the use of Haskell lenses to access nested data in the table type. I will discuss the use of lenses after the program listing, but: as you are reading the code look out for variables starting with the underscore character **\_** that alerts the *Lens* system that it should create data accessors for these variables:
+The implementation in the file *Table.hs* is fairly simple, with the exception of the use of Haskell lenses to access nested data in the table type. I will discuss the use of lenses after the program listing, but: as you are reading the code look out for variables starting with the underscore character **\_** that alerts the *Lens* system that it should create data accessors for these variables.
+
+This code defines a module named `Table` which provides data structures and functions to simulate a simplified table in a card game, potentially Blackjack. 
+
+**Core Components**
+
+* **`Table` data type:** 
+    - Represents the state of the table, storing information like:
+        - Number of players
+        - Chip stacks for each player
+        - Cards dealt to each player (including the dealer)
+        - Current player's bet
+        - Whether the user has passed their turn
+        - The remaining card deck
+
+* **Functions:**
+    - `createNewTable`: Creates a new table with the specified number of players and initial chip stacks.
+    - `resetTable`: Resets the table for a new round, clearing dealt cards and optionally changing the card deck.
+    - `setCardDeck`: Sets a new card deck for the table.
+    - `dealCards`: Deals cards to specified players.
+    - `initialDeal`: Performs the initial deal at the beginning of a round.
+    - `showTable`: Generates a string representation of the table's current state.
+    - `scoreHands`: Calculates and updates chip stacks based on player and dealer scores.
+    - `setPlayerBet`: Sets the current player's bet.
+    - `setPlayerPasses`: Simulates the player passing their turn, dealing additional cards to other players and the dealer.
+    - `changeChipStack`: Modifies a specific player's chip stack.
+    - `score`: Calculates the score of a player's hand.
+    - `dealCardToUser`: Deals a card to a specified player, with special handling for the user and dealer.
+    - `handOver`: Checks if the user has passed their turn.
+
+**Lenses**
+
+The code uses lenses (`makeLenses ''Table`) to provide convenient access and modification of the `Table` data type's fields.
+
+**Game Logic (Simplified)**
+
+* The code seems to implement a basic version of a card game where players and the dealer are dealt cards.
+* `scoreHands` calculates scores and updates chip stacks based on win/loss conditions.
+* `dealCardToUser` handles dealing cards, ensuring the dealer keeps drawing until their score is at least 17.
+* `setPlayerPasses` simulates the user passing, triggering the dealer and other players to finish their turns.
+
 
 {lang="haskell",linenos=on}
 ~~~~~~~
@@ -331,6 +410,40 @@ main = do
   let aTable = initialDeal cardDeck (createNewTable num) num
   gameLoop aTable num
 ~~~~~~~
+
+This module combines the previously defined `Card` and `Table` modules with an impure `RandomizedList` module to implement the main game loop of a simplified Blackjack-like card game.
+
+**Core Functions**
+
+* `printTable`: Prints the current state of the table using the `showTable` function from the `Table` module.
+
+* `randomDeck`: Generates a randomized version of the `orderedCardDeck` using the `randomizedList` function (assumed to be from the `RandomizedList` module).
+
+* `gameLoop`: The core recursive function that drives the game:
+    - Prints the current table state.
+    - Generates a random card deck.
+    - If the hand is over (user has passed), prints the final table state, scores hands, and starts a new game with the updated chip stacks.
+    - Otherwise, prompts the user for a command:
+        - If the command is "10", "20", or "30", sets the player's bet.
+        - If the command is "h", deals cards to all players (including the user).
+        - If any other command is entered, sets the user as passed and deals cards to the dealer and other players until they stand.
+    - Recursively calls itself with the updated table state.
+
+* `main`:
+    - Prompts the user for the number of additional players.
+    - Creates a new table with the specified number of players and an initial deal.
+    - Starts the `gameLoop`.
+
+**Key Points**
+
+- The code demonstrates a basic interactive text-based card game implementation.
+- It combines pure modules (`Card`, `Table`) with an impure module (`RandomizedList`) for randomization.
+- The `gameLoop` function handles user input and game state transitions.
+- The game logic is likely simplified for this example, and a full Blackjack implementation would require additional rules and features.
+
+**Remember:** The `RandomizedList` module is assumed to provide a function `randomizedList` for shuffling the card deck, introducing impurity into the game logic.
+
+
 
 I encourage you to try playing the game yourself, but if you don't here is a sample game:
 
