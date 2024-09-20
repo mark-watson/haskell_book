@@ -1,12 +1,12 @@
 # Using the Brave Search API
 
-You need to sign up for a free or paid for account on the [Brave search page](https://brave.com/search/api/) and set an environment variable to your assigned API key:
+You need to sign up for a free or paid account on the [Brave search page](https://brave.com/search/api/) and set an environment variable to your assigned API key:
 
 ```{line-numbers: false}
 export BRAVE_SEARCH_API_KEY = BSAgQ-Nc5.....
 ```
 
-The Brave Search API allows you to access Brave Search results directly within your applications or services. It provides developers with the ability to harness the privacy-focused and independent search capabilities of Brave, returning results for web searches, news, videos, and more. To obtain an API key, simply create an account on the Brave Search API website and subscribe to either the Free or one of the paid plans. The Brave Search API offers flexible pricing tiers, including a free option for testing and development, making it accessible to a wide range of users and projects. Currently you can call the API 2000 times a month on the free tier.
+The Brave Search API allows you to access Brave Search results directly within your applications or services. It provides developers with the ability to harness the privacy-focused and independent search capabilities of Brave, returning results for web searches, news, videos, and more. To obtain an API key, simply create an account on the Brave Search API website and subscribe to either the free or one of the paid plans. The Brave Search API offers flexible pricing tiers, including a free option for testing and development, making it accessible to a wide range of users and projects. Currently you can call the API 2000 times a month on the free tier.
 
 The library developed in this chapter is implemented in a single file **BraveSearch.hs**:
 
@@ -216,7 +216,7 @@ The code interacts with the `BraveSearch` module to demonstrate how to fetch and
       - It uses a `case` expression to handle the two possible outcomes of the `getSearchSuggestions` call:
 
         - `Left err`: 
-           - If there was an error (e.g., network issue, HTTP error, JSON parsing error), it prints the error message prefixed with "Error: ".
+           - If there was an error (e.g., network issue, HTTP error, JSON parsing error), it prints the error message prefixed with "Error:".
 
         - `Right suggestions`:
            - If the call was successful and returned a list of search suggestions:
