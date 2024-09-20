@@ -478,7 +478,8 @@ Red
 
 The following diagram shows a partial type hierarchy of a few types included in the standard Haskell Prelude (this is derived from the [Haskell Report at haskell.org](https://www.haskell.org/onlinereport/basic.html)):
 
-![Example Haskell Type Hierarchy](images/example_type_hierarchy.png)
+{width=60%}
+![Example Haskell Type Hierarchy](resources/images/example_type_hierarchy.png)
 
 
 Here you see that type **Num** and **Ord** are sub-types of type **Eq**, **Real** is a sub-type of **Num**, etc. We will see the types **Monad** and **Functor** in the next chapter.
