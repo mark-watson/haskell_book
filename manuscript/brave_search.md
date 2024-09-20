@@ -6,7 +6,7 @@ You need to sign up for a free or paid for account on the [Brave search page](ht
 export BRAVE_SEARCH_API_KEY = BSAgQ-Nc5.....
 ```
 
-The Brave Search API allows you to access Brave Search results directly within your applications or services. It provides developers with the ability to harness the privacy-focused and independent search capabilities of Brave, returning results for web searches, news, videos, and more. To obtain an API key, simply create an account on the Brave Search API website and subscribe to either the Free or one of the paid plans. The Brave Search API offers flexible pricing tiers, including a free option for testing and development, making it accessible to a wide range of users and projects. Currently you can call the AI 2000 times a month on the free tier.
+The Brave Search API allows you to access Brave Search results directly within your applications or services. It provides developers with the ability to harness the privacy-focused and independent search capabilities of Brave, returning results for web searches, news, videos, and more. To obtain an API key, simply create an account on the Brave Search API website and subscribe to either the Free or one of the paid plans. The Brave Search API offers flexible pricing tiers, including a free option for testing and development, making it accessible to a wide range of users and projects. Currently you can call the API 2000 times a month on the free tier.
 
 The library developed in this chapter is implemented in a single file **BraveSearch.hs**:
 
