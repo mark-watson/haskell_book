@@ -104,7 +104,7 @@ This Haskell code utilizes the `wreq` library to perform simple HTTP requests an
 
 This example produces a lot of printout, so I a just showing a small bit here (the text from the body is not shown):
 
-```haskell{line-numbers: false}
+```text{line-numbers: false}
 *Main> :l HttpClientExample
 [1 of 1] Compiling HttpClientExample ( HttpClientExample.hs, interpreted )
 Ok, modules loaded: HttpClientExample.

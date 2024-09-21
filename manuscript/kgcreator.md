@@ -71,7 +71,7 @@ We will reuse the code for finding entities that we studied in an earlier chapte
 
 I almost always use the first method on my projects with dependencies on other local projects I work on and this is also the approach we use here. The relevant lines in the file KGCreator.cabal are:
 
-```haskell{line-numbers: false}
+```haskell{line-numbers: true}
 library
   exposed-modules:
       CorefWebClient
@@ -176,7 +176,7 @@ If you are using KGCreator in production, then you will want to copy the compile
 
 The following listing shows the file **app/Main.hs**, the main program for this example that handles command line arguments and calls two top level functions in **src/toplevel/Apis.hs**:
 
-```haskell{line-numbers: false}
+```haskell{line-numbers: true}
 module Main where
 
 import System.Environment (getArgs)
@@ -805,6 +805,28 @@ processFilesToNeo4j dirPath outputRdfFilePath = do
 ```
 
 Since both of these functions return IO monads, I could add "debug" print statements that should be helpful in understanding the data being operated on.
+
+The code defines two functions for processing text files in a directory:
+
+* **`processFilesToRdf`**: Processes text files and their corresponding metadata files (with `.meta` extension) in a given directory. It converts the content into RDF triples using `textToTriples` and writes the concatenated triples to an output RDF file.
+
+* **`processFilesToNeo4j`**:  Processes text files and metadata files to generate Cypher statements for Neo4j. It uses `textToCypher` to create Cypher data from file content, combines it with predefined Neo4j category node definitions, and writes the result to an output file.
+
+### Key Points
+
+* **File Handling:**  It utilizes `getDirectoryContents` for file listing, `filter` for selecting text files, and `writeFile` for output.
+
+* **Data Transformation:** `textToTriples` and `textToCypher` are functions that convert text content into RDF triples and Cypher statements, respectively.
+
+* **Metadata Handling:**  It expects metadata files with the same base name as the text files but with a `.meta` extension.
+
+* **Output:** The generated RDF triples or Cypher statements are written to specified output files.
+
+* **`neo4j_category_node_defs`:** A variable holding predefined Cypher node definitions for Neo4j categories.
+
+This code relies on external modules like `FileUtils`, `GenNeo4jCypher`, `GenTriples`, and `Database.SQLite.Simple` for specific functionalities.
+
+
 
 ## Wrap Up for Automating the Creation of Knowledge Graphs
 

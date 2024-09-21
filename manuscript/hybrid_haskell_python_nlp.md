@@ -4,15 +4,16 @@ Here we will write a Haskell client for using a Natural Language Processing (NLP
 
 ## Example Use of the Haskell NLP Client
 
-Before learning how to use the Python NLP server code and understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:
+Before learning how to use the Python NLP server code and to understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:
 
-```{line-numbers: false}
+```{line-numbers: true}
 $ stack build --fast --exec HybridHaskellPythonNlp-exe
 Enter text (all on one line)
 John Smith went to Mexico to see the Pepsi plant
 response from NLP server:
 NlpResponse {entities = ["John Smith/PERSON","Mexico/GPE","Pepsi/ORG"],
-             tokens = ["John","Smith","went","to","Mexico","to","see","the","Pepsi","plant"]}
+             tokens = ["John","Smith","went","to","Mexico","to","see",
+                       "the","Pepsi","plant"]}
 Enter text (all on one line)
 ```
 
@@ -86,6 +87,57 @@ nlpClient query = do
   return ret
 ```
 
+This Haskell code snippet defines a simple web client (`nlpClient`) that interacts with an NLP (Natural Language Processing) service. 
+
+* It sends a query text to the NLP service.
+* It receives a JSON response containing entities and tokens extracted from the query.
+* It parses the JSON response and returns the structured data.
+
+### Code Explanation
+
+**1. Language Extensions**
+
+* `OverloadedStrings`: Allows using string literals (`"like this"`) as both `String` and `Text` types, making string handling more convenient.
+* `DeriveDataTypeable`:  Automatically generates instances of the `Data` and `Typeable` classes for the `NlpResponse` data type.  This enables easy serialization/deserialization and runtime type checking.
+
+**2. Imports**
+
+* `Control.Lens`: Used for concisely accessing nested data structures (like `r ^? responseBody`).
+* `Data.ByteString.Lazy.Char8`: Handles lazy ByteStrings, which are efficient for processing large responses.
+* `Data.Maybe`: Provides the `fromJust` function to safely extract values from `Maybe` types.
+* `Network.URI.Encode`: Used for URL-encoding the query text.
+* `Network.Wreq`: A simple HTTP client library for making requests.
+* `Text.JSON.Generic`: For generic JSON parsing.
+
+**3. `NlpResponse` Data Type**
+
+* Represents the structured data returned by the NLP service.
+* Has two fields:
+    * `entities`: A list of strings representing the identified entities.
+    * `tokens`:  A list of strings representing the tokens in the query.
+
+**4. `base_url`**
+
+* The base URL of the NLP service.
+* Assumes the service runs locally (`127.0.0.1`) on port 8008.
+* Takes the query text as a parameter (`?text=`).
+* Appends `&no_detail=1` to request a simplified response.
+
+**5. `nlpClient` Function**
+
+* Takes a query text (`[Char]`) as input.
+* Prints a log message indicating the query being processed.
+* Constructs the full URL by:
+    * Appending the base URL.
+    * URL-encoding the query using `E.encode`.
+    * Adding the `&no_detail=1` parameter.
+* Makes an HTTP GET request to the constructed URL using `get`.
+* Extracts the response body from the result using `r ^? responseBody`.
+* Decodes the JSON response using `decodeJSON` and `unpack`.
+* Returns the parsed `NlpResponse`.
+
+This code provides a basic way to interact with an NLP service from Haskell. It sends queries, handles the response, and extracts relevant information in a structured format.
+
 The main command line program for using the client library:
 
 ```haskell{line-numbers: false}
@@ -102,6 +154,38 @@ main = do
   putStrLn $ show response
   main
 ```
+
+This code snippet defines a simple interactive application that:
+
+1. Prompts the user to enter a line of text.
+2. Sends the entered text to an NLP (Natural Language Processing) service using the `nlpClient` function from the `NlpWebClient` module.
+3. Prints the response received from the NLP service.
+4. Repeats the process (allowing the user to enter another query).
+
+### Explanation
+
+* **Imports:**
+   * `NlpWebClient`: Imports the `nlpClient` function and the `NlpResponse` data type, presumably defined in another module.
+
+* **`main` Function:**
+   * **`putStrLn "Enter text (all on one line)"`**: Prints a prompt to the user.
+   * **`s <- getLine`**: Reads a line of input from the user and stores it in the `s` variable.
+   * **`response <- (nlpClient s) :: IO NlpResponse`**: 
+      * Calls the `nlpClient` function with the user's input (`s`).
+      * The `:: IO NlpResponse` type annotation ensures that the result of `nlpClient s` is treated as an `IO` action that produces an `NlpResponse`.
+      * The result of this action (the `NlpResponse` value) is bound to the `response` variable.
+   * **`putStr "response from NLP server:\n"`**: Prints a label for the response.
+   * **`putStrLn $ show response`**: 
+      * Uses `show` to convert the `NlpResponse` value to a string representation.
+      * Prints the string representation of the response.
+   * **`main`**: Recursively calls the `main` function, creating an infinite loop that allows the user to enter multiple queries.
+
+### Key Points
+
+* **Interaction:** The code interacts with the user through the console, taking input and displaying output.
+* **NLP Processing:** It relies on the `nlpClient` function from the `NlpWebClient` module to communicate with an NLP service and process the user's input.
+* **Infinite Loop:** The recursive call to `main` at the end creates a continuous loop, allowing the user to enter multiple queries until they manually terminate the program. 
+
 
 ## Wrap Up for Using the Python SpaCy NLP Service
 

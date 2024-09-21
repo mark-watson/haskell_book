@@ -112,12 +112,12 @@ main = do
   print abstracts
 ```
 
-The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 23-24 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
+The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 22-23 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
 
 We use **runX** to execute a series of operations on an XML document (the **doc** variable). We first select all elements in **doc** that have the CSS class **binding** using the **css** function. Next we extract the value of the **name** attribute from each selected element using **getAttrValue** and also extract the text inside the element using the function **deep**.
 The **&&&** operator is used to combine the two values for the name attribute and the element text into a tuple.
 
-In the **main** function, we use the utility function **simpleHttp** in line 20 to fetch the results as a ByteString and in line 21 we unpack this to a regular Haskell String.
+In the **main** function, we use the utility function **simpleHttp** in line 19 to fetch the results as a ByteString and in line 20 we unpack this to a regular Haskell String.
 
 ```haskell{line-numbers: true}
 Prelude> :l HttpSparqlClient.hs 
@@ -130,6 +130,8 @@ Abstracts:
 [("o","International Business Machines Corporation (commonly referred to as IBM) is an American multinational technology and consulting corporation, with corporate headquarters in Armonk, New York.
   ...)]
 ```
+
+On line 8, "o" corresponds to the SPARQL query variable **?o** and the value bound to the variable **?o** is the string "International Business...".
 
 ## Querying Remote SPARQL Endpoints
 
@@ -261,7 +263,7 @@ In a similar way I printed out the values of **sq2** and **sq3** to see the form
 
 The output from this example with three queries to the DBPedia SPARQL endpoint is:
 
-```{line-numbers: false}
+```text{line-numbers: false}
 Web browser names extracted from the company abstract query results in sq1:
 
 ["Edinburgh University Press \195\168 una casa editrice scientifica di libri accademici e riviste, con sede a Edimburgo, in Scozia.","Edinburgh University Press \195\169 uma editora universit\195\161ria com base em Edinburgh, Esc\195\179cia.","Edinburgh University Press is a scholarly publisher of academic books and journals, based in Edinburgh, Scotland."]

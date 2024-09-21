@@ -9,15 +9,15 @@ main = do
   putStrLn ("1 + 2 = " ++ show (1 + 2))
 ```
 
-The function **main** is the entry point of this short two line program. When the program is run, the main function will be executed.
+The function **main** is the entry point of this short two-line program. When the program is run, the main function will be executed.
 
-Here the function **main** uses the **do** notation to execute a single IO action, but **do** can also execute a sequence of actions that can use impure Haskell code (i.e., code with side effects - as we cover in the next chapter). The **putStrLn** function prints a string to the console. The printed string is constructed by concatenating three parts: "1 + 2 = ", the result of the expression 1 + 2 (which is 3), and the string representation of this result, which is obtained by calling the function **show**.
+Here the function **main** uses the **do** notation to execute a single IO action, but **do** can also execute a sequence of actions that can use impure Haskell code (i.e., code with side effects which we cover in the next chapter). The **putStrLn** function prints a string to the console. The printed string is constructed by concatenating three parts: "1 + 2 = ", the result of the expression 1 + 2 (which is 3), and the string representation of this result, which is obtained by calling the function **show**.
 
 It's worth noting that **putStrLn** writes a string to the standard output and also writes a new line character to the console. In general, the function **show** is used to convert any value to a string, here it is converting the result of 1+2 to string to concatenate it with the previous string.
 
 Pure Haskell code performs no I/O, network access, access to shared in-memory data structures, etc.
 
-The first time you build an example program with *stack* it may take a while since library dependencies need to be loaded from the web. In each example directory, after an initial **stack build** or **stack ghci** (to run the repl) then you should not notice this delay.
+The first time you build an example program with *stack* it may take a while since library dependencies need to be loaded from the web. In each example directory, after an initial **stack build** or **stack ghci** (to run the repl), then you should not notice this delay.
 
 
 ## Interactive GHCi Shell
@@ -485,7 +485,7 @@ Please note that the last two lines of this listing is not pure code since we ar
 
 In Haskell, the **do** construct, especially when used with **main = do**, serves as a way to sequence multiple IO actions (operations that interact with the external world) in a clear and readable manner. It's syntactic sugar that makes it easier to work with monads, particularly the IO monad.
 
-Types of Impure Code Allowed within a do block:
+Types of impure code allowed within a do block:
 
 - Input/Output (I/O): Reading from files (readFile), writing to files (writeFile, appendFile), interacting with the console (getLine, putStrLn), and network communication.
 - State Management: Using monads like State or ST to manage mutable state within a purely functional context.
@@ -764,7 +764,7 @@ The same indenting rules apply to other types of **do** expressions which we wil
 
 At first glance, **let** and **where** seem very similar in that they allow us to create temporary variables used inside functions. As the examples in the file *LetAndWhere.hs* show, there are important differences.
   
-In the following code notice that when we use **let** in pure code inside a function, we then use **in** to indicate the start of an expression to be evaluated that uses any variables defined in a **let** expression. Inside a **do** code block the **in** token is not needed and will cause a parse error if you use it. **do** code blocks are a syntactic sugar for use in impure Haskell code and we will use it frequently later in the book.
+In the following code notice when we use **let** in pure code inside a function, we then use **in** to indicate the start of an expression to be evaluated that uses any variables defined in a **let** expression. Inside a **do** code block the **in** token is not needed and will cause a parse error if you use it. **do** code blocks are a syntactic sugar for use in impure Haskell code and we will use it frequently later in the book.
 
 You also do not use **in** inside a list comprehension as seen in the function **testLetComprehension** in the next code listing:
 
@@ -1002,7 +1002,7 @@ main = do
 The code in lines 3-7 defines the function **numberOpinion** that takes a single argument "n". We use a **case** expression to match the value of **n** against several possible cases. Each of these cases is defined using the **->** operator, followed by an expression to be evaluated if the case is matched.
 
 The first case, **0 -> 'Too low'** matches the value of **n** against 0, if the value of "n" is 0, the function will return the string "Too low". The second case, **1 -> 'just right'** matches the value of **n** against 1, if the value of **n** is 1, the function will return the string "just right".
-The last case is different in that it is a *catch all* case using the **_** as a wild card match. So, **_ -> 'OK, that is a number'** matches any other values of **n**: if the value of **nn** is not 0 or 1 the function will return the string "OK, that is a number".
+The last case is different in that it is a *catch all* case using the **_** as a wild card match. So, **_ -> 'OK, that is a number'** matches any other values of **n**: if the value of **nn** is not 0 or 1 the function will return the string "OK, that is a number."
 
 
 ### If Then Else expressions

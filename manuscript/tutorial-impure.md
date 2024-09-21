@@ -143,7 +143,7 @@ with the following:
 main = example1 >> example2 >> example3
 ```
 
-The operator **>>=** is similar to **>>** except that it evaluates the left hand expression and pipes its value into the right hand side expression. The left hand side expression is evaluated to some type of **IO ()** and the expression on the right hand side typically reads from the input **IO ()**. An example will make this simpler to understand:
+The operator **>>=** is similar to **>>** except that it evaluates the left-hand expression and pipes its value into the right-hand side expression. The left-hand side expression is evaluated to some type of **IO ()** and the expression on the right-hand side typically reads from the input **IO ()**. An example will make this simpler to understand:
 
 ```haskell{line-numbers: false}
 module DoLetExample3 where
@@ -207,7 +207,7 @@ main = do
   main
 ```
 
-Lines 3 and 4 import the entire **System.IO** module (that is, import all exported symbols from **System.IO**) and just the function **toUpper** from module **Data.Char**. **System.IO** is a standard Haskell module and we do not have to do anything special to import it. The **Data.Char** is stored in the package **text**. The package **text** is contained in the library package **base** which is specified in the *CommandLineApp.cabal* configuration file that we will look at soon.
+Lines 3 and 4 import the entire **System.IO** module (that is, import all exported symbols from **System.IO**) and just the function **toUpper** from module **Data.Char**. **System.IO** is a standard Haskell module and we do not have to do anything special to import it. The **Data.Char** is stored in the package **text**. The package **text** is contained in the library package **base** which is specifies in the *CommandLineApp.cabal* configuration file that we will look at soon.
 
 Use of the **<-** assignment in line 8 in the last Haskell listing is important to understand. It might occur to you to leave out line 8 and just place the **getLine** function call directly in line 9, like this:
 
@@ -452,7 +452,7 @@ We will experiment with three network IO examples in this book:
 - Reading web pages in the chapter "Web Scraping"
 - Querying remote RDF endpoints in the chapter "Linked Data and the Semantic Web"
 
-We start by using a high level library, **network-simple** for both the client and serve examples in the next two sub-sections. The client and sever examples are in the directory *haskell_tutorial_cookbook_examples/ClientServer* in the files *Client.hs* and *Server.hs*.
+We start by using a high level library, **network-simple** for both the client and server examples in the next two sub-sections. The client and server examples are in the directory *haskell_tutorial_cookbook_examples/ClientServer* in the files *Client.hs* and *Server.hs*.
 
 ### Server Using network-simple Library
 

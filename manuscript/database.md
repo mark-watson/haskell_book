@@ -237,13 +237,6 @@ main = do
   close conn
 ```
 
-
-Certainly, let's break down the provided Haskell code and generate its Markdown description.
-
-**Markdown Description**
-
-**Functionality**
-
 This Haskell code interacts with a PostgreSQL database named "haskell". It utilizes the `Database.PostgreSQL.Simple` library to establish a connection, retrieve and insert data into a "customers" table.
 
 **Code Breakdown**
@@ -275,13 +268,13 @@ This Haskell code interacts with a PostgreSQL database named "haskell". It utili
 - The code provides a basic illustration of database interaction in Haskell using the `Database.PostgreSQL.Simple` library.
 
 
-The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-postgresql* library. It can also be used to pass values for queries like:
+The type **Only** used in line 13 acts as a container for a single value that is defined in the *simple-postgresql* library. It can also be used to pass values for queries like:
 
 ```haskell{line-numbers: false}
 r <- query_ conn "SELECT name FROM customers where id = ?" (Only 4::Int)
 ```
 
-The monad mapping function **mapM\_** using in line 22 is like **mapM** but is used when we do not need the resulting collection from executing the map operation. **mapM\_** is used for side effects, in this case extracting the value for a collection of **Only** values and printing them. I removed some output from building the example in the following listing:
+The monad mapping function **mapM\_** using in line 15 is like **mapM** but is used when we do not need the resulting collection from executing the map operation. **mapM\_** is used for side effects, in this case extracting the value for a collection of **Only** values and printing them. I removed some output from building the example in the following listing:
 
 ```haskell{line-numbers: false}
 $ Database-postgres git:(master) > stack build --exec TestPostgres1

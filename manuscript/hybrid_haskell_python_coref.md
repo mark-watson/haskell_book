@@ -32,7 +32,7 @@ pip install neuralcoref
 pip install falcon
 ```
 
-As I write this chapter the *neuralcoref* model and library require a slightly older version of **spaCy** (the current latest version is 2.3.0).
+As I write this chapter the *neuralcoref* model and library require a old version of **spaCy**.
 
 If you want to instead use the latest version of **spaCy** then install **neuralcoref** from source:
 
@@ -57,7 +57,7 @@ Once you install the server, you can run it from any directory on your laptop or
 corefserver
 ```
 
-I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use a REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
+I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use as REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
 
 This is not a Python programming book and I will not discuss the simple Python wrapping code but if you are also a Python developer you can easily read and understand the code.
 
@@ -68,7 +68,7 @@ The code for the library for fetching data from the Python service is in the sub
 We will use techniques for accessing remote web services using the **wreq** library and using the **lens** library for accessing the response from the Python server. Here the response is plain text with pronouns replaced by the nouns that they represent. We don't use the **aeson** library to parse JSON data as we did in the previous chapter.
 
 
-```haskell{line-numbers: true}
+```haskell{line-numbers: false}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- reference: http://www.serpentine.com/wreq/tutorial.html
@@ -94,9 +94,32 @@ corefClient query = do
   return $ unpack (fromJust (r ^? responseBody))
 ```
 
+This code defines a function `corefClient` which acts as a simple web client to interact with a Coreference Resolution service.
+
+### Code Breakdown
+
+* `base_url`: Stores the base URL of the Coreference Resolution service, assumed to be running locally on port 8000.
+* `corefClient`:
+    * Takes a text query as input.
+    * Prints the encoded query to the console.
+    * Constructs the full URL by appending the encoded query and `&no_detail=1` to `base_url`.
+    * Makes an HTTP GET request to the constructed URL using `get`.
+    * Prints the status code, content type, and response body from the server's response.
+    * Returns the response body as a string.
+
+### Key Points
+
+* `OverloadedStrings` language extension is used for convenient string handling.
+* `Control.Lens` provides tools for accessing nested data structures (like `r ^. responseStatus . statusCode`).
+* `Data.ByteString.Lazy.Char8` is used for efficient handling of the response body.
+* `Data.Maybe` provides `fromJust` for safely extracting values from `Maybe` types.
+* `Network.URI.Encode` is used for URL-encoding the query.
+* `Network.Wreq` is a simple HTTP client library. 
+
+
 The code for the main application is in the subdirectory **app** in the file **Main.hs**.
 
-```haskell{line-numbers: true}
+```haskell{line-numbers: false}
 module Main where
 
 import CorefWebClient
@@ -110,6 +133,21 @@ main = do
   putStrLn $ show response
   main
 ```
+
+This Haskell code creates a basic interactive console application that:
+
+1. Prompts the user to input a line of text.
+2. Sends the text to a Coreference Resolution service using the `corefClient` function.
+3. Prints the response from the service.
+4. Repeats the process, allowing continuous interaction.
+
+## Key Points
+
+* `corefClient` (imported from `CorefWebClient`) is assumed to handle communication with the Coreference Resolution service.
+* The code uses `getLine` for user input, `putStrLn` for output, and `show` to convert the response to a printable format.
+* The recursive call to `main` creates an infinite loop, allowing the user to process multiple inputs until they manually terminate the program. 
+
+
 
 ## Wrap Up for Using the Python Coreference NLP Service
 

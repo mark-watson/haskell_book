@@ -21,7 +21,16 @@ This Haskell program demonstrates how to interact with the OpenAI ChatCompletion
 
 Firstly, the code imports necessary modules and libraries. It imports **OpenAI.Client** for interacting with the OpenAI API and **Network.HTTP.Client** along with **Network.HTTP.Client.TLS** for handling HTTP requests over TLS. The **System.Environment** module is used to access environment variables, specifically to retrieve the OpenAI API key. Additionally, **Data.Text** is imported for efficient text manipulation, and **Data.Maybe** is used for handling optional values.
 
-The core of the program is the **completionRequestToString** function. This function takes a String argument **prompt** and returns an IO String, representing the assistant’s response. Inside this function, an HTTP manager with TLS support is created using **newManager tlsManagerSettings**. Then, it retrieves the OpenAI API key from the OPENAI_KEY environment variable using getEnv "OPENAI_KEY" and packs it into a **Text type** with **T.pack**.
+The core of the program is the **completionRequestToString** function. This function takes a String argument **prompt** and returns an IO String, representing the assistant’s response.
+
+What is an **IO String**? In Haskell, IO String represents an action that, when executed, produces a String, whereas String is simply a value.
+
+- IO String: A computation in the IO monad that will produce a String when executed.
+- String: A pure value, just a sequence of characters.
+
+You can’t directly extract a String from IO String; you need to perform the IO action (e.g., using main or inside the do notation) to get the result.
+
+Inside function **completionRequestToString**, an HTTP manager with TLS support is created using **newManager tlsManagerSettings**. Then, it retrieves the OpenAI API key from the OPENAI_KEY environment variable using getEnv "OPENAI_KEY" and packs it into a **Text type** with **T.pack**.
 
 An OpenAI client is instantiated using **makeOpenAIClient**, passing the API key, the HTTP manager, and an integer 4, which represents a maximum number of retries. The code then constructs a **ChatCompletionRequest**, specifying the model to use (in this case, **ModelId** "gpt-4o") and the messages to send. The messages consist of a single **ChatMessage** with the user’s prompt, setting **chmContent** to **Just (T.pack prompt)** and **chmRole** to "user". All other optional parameters in the request are left as Nothing, implying default values will be used.
 
