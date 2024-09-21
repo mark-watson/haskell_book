@@ -2,7 +2,7 @@
 
 This is the preface the newest version of this book released September 2024.
 
-If you read my eBooks free online then please consider hiring me for part time remote work: [https://markwatson.com/#tip](https://markwatson.com/#tip).
+If you enjoy my eBooks and would like to work with me then please consider [hiring me for part time remote work] [https://markwatson.com/#tip](https://markwatson.com) for part time consulting work.
 
 It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at a few larger Haskell programs:
 
@@ -11,6 +11,7 @@ It took me over a year learning Haskell before I became comfortable with the lan
 - **HybridHaskellPythonCorefAnaphoraResolution** that uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to.
 - Use of Large Language Models (LLMs) form OpenAI.
 
+I have also added chapters on using the OpenAI LLM APIs and the Brave search APIs.
 
 ## A Request from the Author
 
@@ -33,6 +34,8 @@ After working through these tutorial chapters you will understand enough of Hask
 
 The second section contains the following recipes implemented as complete programs:
 
+- Using the OpenAI LLM APIs
+- Using the Brave search APIs
 - Textprocessing CSV Files
 - Textprocessing JSON Files
 - Natural Language Processing (NLP) interface to relational databases, including annotating English text with Wikipedia/DBPedia URIs for entities in the original text. Entities can be people, places, organizations, etc.
@@ -42,13 +45,12 @@ The second section contains the following recipes implemented as complete progra
 - Using Sqlite and Postgres relational databases
 - Play a simple version of Blackjack card game
 
-A new third section (added in 2019 for the second edition) has three examples that were derived by my own work.
 
 ## Code Examples
 
 The code examples in this book are licensed under two software licenses and you can choose the license that works best for your needs: Apache 2 and GPL 3. To be clear, you can use the examples in commercial projects under the Apache 2 license and if you like to write Free (Libre) software then use the GPL 3 license.
 
-We will use *stack* as a build system for all code examples. The code examples are provided as 22 separate *stack* based projects. These examples [are found on github](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
+We will use *stack* as a build system for all code examples. The code examples are provided as 22 separate *stack* based projects. These examples [are found on GitHub https://github.com/mark-watson/haskell_tutorial_cookbook_examples](https://github.com/mark-watson/haskell_tutorial_cookbook_examples). Recently in 2024 I have also added instructions in the example code on GitHub to alternatively build and run the examples using Cabal.
 
 
 
