@@ -59,9 +59,9 @@ This Haskell program retrieves and processes the content of the webpage at https
 
 For parsing the HTML content, the program employs the TagSoup library, which is adept at handling both well-formed and malformed HTML. The parseTags function processes the HTML String into a list of Tag String elements, representing the structure of the HTML document. This parsed representation enables efficient extraction of specific components, such as headers, text content, and hyperlinks.
 
-The program defines two functions, extractTexts and extractLinks, to extract text content and hyperlinks, respectively. The extractTexts function filters the parsed tags to identify text nodes, removes any empty strings, converts them to Text, strips leading and trailing whitespace, and concatenates them into a single Text value. The extractLinks function filters for <a> tags, extracts their href attributes, and converts these URLs to Text.
+The program defines two functions, **extractTexts** and **extractLinks**, to extract text content and hyperlinks, respectively. The **extractTexts** function filters the parsed tags to identify text nodes, removes any empty strings, converts them to Text, strips leading and trailing whitespace, and concatenates them into a single Text value. The **extractLinks** function filters for anchor tags, extracts their href attributes, and converts these URLs to Text.
 
-In the main function, after fetching and parsing the HTML content, the program retrieves and prints the HTTP response headers using getResponseHeaders. It then calls extractTexts to obtain and display the textual content of the webpage, followed by extractLinks to list all hyperlinks present in the HTML. This structured approach allows for a clear and organized extraction of information from the specified webpage.
+In the main function, after fetching and parsing the HTML content, the program retrieves and prints the HTTP response headers using **getResponseHeaders**. It then calls **extractTexts** to obtain and display the textual content of the webpage, followed by **extractLinks** to list all hyperlinks present in the HTML. This structured approach allows for a clear and organized extraction of information from the specified webpage.
 
 Here is some example output (shortened for brevity):
 
