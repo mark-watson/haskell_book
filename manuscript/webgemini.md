@@ -164,54 +164,10 @@ The second part of function **main** defines the HTTP POST processing. When a us
         putStrLn $ "Raw response: " ++ show (responseBody response2)
         hFlush stdout
 
-      let maybeGeminiResponse = Aeson.decode (responseBody response2) :: Maybe GeminiResponse
+      let maybeGeminiResponse =
+	      Aeson.decode (responseBody response2) :: Maybe GeminiResponse
       
-      liftIO $ putStrLn $ "Parsed response: " ++ show maybeGeminiResponse  -- Debug print
-      liftIO $ hFlush stdout
-
-      case maybeGeminiResponse of
-        Just geminiResponse -> do
-          case candidates geminiResponse of
-            (candidate:_) -> do
-              case parts (content candidate) of
-                (part:_) -> do
-                  liftIO $ putStrLn $ "Sending response: " ++ show part
-                  liftIO $ hFlush stdout
-                  json part
-                [] -> do
-                  liftIO $ putStrLn "No parts in response"
-                  status status500 >> Web.Scotty.text "No content in response"
-            [] -> do
-              liftIO $ putStrLn "No candidates in response"
-              status status500 >> Web.Scotty.text "No candidates in response"
-        Nothing -> do
-          liftIO $ putStrLn "Failed to parse response"
-          status status500 >> Web.Scotty.text "Failed to parse Gemini response"                ]
-              )
-            ]
-
-      let request2 = initialRequest
-            { requestHeaders =
-                [ ("Content-Type", "application/json")
-                , ("x-goog-api-key", BS.pack apiKey)
-                ]
-            , method = "POST"
-            , requestBody = RequestBodyLBS $ Aeson.encode geminiRequestBody
-            }
-
-      liftIO $ putStrLn $ "Request body: " ++ show (Aeson.encode geminiRequestBody)
-      liftIO $ hFlush stdout
-
-      response2 <- liftIO $ httpLbs request2 manager
-      liftIO $ do
-        putStrLn $ "Response status: " ++ show (responseStatus response2)
-        putStrLn $ "Response headers: " ++ show (responseHeaders response2)
-        putStrLn $ "Raw response: " ++ show (responseBody response2)
-        hFlush stdout
-
-      let maybeGeminiResponse = Aeson.decode (responseBody response2) :: Maybe GeminiResponse
-      
-      liftIO $ putStrLn $ "Parsed response: " ++ show maybeGeminiResponse  -- Debug print
+      liftIO $ putStrLn $ "Parsed response: " ++ show maybeGeminiResponse
       liftIO $ hFlush stdout
 
       case maybeGeminiResponse of
