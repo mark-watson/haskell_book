@@ -7,6 +7,7 @@ section2.md
 openai.md
 webgemini.md
 gemini.md
+ollama.md
 brave_search.md
 textprocessing.md
 nlptool.md

@@ -115,7 +115,8 @@ main = do
 
       if statusCode responseStatus' == 200
         then do
-        let maybeGeminiResponse = Aeson.decode (responseBody response) :: Maybe GeminiResponse
+        let maybeGeminiResponse =
+           Aeson.decode (responseBody response) :: Maybe GeminiResponse
         case maybeGeminiResponse of
           Just geminiResponse -> do
             case candidates geminiResponse of
