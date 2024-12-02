@@ -6,6 +6,7 @@ tutorial-impure.md
 section2.md
 openai.md
 webgemini.md
+gemini.md
 brave_search.md
 textprocessing.md
 nlptool.md
