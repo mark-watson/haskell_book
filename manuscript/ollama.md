@@ -2,7 +2,7 @@
 
 Ollama is a multi-platform tool for running Large Language Models (LLMs) on your laptop. Ollama is available for macOS, Linux, and Windows.
 
-My personal preference is to run local models on my own computer, and just use commercial LLM APIs fro OpenAI, Google, Anthropic, Mistral, etc. when local models are insufficient for specific tasks.
+My personal preference is to run local models on my own computer, and just use commercial LLM APIs from OpenAI, Google, Anthropic, Mistral, etc. when local models are insufficient for specific tasks.
 
 You can download Ollama from [https://ollama.ai](https://ollama.com).
 
