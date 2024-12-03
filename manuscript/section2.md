@@ -7,6 +7,9 @@ I expect you, dear reader, to have studied and absorbed the tutorial material on
 This section contains the following "recipe" applications:
 
 - Using the OpenAI APIs for text completion
+- Web app for calling Google Gemini AIs
+- Command line application for calling Google Gemini AIs
+- Command line application for calling Ollama LLM server (for local models)
 - Using the Brave Search API
 - Textprocessing CSV Files
 - Textprocessing JSON Files
