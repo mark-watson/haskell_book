@@ -102,3 +102,13 @@ The function **main** begins by reading command-line arguments using **getArgs**
 The program sends the HTTP request using **httpLbs**, which performs the request and returns the response. It then checks the HTTP status code of the response using **responseStatus** and **statusCode**. If the status code is 200 (indicating success), the program attempts to decode the response body into an **OllamaResponse** object using **Aeson.decode**. If decoding is successful, it extracts and prints the response field from the **OllamaResponse** object using the **OverloadedRecordDot** extension for concise field access. If decoding fails, the program outputs an error message indicating that the response could not be parsed.
 
 If the HTTP status code is not 200, the program outputs an error message with the status code. This error handling ensures that the user is informed of any issues with the API request or response. Overall, the program demonstrates how to use Haskell's type system and libraries to build a robust and type-safe client for interacting with a JSON-based HTTP API. It also highlights the use of modern Haskell features, such as record dot syntax and generic programming, to simplify code and improve readability.
+
+In general when you are writing code to access a LLM model using a REST interface, look for examples using the **curl** command, examine the returned JSON payload and write code to decode the JSON and extract the information you need. I started writing this example by finding the following **curl** example in the Ollama documentation and running it:
+
+```
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "What is 3 + 5 + 11?",
+  "stream": false
+}'
+```
