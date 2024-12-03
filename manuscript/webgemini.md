@@ -1,6 +1,6 @@
 # A Web Application For Using the Google Gemini APIs
 
-Here we look at a web application using the Google Gemini API for chat
+Here we look at a web application using the Google Gemini API for chat.
 We'll show the complete program listing that demonstrates how to interact with Gemini, providing a foundation for building more complex applications. This example code encapsulates the core concepts of sending requests and processing responses, showcasing Haskell's ability to integrate with modern APIs while maintaining code clarity and robustness.
 
 This example is in the directory **haskell_tutorial_cookbook_examples/webchat**.
@@ -116,7 +116,7 @@ main = do
         \</html>"
 ```
 
-The second part of function **main** defines the HTTP POST processing. When a user clicks the **submit** button on the web page This handler is called by the JavaScript embedded on the web page:
+The second part of function **main** defines the HTTP POST processing. When a user clicks the **submit** button on the web page. This handler is called by the JavaScript embedded on the web page:
 
 ```haskell{line-numbers: false}
     post "/chat" $ do

@@ -1,6 +1,6 @@
 # Command Line Utility To Use the Google Gemini APIs
 
-This example is similar to the example in the last chapter but here we build a command line application, not a web application to use the Google Gemini LLM APIs.
+This example is similar to the example in the last chapter but here we build not a web application but a command line application to use the Google Gemini LLM APIs.
 
 The directory **haskell_tutorial_cookbook_examples/gemini_commandline** contains the code for this example.
 
@@ -31,7 +31,7 @@ Response:
 11 + 23 = 34
 ```
 
-Here is a listing of the source file **Main.hs** (explanation after the code). This code is a Haskell program that interacts with Google's Gemini AI model through its API. The program is structured to send prompts to Gemini and receive generated responses, implementing a command-line interface for this interaction.
+Here is a listing of the source file **Main.hs** (explanation after the code). This code is a Haskell program that interacts with Google's Gemini AI model through its API. The program is structured to send prompts to Gemini and receive generated responses, implementing a command line interface for this interaction.
 
 ```haskell{line-numbers: false}
 import Control.Monad.IO.Class (liftIO)
@@ -80,7 +80,7 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
-    [] -> putStrLn "Error: Please provide a prompt as a command-line argument."
+    [] -> putStrLn "Error: Please provide a prompt as a command line argument."
     (arg:_) -> do  --  Extract the argument directly
       apiKey <- getEnv "GOOGLE_API_KEY"
 
