@@ -12,7 +12,7 @@ Beyond the immediate application of the Gemini API, this chapter serves as a tem
 Here is an example of the web app:
 
 {width=60%}
-![Example Web App Use](resources/images/geminiwebapp.jpg)
+![Example Web App Use](geminiwebapp.jpg)
 
 **NOTE: I had to add "debug printout" to this example to get the API calls working correctly. I decided to leave the debug printout in the code so when you run the web app you can see what the request and response data looks like.**
 
