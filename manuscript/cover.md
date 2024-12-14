@@ -1,6 +1,6 @@
 # Cover Material, Copyright, and License
 
-Copyright 2016 Mark Watson. All rights reserved. This book may be shared using the Creative Commons "share and share alike, no modifications, no commercial reuse" license.
+Copyright 2016-2024 Mark Watson. All rights reserved. This book may be shared using the Creative Commons "share and share alike, no modifications, no commercial reuse" license.
 
 This eBook will be updated occasionally so please periodically check the [leanpub.com web page for this book](https://leanpub.com/haskell-cookbook) for updates.
 

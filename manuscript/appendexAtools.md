@@ -17,7 +17,7 @@ templates:
       author-email: markw@markwatson.com
       author-name: Mark Watson
       category: dev
-      copyright: Copyright 2016 Mark Watson. All rights reserved
+      copyright: Copyright 2016-2024 Mark Watson. All rights reserved
       github-username: mark-watson
 ~~~~~~~~
 
