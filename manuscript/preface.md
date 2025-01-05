@@ -2,8 +2,6 @@
 
 This is the preface the newest version of this book released September 2024.
 
-If you enjoy my eBooks and would like to work with me then please consider [hiring me for part time remote work] [https://markwatson.com/#tip](https://markwatson.com) for part time consulting work.
-
 It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at a few larger Haskell programs:
 
 - **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
@@ -13,13 +11,15 @@ It took me over a year learning Haskell before I became comfortable with the lan
 
 I have also added chapters on using the OpenAI LLM APIs and the Brave search APIs.
 
-## A Request from the Author
+## Requests from the Author
 
-I spent time writing this book to help you, dear reader. I release this book under the Creative Commons "share and share alike, no modifications, no commercial reuse" license and set the minimum purchase price to $7.99 in order to reach the most readers. You can also read this (and all of my eBooks) for free on [leanpub.com](https://leanpub.com/u/markwatson).
+This book will always be available to read free online at [https://leanpub.com/haskell-cookbook/read](https://leanpub.com/haskell-cookbook/read).
 
-If you would like to support my work please consider purchasing my books on [Leanpub](https://leanpub.com/u/markwatson) and star my git repositories that you find useful on [GitHub](https://github.com/mark-watson?tab=repositories&q=&type=public). You can also interact with me on social media on [X/Twitter](https://twitter.com/mark_l_watson).
+That said, I appreciate it when readers purchase my books because the income enables me to spend more time writing.
 
-I enjoy writing and your support helps me write new editions and updates for my books and to develop new book projects. Thank you!
+### Hire the Author as a Consultant
+
+I am available for short consulting projects. Please see [https://markwatson.com](https://markwatson.com).
 
 
 ## Structure of the Book
