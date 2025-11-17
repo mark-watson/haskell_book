@@ -30,69 +30,116 @@ The example in this chapter is very similar to the example in the last chapter t
 This example program is listed below. I will describe the code after the listing.
 
 ```haskell{line-numbers: false}
+-- Simple command-line client for Ollama's local API
+-- Usage: run as `Main "<prompt>" [model]` or `runghc Main.hs "<prompt>" [model]`. Default model: `llama3.2:latest`
+-- LANGUAGE pragmas enable features used below
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE DeriveGeneric #-}
 
-import Control.Monad.IO.Class (liftIO)
+-- Core utilities
+import Control.Monad (when)
 import System.Environment (getArgs)
+
+-- JSON support
 import qualified Data.Aeson as Aeson
 import Data.Aeson (FromJSON, ToJSON)
-import GHC.Generics
-import Network.HTTP.Client (newManager, httpLbs, parseRequest, Request(..), RequestBody(..), responseBody, responseStatus, defaultManagerSettings)
-import Network.HTTP.Types.Status (statusCode)
+import GHC.Generics (Generic)
 
+-- HTTP client
+import Network.HTTP.Client
+  ( newManager
+  , httpLbs
+  , parseRequest
+  , Request(..)
+  , RequestBody(..)
+  , responseBody
+  , responseStatus
+  , defaultManagerSettings
+  , Manager
+  )
+import Network.HTTP.Types.Status (statusIsSuccessful)
+
+-- Types that mirror Ollama's request and response JSON
 data OllamaRequest = OllamaRequest
-  { model :: String
-  , prompt :: String
-  , stream :: Bool
+  { model :: String        -- name/tag of the model to use
+  , prompt :: String       -- user input sent to the model
+  , stream :: Bool         -- stream tokens or return a single final string
   } deriving (Show, Generic, ToJSON)
 
 data OllamaResponse = OllamaResponse
-  { model :: String
-  , created_at :: String
-  , response :: String  -- This matches the actual field name in the JSON
-  , done :: Bool
-  , done_reason :: String
-  } deriving (Show, Generic, FromJSON)
+  { model :: String
+  , created_at :: String
+  , response :: String     -- the generated text from the model
+  , done :: Bool
+  , done_reason :: Maybe String -- may be missing; use Maybe
+  } deriving (Show, Generic, FromJSON)
+
+-- Call Ollama's local API and decode the JSON response
+callOllama :: Manager -> String -> String -> IO (Either String OllamaResponse)
+callOllama manager modelName userPrompt = do
+  -- Build the POST request to /api/generate
+  initialRequest <- parseRequest "http://localhost:11434/api/generate"
+
+  let ollamaRequestBody = OllamaRequest
+        { model = modelName
+        , prompt = userPrompt
+        , stream = False     -- single complete response
+        }
+
+  let request = initialRequest
+        { requestHeaders = [("Content-Type", "application/json")]
+        , method = "POST"
+        , requestBody = RequestBodyLBS $ Aeson.encode ollamaRequestBody -- encode as JSON
+        }
+
+  -- Send the request and get the HTTP response
+  httpResponse <- httpLbs request manager
+
+  let status = responseStatus httpResponse
+      body = responseBody httpResponse
+
+  if statusIsSuccessful status
+    then do
+      -- Try to decode the JSON body into our Haskell type
+      let maybeOllamaResponse = Aeson.decode body :: Maybe OllamaResponse
+      case maybeOllamaResponse of
+        Just ollamaResponse -> return $ Right ollamaResponse
+        Nothing -> return $ Left $ "Error: Failed to parse JSON response. Body: " ++ show body
+    else
+      -- Non-2xx HTTP status
+      return $ Left $ "Error: HTTP request failed with status " ++ show status ++ ". Body: " ++ show body
 
 main :: IO ()
 main = do
+  -- Read command-line args: prompt and optional model name
   args <- getArgs
   case args of
-    [] -> putStrLn "Error: Please provide a prompt as a command-line argument."
-    (arg:_) -> do
+    [] -> putStrLn "Usage: <program_name> <prompt> [model_name]"
+    (promptArg:modelArgs) -> do
+      -- Choose model: use user-provided or default
+      let modelName = case modelArgs of
+                        (m:_) -> m
+                        []    -> "llama3.2:latest"
+
+      -- Create an HTTP connection manager
       manager <- newManager defaultManagerSettings
 
-      initialRequest <- parseRequest "http://localhost:11434/api/generate"
+      putStrLn $ "Sending prompt '" ++ promptArg ++ "' to model '" ++ modelName ++ "'..."
 
-      let ollamaRequestBody = OllamaRequest
-            { model = "llama3.2:latest"  -- You can change this to another  model
-            , prompt = arg
-            , stream = False
-            }
+      -- Make the API call
+      result <- callOllama manager modelName promptArg
 
-      let request = initialRequest
-            { requestHeaders = [("Content-Type", "application/json")]
-            , method = "POST"
-            , requestBody = RequestBodyLBS $ Aeson.encode ollamaRequestBody
-            }
-
-      httpResponse <- httpLbs request manager
---    liftIO $ putStrLn $ "httpResponse:" ++ show httpResponse -- debug
-      
-      let responseStatus' = responseStatus httpResponse
-
-      if statusCode responseStatus' == 200
-        then do
-          let maybeOllamaResponse =
-                Aeson.decode (responseBody httpResponse) :: Maybe OllamaResponse
-          case maybeOllamaResponse of
-            Just ollamaResponse -> do
-              liftIO $ putStrLn $ "Response:\n\n" ++ ollamaResponse.response
-            Nothing -> do
-              liftIO $ putStrLn "Error: Failed to parse response"
-        else do
-          putStrLn $ "Error: " ++ show responseStatus'
+      -- Handle success or error
+      case result of
+        Right ollamaResponse -> do
+          putStrLn "\n--- Response ---"
+          putStrLn ollamaResponse.response
+          -- Print reason if present
+          when (ollamaResponse.done_reason /= Nothing) $
+              putStrLn $ "\nDone reason: " ++ show ollamaResponse.done_reason
+        Left err -> do
+          putStrLn $ "API Error: " ++ err
 ```
 
 This Haskell code defines a program that interacts with a local HTTP API provided by Ollama to send a prompt to a language model and retrieve its response. The program uses several Haskell features and libraries, including **OverloadedRecordDot** for concise record field access and **DuplicateRecordFields** to allow multiple data types to share field names. The program is structured around two main data types, **OllamaRequest** and **OllamaResponse**, which represent the request and response payloads for the API. These data types are derived from the Generic type class, enabling automatic JSON serialization and deserialization using the Aeson library. The **OllamaRequest** type includes fields for specifying the model, the prompt, and whether the response should be streamed, while the **OllamaResponse** type captures the model's response, creation time, and additional metadata.

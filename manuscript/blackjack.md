@@ -9,6 +9,8 @@ This example starts by asking how many players, besides the card dealer and the 
 I define the types for playing cards and an entire card deck in the file *Card.hs*:
 
 ```haskell{line-numbers: true}
+-- Card model: defines `Rank`, `Suit`, and `Card`, with helpers
+-- `orderedCardDeck` builds a deterministic deck; `cardValue` maps ranks to scores
 module Card (Card, Rank, Suit, orderedCardDeck, cardValue) where
 
 import Data.Maybe (fromMaybe)
@@ -32,6 +34,8 @@ rankMap = fromList [(Two,2), (Three,3), (Four,4), (Five,5),
                     (Ten,10), (Jack,10), (Queen,10),
                     (King,10), (Ace,11)]
 
+-- Deterministic deck: list-comprehension over all ranks and a suit range
+-- Adjust the suit range if you want to include all suits (Enum ranges)
 orderedCardDeck :: [Card]
 orderedCardDeck = [Card rank suit | rank <- keys rankMap,
                                     suit <- [Hearts .. Clubs]]
@@ -173,10 +177,11 @@ The code uses lenses (`makeLenses ''Table`) to provide convenient access and mod
 ```haskell{line-numbers: true}
 {-# LANGUAGE TemplateHaskell #-}  -- for makeLens
 
+-- Game state and rules for Blackjack; pure transformations on `Table`
+-- Uses lenses to update nested fields concisely
 module Table (Table (..), createNewTable, setPlayerBet, showTable, initialDeal,
               changeChipStack, setCardDeck, dealCards, resetTable, scoreHands,
-              dealCardToUser, handOver, setPlayerPasses) where
-  -- note: export dealCardToUser only required for ghci development
+              dealCardToUser, handOver, setPlayerPasses) where  -- note: export dealCardToUser only for ghci development
 
 import Control.Lens
 
@@ -184,11 +189,9 @@ import Card
 import Data.Bool
 import Data.Maybe (fromMaybe)
 
-data Table = Table { _numPlayers :: Int
-                   , _chipStacks :: [Int] -- number of chips,
-                                          -- indexed by player index
-                   , _dealtCards :: [[Card]] -- dealt cards for user,
-                                             -- dealer, and other players
+data Table = Table { _numPlayers        :: Int
+                   , _chipStacks       :: [Int] -- number of chips, indexed by player index
+                   , _dealtCards       :: [[Card]] -- dealt cards for user, dealer, and other players
                    , _currentPlayerBet :: Int
                    , _userPasses       :: Bool
                    , _cardDeck         :: [Card]
@@ -201,22 +204,21 @@ createNewTable :: Players -> Table
 createNewTable n =
   Table n
         [500 | _ <- [1 .. n]] -- give each player (incuding dealer) 10 chips
-        [[] | _ <- [0..n]] -- dealt cards for user and other players
-                           -- (we don't track dealer's chips)
-        20 -- currentPlayerBet number of betting chips
+        [[] | _ <- [0..n]] -- dealt cards for user and other players (we don't track dealer's chips)
+        20 -- currentPlayerBet
         False
         [] -- placeholder for random shuffled card deck
  
 resetTable :: [Card] -> Table -> Int -> Table
 resetTable cardDeck aTable numberOfPlayers =
   Table numberOfPlayers
-        (_chipStacks aTable)       -- using Lens accessor
+        (_chipStacks aTable)
         [[] | _ <- [0..numberOfPlayers]]
-        (_currentPlayerBet aTable) -- using Lens accessor
+        (_currentPlayerBet aTable)
         False
         cardDeck
      
-     -- Use lens extensions for type Table:
+     -- Use lens extensions:
             
 makeLenses ''Table
  
@@ -226,16 +228,16 @@ showDealtCards dc =
 
 setCardDeck :: [Card] -> Table -> Table
 setCardDeck newDeck =
-  over cardDeck (\_ -> newDeck)  -- change value to new card deck
+  over cardDeck (\_ -> newDeck)  
 
 dealCards :: Table -> [Int] -> Table
 dealCards aTable playerIndices =
   last $ scanl dealCardToUser aTable playerIndices
  
+-- Initial deal: reset table with a new shuffled deck, then deal two rounds
 initialDeal cardDeck aTable numberOfPlayers =
   dealCards
-    (dealCards (resetTable cardDeck aTable numberOfPlayers)
-               [0 .. numberOfPlayers])
+    (dealCards (resetTable cardDeck aTable numberOfPlayers) [0 .. numberOfPlayers])
     [0 .. numberOfPlayers]
     
 showTable :: Table -> [Char]
@@ -258,6 +260,8 @@ clipScore aTable playerIndex =
   let s = score aTable playerIndex in
     if s < 22 then s else 0
       
+-- Resolve bets for the hand: compare each player's score against dealer
+-- Busts are treated as 0; updates chip stacks accordingly
 scoreHands aTable =
   let chipStacks2 = _chipStacks aTable
       playerScore = clipScore aTable 0
@@ -318,6 +322,7 @@ dealCardToUser' aTable playerIndex =
       newTable = over cardDeck (\cd -> tail cd) aTable in
     over dealtCards (\a -> a & element playerIndex .~ playerCards) newTable
 
+-- Dealer/AI rule: user always draws; other players draw until score >= 17
 dealCardToUser :: Table -> Int -> Table
 dealCardToUser aTable playerIndex
   | playerIndex == 0  = dealCardToUser' aTable playerIndex -- user
@@ -330,7 +335,7 @@ handOver aTable =
   _userPasses aTable
 ```
 
-In line 48 we use the function **makeLenses** to generate access functions for the type **Table**. We will look in some detail at lines 54-56 where we use the lense **over** function to modify a nested value in a table, returning a new table:
+In line 46 we use the function **makeLenses** to generate access functions for the type **Table**. We will look in some detail at lines 52-54 where we use the lense **over** function to modify a nested value in a table, returning a new table:
 
 ```haskell{line-numbers: true}
 setCardDeck :: [Card] -> Table -> Table
@@ -353,11 +358,13 @@ Similarly, we use **over** in line 113 to change the current player bet. In func
 The function **main**, defined in the file *Main.hs*, uses the code we have just seen to represent a table and modify a table, is fairly simple. A main game loop repetitively accepts game user input, and calls the appropriate functions to modify the current table, producing a new table. Remember that the table data is immutable: we always generate a new table from the old table when we need to modify it.
 
 ```haskell{line-numbers: true}
+-- Simple CLI Blackjack runner; orchestrates IO and table updates
+-- Prompts for players, shuffles deck, loops reading commands to hit/stay/bet
 module Main where
 
-import Card   -- pure code
-import Table  -- pure code
-import RandomizedList  -- impure code
+import Card   -- pure code (card types + values)
+import Table  -- pure code (game state + rules)
+import RandomizedList  -- impure code (random shuffle)
 
 printTable :: Table -> IO ()
 printTable aTable =
@@ -366,6 +373,8 @@ printTable aTable =
 randomDeck =
   randomizedList orderedCardDeck
 
+-- Main loop: renders the table, shuffles a fresh deck each turn,
+-- and processes user input; returns `IO` to keep side effects explicit
 gameLoop :: Table -> Int -> IO b
 gameLoop aTable numberOfPlayers = do
   printTable aTable
@@ -375,30 +384,22 @@ gameLoop aTable numberOfPlayers = do
       putStrLn "\nHand over. State of table at the end of the game:\n"
       printTable aTable
       putStrLn "\nNewly dealt hand:\n"
-      gameLoop (initialDeal cardDeck (scoreHands aTable)
-                                     numberOfPlayers)
-                                     numberOfPlayers
+      gameLoop (initialDeal cardDeck (scoreHands aTable) numberOfPlayers) numberOfPlayers
   else
     do
-      putStrLn "Enter command:"
-      putStrLn "  h)it or set bet to 10, 20, 30; any other key to stay:"
+      putStrLn "Enter command: h)it or set bet to 10, 20, 30; any other key to stay:"
       command <- getLine
-      if elem command ["10", "20", "30"] then
-        gameLoop (setPlayerBet (read command) aTable) numberOfPlayers
+      if elem command ["10", "20", "30"] then gameLoop (setPlayerBet (read command) aTable) numberOfPlayers
       else
-        if command == "h" then
-          gameLoop (dealCards aTable [0 .. numberOfPlayers]) numberOfPlayers
-        else
-          gameLoop (setPlayerPasses (dealCards aTable [1 .. numberOfPlayers]))
-                    numberOfPlayers 
+        if command == "h" then gameLoop (dealCards aTable [0 .. numberOfPlayers]) numberOfPlayers
+        else gameLoop (setPlayerPasses (dealCards aTable [1 .. numberOfPlayers])) numberOfPlayers 
              -- player stays (no new cards)
   
 main :: IO b
 main = do
-  putStrLn "Start a game of Blackjack. Besides yourself, how many other"
-  putStrLn "players do you want at the table?"
+  print "Start a game of Blackjack. Besides yourself, how many other players do you want at the table?"
   s <- getLine
-  let num = (read s :: Int) + 1
+  let num = (read s :: Int) + 1 -- player indices: 0)user, 1)dealer, and > 1 are the other players
   cardDeck <- randomDeck
   let aTable = initialDeal cardDeck (createNewTable num) num
   gameLoop aTable num
