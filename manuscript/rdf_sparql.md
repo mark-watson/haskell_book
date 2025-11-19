@@ -1,6 +1,6 @@
 # Implementing a Simple RDF Datastore With Partial SPARQL Support
 
-Other examples in this book use full RDF datastores via their APIs. Here we implement two examples:
+Other examples in this book use full RDF datastores via their APIs. Here we implement two examples that **zero external heavy dependencies**, only using Haskell `base` and `containers` standard libraries:
 
 - SimpleRDF.hs - A simple in-memory RDF datastore that supports queries using a non-standard pattern matching syntax.
 - RDF_simple_SPARQL.hs - Also handles simple SPARQL queries such as shown in the test code for this example:
@@ -24,7 +24,7 @@ main = do
 
 ## In-memory Example Using a Pattern Matching Query Syntax
 
-To demonstrate the fundamentals of a graph database, the following Haskell implementation constructs a minimal in-memory RDF store and a query engine that executes queries defined via an internal data structure rather than parsing raw SPARQL text. We define the core types—nodes representing IRIs, literals, or blank nodes—and organize them into a list of triples to simulate the graph. Instead of a string parser, the code uses a SelectQuery type and TriplePattern objects (the AST) to programmatically model the query logic, while the evaluatePatterns function leverages the List Monad to elegantly handle the combinatorial nature of joining these patterns against the data.
+To demonstrate the fundamentals of a graph database, the following Haskell implementation constructs a minimal in-memory RDF store and a query engine that executes queries defined via an internal data structure rather than parsing raw SPARQL text. We define the core types: nodes representing IRIs, literals, or blank nodes, and organize them into a list of triples to simulate the graph. Instead of a string parser, the code uses a **SelectQuery** type and **TriplePattern** objects (the AST) to programmatically model the query logic, while the **evaluatePatterns** function leverages the List Monad to elegantly handle the combinatorial nature of joining these patterns against the data.
 
 ```haskell
 {-# LANGUAGE DeriveGeneric #-}
@@ -271,13 +271,82 @@ printTable headers rows = do
   mapM_ (putStrLn . unwords . map show) rows
 ```
 
-The engine relies on a pattern-matching approach where TriplePattern objects are compared against concrete triples in the store to build a Binding map. The matchTriple function acts as the gatekeeper: it checks if a specific triple fits the constraints of the pattern (e.g., matching a specific Subject IRI) and updates the variable bindings (like ?s or ?o) accordingly. Because the queries are constructed as Haskell data types—shown in the main function alongside the commented-out SPARQL strings they represent—the compiler ensures the structure of the query is valid before the program even runs, bypassing the complexity of text parsing entirely.
+The engine relies on a pattern-matching approach where **TriplePattern** objects are compared against concrete triples in the store to build a **Binding** map. The **matchTriple** function acts as the gatekeeper: it checks if a specific triple fits the constraints of the pattern (e.g., matching a specific Subject IRI) and updates the variable bindings (like **?s** or **?o**) accordingly. Because the queries are constructed as Haskell data types—shown in the main function alongside the commented-out SPARQL strings they represent—the compiler ensures the structure of the query is valid before the program even runs, bypassing the complexity of text parsing entirely.
 
-While this implementation highlights the semantic clarity of using Haskell's monadic structure for query resolution, it represents a naive nested-loop join strategy. The evaluatePatterns function iterates through the entire graph for every pattern step, leading to exponential complexity relative to the number of patterns. In a production-grade triple store, this would be optimized using indexed lookups (such as SPO, POS, or OSP indices) to reduce the search space from linear scans to logarithmic lookups, allowing for efficient handling of millions of triples.
+While this implementation highlights the semantic clarity of using Haskell's monadic structure for query resolution, it represents a naive nested-loop join strategy. The **evaluatePatterns** function iterates through the entire graph for every pattern step, leading to exponential complexity relative to the number of patterns. In a production-grade triple store, this would be optimized using indexed lookups (such as SPO, POS, or OSP indices) to reduce the search space from linear scans to logarithmic lookups, allowing for efficient handling of millions of triples.
+
+### Sample Output
+
+The example program output is edited for brevity:
+
+```text
+$ cabal run simple-rdf
+Build profile: -w ghc-9.6.7 -O1
+
+--- RDF Store Loaded ---
+(<Alice>,<likes>,<Bob>)
+(<Alice>,<likes>,<Pizza>)
+(<Bob>,<likes>,<Alice>)
+(<Bob>,<likes>,<Pasta>)
+(<Charlie>,<likes>,<Bob>)
+(<Alice>,<age>,"25")
+(<Bob>,<age>,"28")
+
+--- Query 1: Select ?s ?o where { ?s likes ?o } ---
+?s ?o
+----------
+<Alice> <Bob>
+<Alice> <Pizza>
+<Bob> <Alice>
+<Bob> <Pasta>
+<Charlie> <Bob>
+
+--- Query 2: Select ?who where { ?who likes <Bob> } ---
+?who
+---------
+<Alice>
+<Charlie>
+
+--- Query 3 (Join): Who likes someone who likes them back? ---
+?a ?b
+----------
+<Alice> <Bob>
+<Bob> <Alice>
+Marks-Mac-mini:rdf_sparql $ cabal run simple-rdf
+--- RDF Store Loaded ---
+(<Alice>,<likes>,<Bob>)
+(<Alice>,<likes>,<Pizza>)
+(<Bob>,<likes>,<Alice>)
+(<Bob>,<likes>,<Pasta>)
+(<Charlie>,<likes>,<Bob>)
+(<Alice>,<age>,"25")
+(<Bob>,<age>,"28")
+
+--- Query 1: Select ?s ?o where { ?s likes ?o } ---
+?s ?o
+----------
+<Alice> <Bob>
+<Alice> <Pizza>
+<Bob> <Alice>
+<Bob> <Pasta>
+<Charlie> <Bob>
+
+--- Query 2: Select ?who where { ?who likes <Bob> } ---
+?who
+---------
+<Alice>
+<Charlie>
+
+--- Query 3 (Join): Who likes someone who likes them back? ---
+?a ?b
+----------
+<Alice> <Bob>
+<Bob> <Alice>
+```
 
 ## In-memory Example Using a Simplified SPARQL Query Syntax
 
-To enhance the usability of our RDF engine, we now introduce a parsing layer that allows users to execute queries using standard SPARQL string syntax rather than manually constructing Haskell data types. By utilizing the Text.ParserCombinators.ReadP library, we define a parser that consumes raw strings—handling the SELECT clause, variable extraction, and the WHERE block's triple patterns—and converts them into the SelectQuery AST expected by our engine. This addition bridges the gap between the internal logic and user input, enabling the execution of text-based queries like **SELECT ?a ?b WHERE { ?a likes ?b }** and **SELECT ?a ?b WHERE { ?a likes ?b . ?b likes ?a }** by tokenizing variables, literals, and IRIs, including a helper parseSimpleIRI to allow unbracketed terms for cleaner input.
+To enhance the usability of our RDF engine, we now introduce a parsing layer that allows users to execute queries using standard SPARQL string syntax rather than manually constructing Haskell data types. By utilizing the **Text.ParserCombinators.ReadP** library, we define a parser that consumes raw strings—handling the SELECT clause, variable extraction, and the WHERE block's triple patterns—and converts them into the **SelectQuery** AST expected by our engine. This addition bridges the gap between the internal logic and user input, enabling the execution of text-based queries like **SELECT ?a ?b WHERE { ?a likes ?b }** and **SELECT ?a ?b WHERE { ?a likes ?b . ?b likes ?a }** by tokenizing variables, literals, and IRIs, including a helper parseSimpleIRI to allow unbracketed terms for cleaner input.
 
 ```haskell
 {-# LANGUAGE DeriveGeneric #-}
@@ -526,12 +595,50 @@ printTable headers rows = do
 
 The parseQuery function serves as the new frontend, utilizing monadic parser combinators to decompose the query string. We define a parser that enforces the structural grammar of SPARQL: it expects the **SELECT** keyword followed by variables, and a WHERE clause containing a set of triple patterns enclosed in braces. The use of **sepBy** allows us to parse multiple patterns separated by optional dots, while **stringCI** ensures case-insensitivity for keywords, making the parser robust against minor formatting variations in the input string.
 
-At the granular level, parseTriplePattern constructs the abstract syntax tree by recursively parsing the subject, predicate, and object. The **parseQueryNode** function uses the choice combinator **<++** to distinguish between variables (prefixed with **?**) and concrete terms. To improve readability in this simple implementation, we included parseSimpleIRI, which permits alphanumeric words to be interpreted as IRIs without enclosing angle brackets; this allows users to write natural queries like ?s likes ?o alongside strict SPARQL syntax like **<Alice> <age> "25"**.
+At the granular level, **parseTriplePattern** constructs the abstract syntax tree by recursively parsing the subject, predicate, and object. The **parseQueryNode** function uses the choice combinator **<++** to distinguish between variables (prefixed with **?**) and concrete terms. To improve readability in this simple implementation, we included parseSimpleIRI, which permits alphanumeric words to be interpreted as IRIs without enclosing angle brackets; this allows users to write natural queries like ?s likes ?o alongside strict SPARQL syntax like **<Alice> <age> "25"**.
+
+### Sample Output
+
+The example program output is :
+
+```test
+$ cabal run simple-rdf-with-sparql
+
+--- RDF Store Loaded ---
+(<Alice>,<likes>,<Bob>)
+(<Alice>,<likes>,<Pizza>)
+(<Bob>,<likes>,<Alice>)
+(<Bob>,<likes>,<Pasta>)
+(<Charlie>,<likes>,<Bob>)
+(<Alice>,<age>,"25")
+(<Bob>,<age>,"28")
+
+--- Query 1: Select ?s ?o where { ?s likes ?o } ---
+?s ?o
+----------
+<Alice> <Bob>
+<Alice> <Pizza>
+<Bob> <Alice>
+<Bob> <Pasta>
+<Charlie> <Bob>
+
+--- Query 2: Select ?who where { ?who likes <Bob> } ---
+?who
+---------
+<Alice>
+<Charlie>
+
+--- Query 3 (Join): Who likes someone who likes them back? ---
+?a ?b
+----------
+<Alice> <Bob>
+<Bob> <Alice>
+```
 
 
 ## Wrap Up
 
-These examples illustrate the power of Haskell's monadic structures for modeling complex logic like database query execution. By utilizing the List Monad in the core engine, we abstracted away the explicit backtracking and iteration required to join triple patterns. The code treats a query not as a mechanical set of nested loops, but as a sequence of context transformations, where each step filters the universe of possible bindings down to those that satisfy the current constraints. This allows the evaluatePatterns function to remain remarkably concise while handling the non-deterministic nature of graph pattern matching.
+These examples illustrate the power of Haskell's monadic structures for modeling complex logic like database query execution. By utilizing the List Monad in the core engine, we abstracted away the explicit backtracking and iteration required to join triple patterns. The code treats a query not as a mechanical set of nested loops, but as a sequence of context transformations, where each step filters the universe of possible bindings down to those that satisfy the current constraints. This allows the **evaluatePatterns** function to remain remarkably concise while handling the non-deterministic nature of graph pattern matching.
 
 The progression from manual data type construction to a text-based parser highlights the critical distinction between a query engine and a query language. The first example demonstrated that the execution logic operates purely on the Abstract Syntax Tree (AST), entirely independent of how that tree is created. The second example bridged the gap to usability by adding a combinator-based parser, effectively treating the SPARQL string syntax merely as a serialization format for the internal logic we had already built. This separation of concerns allows the backend to remain stable even as the frontend syntax evolves or expands.
 
