@@ -22,6 +22,10 @@ That said, I appreciate it when readers purchase my books because the income ena
 I am available for short consulting projects. Please see [https://markwatson.com](https://markwatson.com).
 
 
+### Fun Fact About the Author
+
+My father taught physics at Berkeley and was good friends with "Chandra" Subrahmanyan Chandrasekhar (X-ray telescope and observatory named after him). Even though Chandra taught at the University of Chicago, he and his wife would visit our home and even as a child I enjoyed meeting them. I also remember Edward Teller, another very good physicist and good friend of my Dad, was also at our house. After my Dad retired to San Diego he would still fly up to Berkeley to hang out with Teller. One week before J. Robert Oppenheimer died my Dad had dinner with Oppenheimer and his wife Kitty. My father passed away a few years ago before his 102 birthday - I miss his stories about people he rubbed shoulders with like Albert Einstein and John von Neumann (who my Dad said would play very loud music in his office and work late into the night).
+
 ## Structure of the Book
 
 The first section of this book contains two chapters:
