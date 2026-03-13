@@ -1,0 +1,14 @@
+resolver: lts-22.26
+
+allow-newer: false
+
+# flags:
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- http-client-0.7.17
+- openai-servant-0.3.0.1
+- openai-hs-0.3.0.1
+- http-client-tls-0.3.6.3
+

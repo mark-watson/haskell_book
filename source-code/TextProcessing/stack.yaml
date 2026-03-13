@@ -1,0 +1,13 @@
+resolver: lts-22.26
+allow-newer: false
+
+# flags:
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- MissingH-1.6.0.1
+- random-1.2.1.2
+- either-unwrap-1.1
+- json-0.11
+

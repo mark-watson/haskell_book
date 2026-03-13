@@ -270,9 +270,9 @@ $ stack ghci
 
 * * * * * * * *
 The main module to load is ambiguous. Candidates are: 
-1. Package `CommandLineApp' component exe:CommandLine1 with main-is file: /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/CommandLine1.hs
-2. Package `CommandLineApp' component exe:CommandLine2 with main-is file: /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/CommandLine2.hs
-3. Package `CommandLineApp' component exe:ReadTextFile with main-is file: /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/ReadTextFile.hs
+1. Package `CommandLineApp' component exe:CommandLine1 with main-is file: /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/CommandLine1.hs
+2. Package `CommandLineApp' component exe:CommandLine2 with main-is file: /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/CommandLine2.hs
+3. Package `CommandLineApp' component exe:ReadTextFile with main-is file: /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/ReadTextFile.hs
 You can specify which one to pick by: 
  * Specifying targets to stack ghci e.g. stack ghci CommandLineApp:exe:CommandLine1
  * Specifying what the main is e.g. stack ghci --main-is CommandLineApp:exe:CommandLine1
@@ -280,18 +280,18 @@ You can specify which one to pick by:
 * * * * * * * *
 
 Specify main module to use (press enter to load none): 1
-Loading main module from cadidate 1, --main-is /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/CommandLine1.hs
+Loading main module from cadidate 1, --main-is /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/CommandLine1.hs
 
 Configuring GHCi with the following packages: CommandLineApp
 GHCi, version 7.10.3: http://www.haskell.org/ghc/  :? for help
 Ok, modules loaded: none.
-[1 of 1] Compiling Main             ( /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/CommandLine1.hs, interpreted )
+[1 of 1] Compiling Main             ( /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/CommandLine1.hs, interpreted )
 Ok, modules loaded: Main.
 *Main> :t main
 main :: IO b
 *Main> :info main
 main :: IO b
--- Defined at /Users/markw/GITHUB/haskell_tutorial_cookbook_examples/CommandLineApp/CommandLine1.hs:6:1
+-- Defined at /Users/markw/GITHUB/haskell_book/source-code/CommandLineApp/CommandLine1.hs:6:1
 *Main> :t getLine
 getLine :: IO String
 *Main> :t putStrLn
@@ -310,7 +310,7 @@ Enter a line of text for test 1:
 
 In line 36 the function **getLine** is of type **getLine :: IO String** which means that calling **getLine** returns a value that is a computation to get a line of text from *stdio* but the IO operation is not performed until the value is used.
 
-Please note that it is unusual to put five executable targets in a project's *cabal* file. I am only doing so here because I wanted to group five similar examples together in this subdirectory of the [github repo for this book](https://github.com/mark-watson/haskell_tutorial_cookbook_examples). This repo has 16 example subdirectories, and the number would be much greater if I didn't collect similar examples together.
+Please note that it is unusual to put five executable targets in a project's *cabal* file. I am only doing so here because I wanted to group five similar examples together in this subdirectory of the [github repo for this book](https://github.com/mark-watson/haskell_book/source-code). This repo has 16 example subdirectories, and the number would be much greater if I didn't collect similar examples together.
 
 We will use the example in file *CommandLine2.hs* in the next section which is similar to this example but also appends the user input to a text file.
 
@@ -452,7 +452,7 @@ We will experiment with three network IO examples in this book:
 - Reading web pages in the chapter "Web Scraping"
 - Querying remote RDF endpoints in the chapter "Linked Data and the Semantic Web"
 
-We start by using a high level library, **network-simple** for both the client and server examples in the next two sub-sections. The client and server examples are in the directory *haskell_tutorial_cookbook_examples/ClientServer* in the files *Client.hs* and *Server.hs*.
+We start by using a high level library, **network-simple** for both the client and server examples in the next two sub-sections. The client and server examples are in the directory *haskell_book/source-code/ClientServer* in the files *Client.hs* and *Server.hs*.
 
 ### Server Using network-simple Library
 
@@ -564,7 +564,7 @@ Response: "321tset"
 
 ## A Haskell Game Loop that Maintains State Functionally
 
-The example in this section can be found in the file *GameLoop2.hs* in the directory *haskell_tutorial_cookbook_examples/CommandLineApp*. This example uses the random package to generate a seed random number for a simple number guessing game. An alternative implementation in *GameLoop1.hs*, which I won't discuss, uses the system time to generate a seed.
+The example in this section can be found in the file *GameLoop2.hs* in the directory *haskell_book/source-code/CommandLineApp*. This example uses the random package to generate a seed random number for a simple number guessing game. An alternative implementation in *GameLoop1.hs*, which I won't discuss, uses the system time to generate a seed.
 
 This is an important example because it demonstrates one way to maintain state in a functional way. We have a read-only game state value that is passed to the function **gameLoop** which modifies the read-only game state passed as an argument and returns a newly constructed game state as the function's returned value. This is a common pattern that we will see again later when we develop an application to play a simplified version of the card game Blackjack in the chapter "Haskell Program to Play the Blackjack Card Game."
 

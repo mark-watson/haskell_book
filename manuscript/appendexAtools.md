@@ -1,6 +1,6 @@
 # Appendix A - Haskell Tools Setup
 
-Here I discuss the *stack* build tool but as I update this book in September 2024, I now frequently just use *Cabal* to build and run projects. The README files for the examples in the [GitHub repository for this book](https://github.com/mark-watson/haskell_tutorial_cookbook_examples) usually have directions for both *stack* and *Cabal*.
+Here I discuss the *stack* build tool but as I update this book in September 2024, I now frequently just use *Cabal* to build and run projects. The README files for the examples in the [GitHub repository for this book](https://github.com/mark-watson/haskell_book/source-code) usually have directions for both *stack* and *Cabal*.
 
 I recommend that if you are new to Haskell that you at least do a minimal installation of *stack* and work through the first chapter using an interactive REPL. After experimenting with the REPL then do please come back to Appendix A and install support for the editor of your choice (or an IDE) and hlint.
 

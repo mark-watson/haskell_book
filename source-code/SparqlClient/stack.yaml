@@ -1,0 +1,21 @@
+resolver: lts-22.26
+
+allow-newer: false
+
+# flags:
+extra-package-dbs: []
+packages:
+- '.'
+#- location:
+#    git: https://github.com/robstewart57/rdf4h.git
+#    commit: 046ea63f3c8f7636251b80695bee627306b8b2d2
+#- location:
+#    git: https://github.com/robstewart57/hsparql.git
+#    commit: 7f6e1952e44c5e6edf952d3493e2263ef689385b
+extra-deps:
+- MissingH-1.6.0.1
+- random-1.2.1.2
+- hgal-2.0.0.3
+- rdf4h-3.0.1
+- hsparql-0.2.9
+

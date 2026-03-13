@@ -25,12 +25,12 @@ The first time you build an example program with *stack* it may take a while sin
 The interactive shell (often called a "repl") is very useful for learning Haskell: understanding types and the value of expressions. While simple expressions can be typed directly into the GHCi shell, it is usually better to use an external text editor and load Haskell source files into the shell (repl). Let's get started. Assuming that you have installed *stack* as described in Appendix A, please try:
 
 ```haskell{line-numbers: false}
-~/$ cd haskell_tutorial_cookbook_examples/Pure
-~/haskell_tutorial_cookbook_examples/Pure$ stack ghci
-Using main module: Package `Pure' component exe:Simple with main-is file: /home/markw/BITBUCKET/haskell_tutorial_cookbook_examples/Pure/Simple.hs
+~/$ cd haskell_book/source-code/Pure
+~/haskell_book/source-code/Pure$ stack ghci
+Using main module: Package `Pure' component exe:Simple with main-is file: /home/markw/BITBUCKET/haskell_book/source-code/Pure/Simple.hs
 Configuring GHCi with the following packages: Pure
 GHCi, version 7.10.3: http://www.haskell.org/ghc/  :? for help
-[1 of 1] Compiling Main             ( /home/markw/BITBUCKET/haskell_tutorial_cookbook_examples/Pure/Simple.hs, interpreted )
+[1 of 1] Compiling Main             ( /home/markw/BITBUCKET/haskell_book/source-code/Pure/Simple.hs, interpreted )
 Ok, modules loaded: Main.
 *Main> 1 + 2
 3
@@ -470,7 +470,7 @@ map :: (a -> b) -> [a] -> [b]
 
 In the first example, types **a** and **b** are the same, a **Num**. The second example used a composed function that adds 1 and then converts the example to a string. Remember: the function **show** converts a Haskell data value to a string. In this second example types **a** and **b** are different because the function is mapping a number to a string.
 
-The directory *haskell_tutorial_cookbook_examples/Pure*  contains the examples for this chapter. We previously used the example file *Simple.hs*. Please note that in the rest of this book I will omit the git repository top level directory name haskell_tutorial_cookbook_examples and just specify the sub-directory name:
+The directory *haskell_book/source-code/Pure*  contains the examples for this chapter. We previously used the example file *Simple.hs*. Please note that in the rest of this book I will omit the git repository top level directory name haskell_book/source-code and just specify the sub-directory name:
 
 ```haskell{line-numbers: false}
 module Main where
@@ -512,7 +512,7 @@ This command builds the project defined in the configuration files *Pure.cabal* 
 To continue the tutorial on using pure Haskell functions, once again we will use *stack* to start an interactive repl during development:
 
 ```haskell{line-numbers: true}
-markw@linux:~/haskell_tutorial_cookbook_examples/Pure$ stack ghci
+markw@linux:~/haskell_book/source-code/Pure$ stack ghci
 *Main> :t 3
 3 :: Num a => a
 *Main> :t "dog"
@@ -822,10 +822,10 @@ This output is self explanatory except for line 7 that is the result of calling 
 
 ## Conditional **do** Expressions and Anonymous Functions
 
-The examples in the next three sub-sections can be found in *haskell_tutorial_cookbook_examples/Pure/Conditionals.hs*. You should read the following sub-sections with this file loaded (some GHCi repl output removed for brevity):
+The examples in the next three sub-sections can be found in *haskell_book/source-code/Pure/Conditionals.hs*. You should read the following sub-sections with this file loaded (some GHCi repl output removed for brevity):
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ stack ghci
+haskell_book/source-code/Pure$ stack ghci
 *Main> :l Conditionals.hs 
 [1 of 1] Compiling Main             ( Conditionals.hs, interpreted )
 Ok, modules loaded: Main.
@@ -892,7 +892,7 @@ bumpList n (x:xs) = (n * x) : bumpList (n xs)
 then the code still works correctly and is fairly readable. I would like you to get in the habit of avoiding extra unneeded parenthesis and one tool for doing this is running **hlint** (installing **hlint** is covered in Appendix A) on your Haskell code. Using **hlint** source file will provide warnings/suggestions like this:
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ hlint Conditionals.hs
+haskell_book/source-code/Pure$ hlint Conditionals.hs
 Conditionals.hs:7:21: Warning: Redundant bracket
 Found:
   ((* 2) x) : doubleList (xs)
@@ -1018,7 +1018,7 @@ ageToString age =
 All **if** statements must have both a **then** expression and a **else** expression.
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ stack ghci
+haskell_book/source-code/Pure$ stack ghci
 *Main> :l IfThenElses.hs 
 [1 of 1] Compiling Main             ( IfThenElses.hs, interpreted )
 Ok, modules loaded: Main.
@@ -1036,7 +1036,7 @@ Maps are simple to construct using a list of key-value tuples and are by default
 We will look at the module **Data.Map** first in a GHCi repl, then later in a few full code examples. There is something new in line 1 of the following listing: I am assigning a short alias **M** to the module **Data.Map**. In referencing a function like **fromList** (which converts a list of tuples to a map) in the **Data.Map** module I can use **M.fromList** instead of **Data.Map.fromList**. This is a common practice so when you read someone else's Haskell code, one of the first things you should do when reading a Haskell source file is to make note of the module name abbreviations at the top of the file.
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ stack ghci
+haskell_book/source-code/Pure$ stack ghci
 *Main> import qualified Data.Map as M
 *Main M> :t M.fromList
 M.fromList :: Ord k => [(k, a)] -> M.Map k a
@@ -1079,7 +1079,7 @@ The function **getNumericValue** shows one way to extract a value from an instan
 The output from running the **main** function in module **MapExamples** is:
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ stack ghci
+haskell_book/source-code/Pure$ stack ghci
 *Main> :l MapExamples.hs 
 [1 of 1] Compiling MapExamples      ( MapExamples.hs, interpreted )
 Ok, modules loaded: MapExamples.
@@ -1224,7 +1224,7 @@ Notice that the expressions being evaluated in lines 11 and 13 are the same. In 
 The output is:
 
 ```haskell{line-numbers: false}
-haskell_tutorial_cookbook_examples/Pure$ stack ghci
+haskell_book/source-code/Pure$ stack ghci
 *Main> :l ChainedCalls.hs 
 [1 of 1] Compiling ChainedCalls     ( ChainedCalls.hs, interpreted )
 Ok, modules loaded: ChainedCalls.
@@ -1265,7 +1265,7 @@ Because of Haskell's type safety and excellent testing tools, it is possible to 
 
 ## Testing Haskell Code
 
-The example in this section is found in the directory *haskell_tutorial_cookbook_examples/TestingHaskell*.
+The example in this section is found in the directory *haskell_book/source-code/TestingHaskell*.
 
 If you use *stack* to create a new project then the framework for testing is generated for you:
 
@@ -1293,7 +1293,7 @@ $ stack setup
 $ stack build
 ```
 
-This *stack* generated project is more complex than the project I created manually in the directory *haskell_tutorial_cookbook_examples/Pure*. The file *Setup.hs* is a placeholder and uses any module named **Main** in the *app* directory. This module, defined in *app/Main.hs*, imports the module **Lib** defined in *src/Lib.hs*.
+This *stack* generated project is more complex than the project I created manually in the directory *haskell_book/source-code/Pure*. The file *Setup.hs* is a placeholder and uses any module named **Main** in the *app* directory. This module, defined in *app/Main.hs*, imports the module **Lib** defined in *src/Lib.hs*.
 
 The generated test does not do anything, but let's run it anyway:
 

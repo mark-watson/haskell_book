@@ -54,7 +54,7 @@ The second section contains the following recipes implemented as complete progra
 
 The code examples in this book are licensed under two software licenses and you can choose the license that works best for your needs: Apache 2 and GPL 3. To be clear, you can use the examples in commercial projects under the Apache 2 license and if you like to write Free (Libre) software then use the GPL 3 license.
 
-We will use *stack* as a build system for all code examples. The code examples are provided as 22 separate *stack* based projects. These examples [are found on GitHub https://github.com/mark-watson/haskell_tutorial_cookbook_examples](https://github.com/mark-watson/haskell_tutorial_cookbook_examples). Recently in 2024 I have also added instructions in the example code on GitHub to alternatively build and run the examples using Cabal.
+We will use *stack* as a build system for all code examples. The code examples are provided as 22 separate *stack* based projects. These examples [are found on GitHub https://github.com/mark-watson/haskell_book/source-code](https://github.com/mark-watson/haskell_book/source-code). Recently in 2024 I have also added instructions in the example code on GitHub to alternatively build and run the examples using Cabal.
 
 
 
@@ -80,13 +80,13 @@ I strongly recommend that you use the *stack* tool from the [stack website](http
 
 It is important for you to learn the basics of using *stack* before jumping into this book because I have set up all of the example programs using stack.
 
-The github repository for the examples in this book is located at [github.com/mark-watson/haskell_tutorial_cookbook_examples](https://github.com/mark-watson/haskell_tutorial_cookbook_examples).
+The github repository for the examples in this book is located at [github.com/mark-watson/haskell_book/source-code](https://github.com/mark-watson/haskell_book/source-code).
 
 Many of the example listings for code examples are partial or full listing of files in my github repository. I show the file name, the listing, and the output. To experiment with the example yourself you need to load it and execute the main function; for example, if the example file is TestSqLite1.hs in the sub-directory Database, then from the top level directory in the git repository for the book examples you would do the following:
 
 {line-numbers=off}
 ~~~~~~~~
-$ haskell_tutorial_cookbook_examples git:(master) > cd Database 
+$ haskell_book/source-code git:(master) > cd Database 
 $ Database git:(master) > stack build --exec ghci
 GHCi, version 7.10.3: http://www.haskell.org/ghc/  :? for help
 Prelude> :l TestSqLite1
@@ -123,7 +123,7 @@ I include *README.md* files in the project directories with specific instruction
 
 I now use VSCode for most of my Haskell development. With the Haskell plugins VSCode offers auto-completion while typing and highlights syntax errors. Previously I use other editor for Haskell development. If you are an Emacs user I recommend that you follow the instructions in Appendix A, load the tutorial files into an Emacs buffer, build an example and open a REPL frame. If one is not already open type control-c control-l, switch to the REPL frame, and run the **main** function. When you make changes to the tutorial files, doing another control-c control-l will re-build the example in less than a second.
 
-Appendix A also shows you how to setup the **stack* Haskell build tool. As I update this book in September 2024 I have started using Cabal more often than Stack. The README files in the [code examples for this book](https://github.com/mark-watson/haskell_tutorial_cookbook_examples) usually have both stack and Cabal instructions for building and how to run the examples.
+Appendix A also shows you how to setup the **stack* Haskell build tool. As I update this book in September 2024 I have started using Cabal more often than Stack. The README files in the [code examples for this book](https://github.com/mark-watson/haskell_book/source-code) usually have both stack and Cabal instructions for building and how to run the examples.
 
 Whether you use Emacs/VSCode or run a REPL in a terminal window (command window if you are using Windows) the important thing is to get used to and enjoy the interactive style of development that Haskell provides.
 

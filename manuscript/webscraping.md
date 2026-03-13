@@ -8,7 +8,7 @@ Before we start a tutorial about web scraping I want to point out that much of t
 
 As we saw in the last chapter on linked data there is a huge amount of structured data available on the web via web services, semantic web/linked data markup, and APIs. That said, you will frequently find text (usually HTML) that is useful on web sites. However, this text is often at least partially unstructured and in a messy and frequently changing format because web pages are meant for human consumption and making them easy to parse and use by software agents is not a priority of web site owners.
 Here is t
-he code for the entire example in directory **haskell_tutorial_cookbook_examples/WebScraping** (code description follows the listing):
+he code for the entire example in directory **haskell_book/source-code/WebScraping** (code description follows the listing):
 
 ```haskell{line-numbers: false}
 -- Simple web scraper: fetch a page, parse HTML with TagSoup, print headers, text, and links

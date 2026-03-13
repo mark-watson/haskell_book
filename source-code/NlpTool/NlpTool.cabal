@@ -1,0 +1,64 @@
+cabal-version: 1.12
+
+name:           NlpTool
+version:        0.1.0.0
+description:    Please see the README.md
+homepage:       https://github.com/mark-watson/haskell_tutorial_cookbook_examples
+author:         Mark Watson
+maintainer:     mark@markwatson.com
+copyright:      2019 Mark Watson
+license:        Apache-2.0
+license-file:   ../APACHE_LICENSE-2.0.txt
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/NlpTool
+
+library
+  exposed-modules:
+      Categorize
+      Entities
+      Sentence
+      Summarize
+      NlpUtils
+      Stemmer
+      BroadcastNetworkNamesDbPedia
+      Category1Gram
+      Category2Gram
+      CityNamesDbpedia
+      CompanyNamesDbpedia
+      CountryNamesDbpedia
+      PeopleDbPedia
+      PoliticalPartyNamesDbPedia
+      TradeUnionNamesDbPedia
+      UniversityNamesDbPedia
+  other-modules:
+      Paths_NlpTool
+  hs-source-dirs:
+      src
+      src/nlp
+      src/nlp/data
+  build-depends:
+      base >=4.7 && <5, wreq, lens, bytestring
+    , hxt, json, uri-encode >= 1.5.0.5, MissingH
+    , aeson >= 1.4.2.0, containers, split, text
+    , directory, yaml, aeson, string-conversions
+    , MissingH, json >= 0.9.3
+  default-language: Haskell2010
+
+executable NlpTool-exe
+  main-is: NlpTool.hs
+  other-modules:
+      Paths_NlpTool
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      NlpTool
+    , base >=4.7 && <5
+    , MissingH
+    , directory, json >= 0.9.3
+  default-language: Haskell2010

@@ -6,7 +6,7 @@ My personal preference is to run local models on my own computer, and just use c
 
 You can download Ollama from [https://ollama.ai](https://ollama.com).
 
-The directory **haskell_tutorial_cookbook_examples/ollama_commandline** contains the code for this example.
+The directory **haskell_book/source-code/ollama_commandline** contains the code for this example.
 
 Before we look at the code, let's look at how we use this command line tool:
 

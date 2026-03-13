@@ -1,0 +1,14 @@
+resolver: lts-22.26
+
+allow-newer: false
+
+packages:
+- .
+# Dependency packages to be pulled from upstream that are not in the resolver
+# using the same syntax as the packages field.
+# (e.g., acme-missiles-0.3)
+extra-deps:
+- MissingH-1.6.0.1
+- random-1.2.1.2
+- json-0.11
+

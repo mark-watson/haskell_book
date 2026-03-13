@@ -15,7 +15,7 @@ There are two versions of this project that deal with generating duplicate data 
 - Ignore the problem of generating duplicate data and filter out duplicates in the outer processing pipeline that uses the Knowledge Graph Creator as one processing step.
 
 For my own work I choose the second method since filtering duplicates is as easy as a few Makefile targets (the following listing is in the file **Makefile** in the directory
-**haskell_tutorial_cookbook_examples/knowledge_graph_creator_pure**):
+**haskell_book/source-code/knowledge_graph_creator_pure**):
 
 
 ```bash{line-numbers: false}

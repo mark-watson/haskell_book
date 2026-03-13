@@ -3,7 +3,7 @@
 Here we look at a web application using the Google Gemini API for chat.
 We'll show the complete program listing that demonstrates how to interact with Gemini, providing a foundation for building more complex applications. This example code encapsulates the core concepts of sending requests and processing responses, showcasing Haskell's ability to integrate with modern APIs while maintaining code clarity and robustness.
 
-This example is in the directory **haskell_tutorial_cookbook_examples/webchat**.
+This example is in the directory **haskell_book/source-code/webchat**.
 
 Our focus will be on understanding the data structures used to represent Gemini requests and responses, as well as the HTTP client functionality employed to communicate with the API. We'll explore how Haskell's type system aids in constructing well-defined requests and how its data handling capabilities simplify the parsing of complex JSON responses. Through this exploration, you'll gain valuable insights into leveraging Haskell's strengths for real-world API interactions.
 

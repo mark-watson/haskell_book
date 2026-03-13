@@ -1,0 +1,15 @@
+test.db
+.idea
+*.iml
+.stack-work
+*~
+_*
+.DS_Store
+NLPdb.hsproj
+.vscode
+stack.yaml.lock
+out
+dist-newstyle
+*.dyn_hi
+*.dyn_o
+

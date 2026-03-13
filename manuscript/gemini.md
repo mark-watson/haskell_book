@@ -2,7 +2,7 @@
 
 This example is similar to the example in the last chapter but here we build not a web application but a command line application to use the Google Gemini LLM APIs.
 
-The directory **haskell_tutorial_cookbook_examples/gemini_commandline** contains the code for this example.
+The directory **haskell_book/source-code/gemini_commandline** contains the code for this example.
 
 Before we look at the code let’s run the example:
 

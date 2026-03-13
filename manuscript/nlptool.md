@@ -213,8 +213,8 @@ Building executable 'NlpTool-exe' for NlpTool-0.1.0.0..
 [2 of 2] Compiling Paths_NlpTool
 Linking .stack-work/dist/x86_64-osx/Cabal-2.4.0.1/build/NlpTool-exe/NlpTool-exe ...
 NlpTool> copy/register
-Installing library in /Users/markw/GITHUB/haskell_tutorial_cookbook_examples_private_new_edition/NlpTool/.stack-work/install/x86_64-osx/7a2928fbf8188dcb20f165f77b37045a5c413cc7f63913951296700a6b7e292d/8.6.5/lib/x86_64-osx-ghc-8.6.5/NlpTool-0.1.0.0-DXKbucyA0S0AKOAcZGDl2H
-Installing executable NlpTool-exe in /Users/markw/GITHUB/haskell_tutorial_cookbook_examples_private_new_edition/NlpTool/.stack-work/install/x86_64-osx/7a2928fbf8188dcb20f165f77b37045a5c413cc7f63913951296700a6b7e292d/8.6.5/bin
+Installing library in /Users/markw/GITHUB/haskell_book/source-code_private_new_edition/NlpTool/.stack-work/install/x86_64-osx/7a2928fbf8188dcb20f165f77b37045a5c413cc7f63913951296700a6b7e292d/8.6.5/lib/x86_64-osx-ghc-8.6.5/NlpTool-0.1.0.0-DXKbucyA0S0AKOAcZGDl2H
+Installing executable NlpTool-exe in /Users/markw/GITHUB/haskell_book/source-code_private_new_edition/NlpTool/.stack-work/install/x86_64-osx/7a2928fbf8188dcb20f165f77b37045a5c413cc7f63913951296700a6b7e292d/8.6.5/bin
 Registering library for NlpTool-0.1.0.0..
 Enter text (all on one line)
 As read in the San Francisco Chronicle, the company is owned by John Smith, Bill Clinton, Betty Sanders, and Dr. Ben Jones. Ben Jones and Mr. John Smith are childhood friends who grew up in Brazil, Canada, Buenos Aires, and the British Virgin Islands. Apple Computer relased a new version of OS X yesterday. Brazil Brazil Brazil. John Smith bought stock in ConocoPhillips, Heinz, Hasbro, and General Motors, Fox Sports Radio. I listen to B J Cole. Awami National Party is a political party. ALAEA is a trade union. She went to Brandeis University.
