@@ -1,6 +1,6 @@
 -- Card model: defines `Rank`, `Suit`, and `Card`, with helpers
 -- `orderedCardDeck` builds a deterministic deck; `cardValue` maps ranks to scores
-module Card (Card, Rank, Suit, orderedCardDeck, cardValue) where
+module Card (Card(..), Rank(..), Suit(..), orderedCardDeck, cardValue) where
 
 import Data.Maybe (fromMaybe)
 import Data.List (elemIndex)
