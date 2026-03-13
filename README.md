@@ -2,8 +2,6 @@
 
 ![Haskell Logo](haskell.svg)
 
-# OLD material kept for archival purposes:
-
 This repo contains the examples for my Haskell book that I try to update with new material about once a year:
 
 [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook)
