@@ -1,0 +1,11 @@
+-- cabal.project
+-- Points cabal to the DataHaskell/dataframe Git repository so that the
+-- 1.0.0.0 release (not yet on Hackage) can be pulled in directly.
+
+packages: .
+
+source-repository-package
+    type:     git
+    location: https://github.com/DataHaskell/dataframe.git
+    tag:      main
+    subdir:   .

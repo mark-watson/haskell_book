@@ -1,0 +1,27 @@
+cabal-version:      3.0
+name:               dataframe-example
+version:            0.1.0.0
+synopsis:           Housing data analysis using the dataframe library
+description:
+    A practical example of the dataframe 1.0.0.0 library that loads
+    California housing data from a CSV file and demonstrates common
+    data analysis operations: reading, exploring, filtering, deriving
+    new columns, grouping, and aggregation.
+license:            MIT
+author:             Mark Watson
+maintainer:         markw@markwatson.com
+category:           Data
+build-type:         Simple
+
+executable dataframe_example
+    main-is:          Main.hs
+    build-depends:
+        base          >= 4.14 && < 5,
+        dataframe     >= 0.7 && < 2,
+        text          >= 1.2  && < 3
+    hs-source-dirs:   src
+    default-language: GHC2021
+    ghc-options:     -Wall -Wno-unused-imports
+    default-extensions:
+        OverloadedStrings
+        TemplateHaskell
