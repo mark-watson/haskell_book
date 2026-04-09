@@ -65,7 +65,7 @@ Let's compute the number of rooms per household, population density per househol
         df
           |> D.derive "rooms_per_household"
                (F.toDouble (F.col @Int "total_rooms") / 
-             F.toDouble (F.col @Int "households"))
+               F.toDouble (F.col @Int "households"))
           |> D.derive "population_per_household"
                (F.toDouble (F.col @Int "population") / 
                F.toDouble (F.col @Int "households"))
