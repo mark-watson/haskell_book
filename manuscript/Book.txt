@@ -15,6 +15,7 @@ linkeddata.md
 rdf_sparql.md
 webscraping.md
 database.md
+dataframe.md
 blackjack.md
 section3.md
 kgcreator.md
