@@ -1,6 +1,8 @@
 kbnlp.hs
 ========
 
+**Book Chapter:** [Natural Language Processing Tools](https://leanpub.com/read/haskell-cookbook/natural-language-processing-tools) — *Haskell Tutorial and Cookbook* (free to read online).
+
 Mark Watson's Haskell NLP Experiments
 
 Copyright 2014 by Mark Watson. All rights reserved. 

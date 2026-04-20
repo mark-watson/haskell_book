@@ -1,5 +1,7 @@
 # Command Line Utility To Use the Google Gemini APIs
 
+**Book Chapter:** [Command Line Utility To Use the Google Gemini APIs](https://leanpub.com/read/haskell-cookbook/command-line-utility-to-use-the-google-gemini-apis) — *Haskell Tutorial and Cookbook* (free to read online).
+
 This example is similar to the example in ../webchat but here we build a command line application, not a web application to use the Google Gemini LLM APIs.
 
 Example:

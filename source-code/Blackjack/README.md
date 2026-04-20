@@ -1,5 +1,7 @@
 # Simple implementation of Blackjack game
 
+**Book Chapter:** [Haskell Program to Play the Blackjack Card Game](https://leanpub.com/read/haskell-cookbook/haskell-program-to-play-the-blackjack-card-game) — *Haskell Tutorial and Cookbook* (free to read online).
+
 The are a few limitations in this implementation:
 
 - Aces always count as 11 points (instead of 11 or 1)

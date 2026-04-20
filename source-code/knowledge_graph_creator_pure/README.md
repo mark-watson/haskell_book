@@ -1,5 +1,7 @@
 # KGCreator
 
+**Book Chapter:** [Knowledge Graph Creator](https://leanpub.com/read/haskell-cookbook/knowledge-graph-creator) — *Haskell Tutorial and Cookbook* (free to read online).
+
 Licensed under the AGPL version 3. See https://markwatson.com/opensource/ for an alternative commercial license ($50).
 
 ## CorefWebClient Client Example

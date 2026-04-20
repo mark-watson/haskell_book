@@ -1,5 +1,7 @@
 # Haskell version of FastTag
 
+**Book Chapter:** [Natural Language Processing Tools](https://leanpub.com/read/haskell-cookbook/natural-language-processing-tools) — *Haskell Tutorial and Cookbook* (free to read online).
+
 Copyright 2016 Mark Watson (http://markwatson.com)
 
 Licensed under LGPL3 or Apache 2 licenses: take your pick.

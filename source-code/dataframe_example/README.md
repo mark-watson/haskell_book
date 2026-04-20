@@ -1,5 +1,7 @@
 # dataframe_example
 
+**Book Chapter:** [Data Analysis in Haskell with DataFrame](https://leanpub.com/read/haskell-cookbook/data-analysis-in-haskell-with-dataframe) — *Haskell Tutorial and Cookbook* (free to read online).
+
 A Haskell project demonstrating the [`dataframe` 1.0.0.0 library](https://hackage.haskell.org/package/dataframe) with a California housing dataset.
 
 **Reference:** [ANN: dataframe 1.0.0.0](https://discourse.haskell.org/t/ann-dataframe-1-0-0-0/13834)

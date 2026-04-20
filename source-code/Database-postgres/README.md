@@ -1,5 +1,7 @@
 # Database Examples
 
+**Book Chapter:** [Using Relational Databases](https://leanpub.com/read/haskell-cookbook/using-relational-databases) — *Haskell Tutorial and Cookbook* (free to read online).
+
 ## Test database:
 
 markw=# create database haskell;

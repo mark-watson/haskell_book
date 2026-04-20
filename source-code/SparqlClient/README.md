@@ -1,5 +1,7 @@
 # Run example
 
+**Book Chapter:** [Linked Data and the Semantic Web](https://leanpub.com/read/haskell-cookbook/linked-data-and-the-semantic-web) — *Haskell Tutorial and Cookbook* (free to read online).
+
         stack ghci
         *Main> :l HttpSparqlClient
         *Main> main

@@ -1,5 +1,7 @@
 # OpenAI APIs
 
+**Book Chapter:** [Using the OpenAI Large Language Model APIs in Haskell](https://leanpub.com/read/haskell-cookbook/using-the-openai-large-language-model-apis-in-haskell) — *Haskell Tutorial and Cookbook* (free to read online).
+
 I am using the library written by Alexander Thiemann at:
 
     https://github.com/agrafix/openai-hs/tree/main/openai-hs
