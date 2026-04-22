@@ -64,14 +64,11 @@ Let's compute the number of rooms per household, population density per househol
   let enriched =
         df
           |> D.derive "rooms_per_household"
-               (F.toDouble (F.col @Int "total_rooms") / 
-               F.toDouble (F.col @Int "households"))
+               (total_rooms ./ households)
           |> D.derive "population_per_household"
-               (F.toDouble (F.col @Int "population") / 
-               F.toDouble (F.col @Int "households"))
+               (population ./ households)
           |> D.derive "bedrooms_per_room"
-               (F.toDouble (F.col @Int "total_bedrooms") / 
-               F.toDouble (F.col @Int "total_rooms"))
+               (total_bedrooms ./ total_rooms)
 ```
 
 ## Filtering and Selection
@@ -82,8 +79,8 @@ For narrower views of data domains, the `D.filter` and `D.select` combinators sl
   -- Filter: keep high-value coastal properties
   let expensive =
         enriched
-          |> D.filter (F.col @Double "median_house_value") (> 400000)
-          |> D.filter (F.col @Text   "ocean_proximity") 
+          |> D.filter median_house_value (> 400000)
+          |> D.filter ocean_proximity 
              (\p -> p `elem` ["NEAR BAY", "NEAR OCEAN", "<1H OCEAN"])
 
   -- Select relevant columns only
@@ -101,7 +98,7 @@ Data representation often necessitates ordering by weight or date. To organize o
   -- Sort by median house value descending
   let sorted =
         enriched
-          |> D.sortBy [D.Desc (F.col @Double "median_house_value")]
+          |> D.sortBy [D.Desc median_house_value]
 ```
 
 ## Grouping and Aggregation
@@ -116,14 +113,10 @@ For instance, we can group attributes by their proximity to the ocean and comput
         enriched
           |> D.groupBy ["ocean_proximity"]
           |> D.aggregate
-               [ F.count @Double (F.col @Double "median_house_value") 
-               `F.as` "num_districts"
-               , F.mean  @Double (F.col @Double "median_house_value") 
-               `F.as` "avg_house_value"
-               , F.mean  @Double (F.col @Double "median_income")      
-               `F.as` "avg_income"
-               , F.mean  @Double (F.col @Double "rooms_per_household")
-               `F.as` "avg_rooms_per_hh"
+               [ F.count median_house_value `F.as` "num_districts"
+               , F.mean median_house_value `F.as` "avg_house_value"
+               , F.mean median_income `F.as` "avg_income"
+               , F.mean rooms_per_household `F.as` "avg_rooms_per_hh"
                ]
           |> D.sortBy [D.Desc (F.col @Double "avg_house_value")]
 ```
