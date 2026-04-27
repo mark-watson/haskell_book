@@ -1,91 +1,37 @@
-# OpenAI APIs
+# OpenAI API Client
 
-**Book Chapter:** [Using the OpenAI Large Language Model APIs in Haskell](https://leanpub.com/read/haskell-cookbook/using-the-openai-large-language-model-apis-in-haskell) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-I am using the library written by Alexander Thiemann at:
+**Book Chapter:** [Using the OpenAI Large Language Model APIs in Haskell](https://leanpub.com/read/haskell-cookbook/using-the-openai-large-language-model-apis-in-haskell)
 
-    https://github.com/agrafix/openai-hs/tree/main/openai-hs
+Demonstrates calling the OpenAI Chat Completion API from Haskell using the [openai-hs](https://github.com/agrafix/openai-hs) library by Alexander Thiemann. The example sends a prompt and pretty-prints the response text.
 
-If I just print:
+## Prerequisites
 
-```
-     case result of
-       Left failure -> print failure
-       Right success -> print $ chrChoices success
-```
+Set your OpenAI API key:
 
-then the output looks like this:
-
-```
-[ChatChoice {chchIndex = 0, chchMessage = ChatMessage {chmContent = Just "Certainly! Here is a simple "Hello, World!" program in Haskell:\n\nhaskell\nmain :: IO ()\nmain = putStrLn \"Hello, World!\"\n\n\nTo run this program, follow these steps:\n\n1. Save the code in a file with a .hs extension, for example, HelloWorld.hs.\n2. Open a terminal and navigate to the directory where you saved the file.\n3. Compile the program using the Glasgow Haskell Compiler (GHC) by running:\n   sh\n   ghc HelloWorld.hs\n   \n4. This will produce an executable file named HelloWorld (or HelloWorld.exe on Windows).\n5. Run the executable by typing:\n   sh\n   ./HelloWorld\n   \n\nYou should see the output:\n\nHello, World!\n", chmRole = "assistant", chmFunctionCall = Nothing, chmName = Nothing}, chchFinishReason = Just "stop"}]
+```bash
+export OPENAI_API_KEY="sk-..."
 ```
 
-If I print:
+## Run
 
-```
-    Right success ->  -- print $ chrChoices success
-      case chrChoices success of
-        (ChatChoice {chchMessage = ChatMessage {chmContent = content}}:_) ->
-          putStrLn $ fromMaybe "No content" $ T.unpack <$> content
-        _ -> putStrLn "No choices returned"
-```
+Using Stack:
 
-then the putput looks like this:
-
-```
-Certainly! Here's a simple "Hello, World!" program in Haskell:
-
-```haskell
-main :: IO ()
-main = putStrLn "Hello, World!"
+```bash
+stack build
+stack exec GenText
 ```
 
-To run this program:
+Using Cabal:
 
-1. Save the code in a file, for example, `HelloWorld.hs`.
-2. Open a terminal (command prompt).
-3. Navigate to the directory where you saved the file.
-4. Compile the program using GHC (Glasgow Haskell Compiler):
-
-   ```sh
-   ghc --make HelloWorld.hs
-   ```
-
-5. Run the compiled program:
-
-   ```sh
-   ./HelloWorld
-   ```
-
-You should see the output:
-
-```
-Hello, World!
+```bash
+cabal build
+cabal run
 ```
 
-Alternatively, you can run the Haskell code without compiling by using an interpreter like GHCi (the interactive environment for Haskell):
+**Note:** You may need to run `cabal install cpphs` first if building with Cabal.
 
-1. Open a terminal.
-2. Start GHCi by typing `ghci`.
-3. Load your file with the following command:
+## License
 
-   ```sh
-   :load HelloWorld.hs
-   ```
-
-4. Run the `main` function:
-
-   ```sh
-   main
-   ```
-
-This should also produce the output "Hello, World!" in the terminal.
-```
-
-
-## Run using Replit.com, Nix, Cabal
-
-    cabal build
-    cabal run
-
-Note: I had to manually install:  cabal install cpphs
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

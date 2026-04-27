@@ -1,32 +1,44 @@
-# Command Line Utility To Use the Google Gemini APIs
+# Gemini Command Line Client
 
-**Book Chapter:** [Command Line Utility To Use the Google Gemini APIs](https://leanpub.com/read/haskell-cookbook/command-line-utility-to-use-the-google-gemini-apis) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-This example is similar to the example in ../webchat but here we build a command line application, not a web application to use the Google Gemini LLM APIs.
+**Book Chapter:** [Command Line Utility To Use the Google Gemini APIs](https://leanpub.com/read/haskell-cookbook/command-line-utility-to-use-the-google-gemini-apis)
 
-Example:
+A command-line tool for interacting with the Google Gemini LLM API. Similar to the `webchat` example, but designed as a CLI utility rather than a web application.
+
+## Prerequisites
+
+Set your Google AI API key:
+
+```bash
+export GOOGLE_API_KEY="your-api-key"
+```
+
+## Run
+
+```bash
+cabal run gemini -- "what is the square of pi?"
+```
+
+Example output:
 
 ```
-$ gemini "what is the square of pi?"
 Response:
 
-The square of pi (π) is π multiplied by itself: π².  Since π is approximately 3.14159, π² is approximately 9.8696.
+The square of pi (π) is π multiplied by itself: π².
+Since π is approximately 3.14159, π² is approximately 9.8696.
 ```
 
-The executable file **gemini** is on my path because I copied the executable file to my personal bin directory:
+## Installing as a Permanent Command
 
-```
-$ cabal build
-$ find . -name gemini
-  ... output not shown
-$ cp ./dist-newstyle/build/aarch64-osx/ghc-9.4.8/gemini-0.1.0.0/x/gemini/build/gemini/gemini ~/bin
+To install the `gemini` binary on your path:
+
+```bash
+cabal build
+cp $(find . -name gemini -type f | head -1) ~/bin/
+gemini "what is 11 + 23?"
 ```
 
-If you don’t want to permanently install this example on your laptop, then just run it with cabal:
+## License
 
-```
-$ cabal run gemini "what is 11 + 23?"
-Response:
-
-11 + 23 = 34
-```
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

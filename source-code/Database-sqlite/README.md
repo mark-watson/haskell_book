@@ -1,23 +1,36 @@
-# Database Examples
+# SQLite Database Example
 
-**Book Chapter:** [Using Relational Databases](https://leanpub.com/read/haskell-cookbook/using-relational-databases) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-## Run first sqlite example
+**Book Chapter:** [Using Relational Databases](https://leanpub.com/read/haskell-cookbook/using-relational-databases)
 
-Create sqlite database:
-````````
-sqlite3 test.db "create table test (id integer primary key, str text);"
-````````
+Demonstrates connecting to and querying a SQLite database from Haskell. This is a lightweight alternative to the PostgreSQL example — no server setup required, just a local file-based database.
 
-Then build and run:
+## Prerequisites
 
-     
-````````
+SQLite3 must be installed on your system (it is pre-installed on macOS).
+
+Create the test database:
+
+```bash
+sqlite3 test.db "CREATE TABLE test (id INTEGER PRIMARY KEY, str TEXT);"
+```
+
+## Run
+
+Using Stack:
+
+```bash
 stack build --exec TestSqLite1
-````````
+```
 
-## Run using Replit.com, Nix, Cabal
+Using Cabal:
 
-    sqlite3 test.db "create table test (id integer primary key, str text);"
-    cabal build
-    cabal run
+```bash
+cabal build
+cabal run
+```
+
+## License
+
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

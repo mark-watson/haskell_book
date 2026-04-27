@@ -1,15 +1,33 @@
-# Brave Search APIs
+# Brave Search API Client
 
-**Book Chapter:** [Using the Brave Search API](https://leanpub.com/read/haskell-cookbook/using-the-brave-search-api) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-You need to sign up for a free or paid for account on the [Brave search page](https://brave.com/search/api/) and set an environment variable to your assigned API key:
+**Book Chapter:** [Using the Brave Search API](https://leanpub.com/read/haskell-cookbook/using-the-brave-search-api)
 
-```{line-numbers: false}
-export BRAVE_SEARCH_API_KEY = BSAgQ-Nc5.....
+A Haskell client for the [Brave Search API](https://brave.com/search/api/) that demonstrates making HTTP requests, parsing JSON responses, and working with REST APIs in Haskell.
+
+## Prerequisites
+
+Sign up for a free or paid account on the [Brave Search API page](https://brave.com/search/api/) and set your API key:
+
+```bash
+export BRAVE_SEARCH_API_KEY="BSAgQ-Nc5....."
 ```
 
-## Build and run
+## Run
 
-    cabal build
-    cabal run
+```bash
+cabal build
+cabal run
+```
 
+## Source Files
+
+| File | Description |
+|------|-------------|
+| `Main.hs` | Entry point |
+| `BraveSearch.hs` | API client and JSON parsing |
+
+## License
+
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

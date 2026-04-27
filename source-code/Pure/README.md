@@ -1,46 +1,53 @@
-# Running the program snippets from the Pure Haskell Tutorial Chapter
+# Pure Haskell Tutorial Examples
 
-**Book Chapter:** [Tutorial on Pure Haskell Programming](https://leanpub.com/read/haskell-cookbook/tutorial-on-pure-haskell-programming) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-~~~~~~~~
-stack  ghci
-~~~~~~~~
+**Book Chapter:** [Tutorial on Pure Haskell Programming](https://leanpub.com/read/haskell-cookbook/tutorial-on-pure-haskell-programming)
 
-These simple examples are some of the code used in the very long introductory tutorial chapter on using "pure" Haskell.
+Code examples from the introductory tutorial chapter on "pure" Haskell — covering pattern matching, guards, `if`/`then`/`else`, `let`/`where` bindings, `map`, chained function calls, and custom data types.
 
-## Running with Replit.com, Nix, Cabal:
+## Run
 
-    cabal update
-    cabal build
-    cabal run
+The default Cabal/Stack target runs `Simple.hs`:
 
-Note that Pure.cabal only is configured to run SImple.hs. To run the other files
-that contain a main funtion:
-
-```
-$ runghc MapExamples.hs
-120
--1
-$ runghc Cases.hs  
-"Too low"
-"just right"
-"OK, that is a number"
-$ runghc ChainedCalls.hs 
-[0,2,2,6,4,10,6,14,8]
-[0,20,20,60,40,100]
-[0,20,20,60,40,100]
-$ cabal exec runghc -- Guards.hs
--1
-0
-1
-Nothing
-Just 2
-$ runghc MapExamples.hs     
-120
--1
+```bash
+stack ghci
 ```
 
-## runghc vs. 'cabal exec runghc --'
+or:
 
-**runghc** bypasses the cabal build sandbox. If a Haskell file imports a library specified
-in the project's cabal file, then use **cabal exec runghc --** to run **runghc** inside the cabal sandbox.
+```bash
+cabal build
+cabal run
+```
+
+To run other files individually use `runghc`:
+
+```bash
+runghc MapExamples.hs
+runghc Cases.hs
+runghc ChainedCalls.hs
+runghc Guards.hs
+```
+
+> **Tip:** If a file imports a library listed in the `.cabal` file, use
+> `cabal exec runghc -- Guards.hs` to run it inside the Cabal sandbox.
+
+## Source Files
+
+| File | Description |
+|------|-------------|
+| `Simple.hs` | Basic function definitions (default main target) |
+| `Guards.hs` | Pattern matching with guards and `Maybe` |
+| `Cases.hs` | `case` expressions |
+| `ChainedCalls.hs` | Composing and chaining functions |
+| `MapExamples.hs` | Using `map`, `foldl`, `foldr` |
+| `Conditionals.hs` | Conditional expressions |
+| `IfThenElses.hs` | `if`/`then`/`else` examples |
+| `LetAndWhere.hs` | `let` and `where` bindings |
+| `MyColors.hs` | Custom data types with `deriving` |
+| `NoIO.hs` | Pure computations with no I/O |
+
+## License
+
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

@@ -1,47 +1,35 @@
-# KGCreator
+# Knowledge Graph Creator
 
-**Book Chapter:** [Knowledge Graph Creator](https://leanpub.com/read/haskell-cookbook/knowledge-graph-creator) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-Licensed under the AGPL version 3. See https://markwatson.com/opensource/ for an alternative commercial license ($50).
+**Book Chapter:** [Knowledge Graph Creator](https://leanpub.com/read/haskell-cookbook/knowledge-graph-creator)
 
-## CorefWebClient Client Example
+Extracts entities and relationships from natural text to build a knowledge graph. The tool uses NLP techniques (part-of-speech tagging, entity recognition) to identify subjects, predicates, and objects, then outputs them as structured graph data. Optionally integrates with a Python coreference resolution server for improved entity linking.
 
-### Run examples
+## Prerequisites
 
-Main program with fast build option:
+To use coreference resolution, start the Python server first — see `python_utils/` for setup.
 
-~~~~~~~~
+## Run
+
+```bash
+# Default test input
 stack build --fast --exec KGCreator-exe
+
+# Custom input file with output directory
 stack build --fast --exec "KGCreator-exe test_data outtest"
-~~~~~~~~
+```
 
-Main program, recompile everything:
+## Project Structure
 
-~~~~~~~~
-stack build --exec KGCreator-exe
-~~~~~~~~
+| Path | Description |
+|------|-------------|
+| `app/` | Main executable entry point |
+| `src/` | Core library: NLP processing and graph construction |
+| `test/` | Test suite |
+| `test_data/` | Sample input text files |
+| `python_utils/` | Python utilities for coreference resolution |
 
-## for Makefile tidy target:
+## License
 
-    stack build hindent stylish-haskell
-
-## Problems with Haskero VSCode plugin?
-
-try:
-
-    stack build intero
-
-in this project's directory. This installs intero locally. System side
-installation does not seem to work with VSCode and Haskero.
-
-Set key binding to add function type: setup > key bindings, search for haskero add type:
-
-add:
-
-{
-    "key": "ctrl+k t",
-    "command": "haskero.insertType",
-    "when": "editorTextFocus"
-}
-
-
+AGPL version 3 — Copyright 2016-2026 Mark Watson. See <https://markwatson.com/opensource/> for an alternative commercial license.

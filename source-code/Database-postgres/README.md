@@ -1,62 +1,41 @@
-# Database Examples
+# PostgreSQL Database Example
 
-**Book Chapter:** [Using Relational Databases](https://leanpub.com/read/haskell-cookbook/using-relational-databases) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-## Test database:
+**Book Chapter:** [Using Relational Databases](https://leanpub.com/read/haskell-cookbook/using-relational-databases)
 
-markw=# create database haskell;
-CREATE DATABASE
-markw=# \c haskell
-You are now connected to database "haskell" as user "markw".
+Demonstrates connecting to and querying a PostgreSQL database from Haskell using the `postgresql-simple` library. The example works with a simple e-commerce schema (customers, products, and links between them).
 
-create table customers (id int, name text, email text);
-CREATE TABLE
-haskell=# insert into customers values (1, 'Acme Cement', 'info@acmecement.com');
-INSERT 0 1
-haskell=# insert into customers values (2, 'Biff Home Sales', 'info@biff.com');
-INSERT 0 1
-haskell=# insert into customers values (3, 'My Pens', 'info@mypens.com');
+## Prerequisites
 
-markw=# \c haskell
-You are now connected to database "haskell" as user "markw".
-haskell=# \d
-         List of relations
- Schema |   Name    | Type  | Owner 
---------+-----------+-------+-------
- public | customers | table | markw
- public | links     | table | markw
- public | products  | table | markw
-(3 rows)
+A running PostgreSQL server with a test database. Set up the schema:
 
-haskell=# select * from customers;
- id |      name       |        email        
-----+-----------------+---------------------
-  1 | Acme Cement     | info@acmecement.com
-  2 | Biff Home Sales | info@biff.com
-  3 | My Pens         | info@mypens.com
-(3 rows)
+```sql
+CREATE DATABASE haskell;
+\c haskell
 
-haskell=# select * from products;
- id |     name      | cost 
-----+---------------+------
-  1 | Cement bag    |  2.5
-  2 | Cheap Pen     |  1.5
-  3 | Expensive Pen | 14.5
-(3 rows)
+CREATE TABLE customers (id int, name text, email text);
+INSERT INTO customers VALUES (1, 'Acme Cement', 'info@acmecement.com');
+INSERT INTO customers VALUES (2, 'Biff Home Sales', 'info@biff.com');
+INSERT INTO customers VALUES (3, 'My Pens', 'info@mypens.com');
 
-haskell=# select * from links;
- id | customer_id | productid 
-----+-------------+-----------
-  1 |           1 |         1
-  2 |           3 |         2
-  3 |           3 |         3
-(3 rows)
+CREATE TABLE products (id int, name text, cost float);
+INSERT INTO products VALUES (1, 'Cement bag', 2.5);
+INSERT INTO products VALUES (2, 'Cheap Pen', 1.5);
+INSERT INTO products VALUES (3, 'Expensive Pen', 14.5);
 
+CREATE TABLE links (id int, customer_id int, productid int);
+INSERT INTO links VALUES (1, 1, 1);
+INSERT INTO links VALUES (2, 3, 2);
+INSERT INTO links VALUES (3, 3, 3);
+```
 
-Then build and run:
+## Run
 
-     
-````````
+```bash
 stack build --exec TestPostgres1
-````````
+```
 
+## License
+
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.

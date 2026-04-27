@@ -1,6 +1,8 @@
 # SimpleRDF: In-Memory RDF Store & SPARQL Engine
 
-**Book Chapter:** [Implementing a Simple RDF Datastore With Partial SPARQL Support](https://leanpub.com/read/haskell-cookbook/implementing-a-simple-rdf-datastore-with-partial-sparql-support) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
+
+**Book Chapter:** [Implementing a Simple RDF Datastore With Partial SPARQL Support](https://leanpub.com/read/haskell-cookbook/implementing-a-simple-rdf-datastore-with-partial-sparql-support)
 
 A lightweight, educational Haskell implementation of an RDF graph store and a basic SPARQL query engine. This project demonstrates how to use the List Monad to perform graph pattern matching and join operations, simulating how SPARQL query execution works.
 

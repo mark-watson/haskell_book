@@ -1,6 +1,18 @@
-# To run example:
+# State Monad Example
 
-**Book Chapter:** [Tutorial on Pure Haskell Programming](https://leanpub.com/read/haskell-cookbook/tutorial-on-pure-haskell-programming) — *Haskell Tutorial and Cookbook* (free to read online).
+**Book:** [Haskell Tutorial and Cookbook](https://leanpub.com/haskell-cookbook) by Mark Watson — [read free online](https://leanpub.com/haskell-cookbook/read)
 
-        stack build
-        stack exec State1
+**Book Chapter:** [Tutorial on Pure Haskell Programming](https://leanpub.com/read/haskell-cookbook/tutorial-on-pure-haskell-programming)
+
+A concise example demonstrating the State Monad (`Control.Monad.State`). Shows how to thread mutable state through a sequence of computations in a purely functional way using `get`, `put`, and `runState`.
+
+## Run
+
+```bash
+stack build
+stack exec State1
+```
+
+## License
+
+Apache 2.0 — Copyright 2016-2026 Mark Watson. All rights reserved.
