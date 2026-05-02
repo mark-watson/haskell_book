@@ -2,8 +2,6 @@
 
 Here we will write a Haskell client for using a Natural Language Processing (NLP) server written in Python. There is some common material in this chapter and the next chapter *Hybrid Haskell and Python For Coreference Resolution* because I wanted both chapters to be self contained.
 
-![Hybrid Haskell and Python NLP Architecture](FIG_HybridHaskellPythonNlp.jpg)
-
 ## Example Use of the Haskell NLP Client
 
 Before learning how to use the Python NLP server code and to understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:
@@ -22,6 +20,8 @@ Enter text (all on one line)
 Notice on line 5 that each of the three entities is tagged with the entity type. **GPE** is the tag for a country and the tag **ORG** can refer to an entity that is a company or a non-profit organization.
 
 There is some overlap in functionality between the Python SpaCy NLP library and my pure Haskell code in the **NLP** **Tools** chapter. SpaCy has the advantage of using state of the art deep learning models.
+
+![Hybrid Haskell and Python NLP Architecture](FIG_HybridHaskellPythonNlp.jpg)
 
 ## Setting up the Python NLP Server
 
