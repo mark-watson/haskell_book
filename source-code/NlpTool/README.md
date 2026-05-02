@@ -28,6 +28,8 @@ main
 main
 ```
 
+![Yesod NLP web application architecture](FIG_NlpTool.jpg)
+
 ## Key Modules
 
 | Module | Description |

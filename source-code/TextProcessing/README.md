@@ -15,6 +15,8 @@ stack build --exec TestCSV
 stack build --exec TestTextJSON
 ```
 
+![Text processing and data formats architecture](FIG_TextProcessing.jpg)
+
 ## Source Files
 
 | File | Description |

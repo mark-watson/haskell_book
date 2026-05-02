@@ -32,6 +32,8 @@ cabal run Blackjack
 
 Each player starts with 10 chips.
 
+![Blackjack terminal game architecture](FIG_Blackjack.jpg)
+
 ## Source Files
 
 | File | Description |

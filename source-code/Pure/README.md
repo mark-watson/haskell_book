@@ -33,6 +33,8 @@ runghc Guards.hs
 > **Tip:** If a file imports a library listed in the `.cabal` file, use
 > `cabal exec runghc -- Guards.hs` to run it inside the Cabal sandbox.
 
+![Pure functional programming concepts](FIG_Pure.jpg)
+
 ## Source Files
 
 | File | Description |

@@ -14,6 +14,8 @@ Set your Google AI API key:
 export GOOGLE_API_KEY="your-api-key"
 ```
 
+![Gemini web chat application architecture](FIG_webchat.jpg)
+
 ## Run
 
 ```bash

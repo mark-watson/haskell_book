@@ -11,6 +11,8 @@ A command-line tool for interacting with a locally running [Ollama](https://olla
 - [Ollama](https://ollama.ai/) installed and running locally
 - At least one model pulled (e.g., `ollama pull llama3`)
 
+![Ollama local LLM client architecture](FIG_ollama_commandline.jpg)
+
 ## Run
 
 ```bash

@@ -30,6 +30,8 @@ INSERT INTO links VALUES (2, 3, 2);
 INSERT INTO links VALUES (3, 3, 3);
 ```
 
+![PostgreSQL database client architecture](FIG_Database-postgres.jpg)
+
 ## Run
 
 ```bash

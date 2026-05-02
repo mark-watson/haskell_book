@@ -46,6 +46,8 @@ cabal build simple-rdf-with-sparql
 cabal run simple-rdf-with-sparql
 ```
 
+![RDF store and SPARQL query engine architecture](FIG_rdf_sparql.jpg)
+
 ## Example Usage
 
 The `Main` module comes with a pre-loaded "Social Network" graph and runs three demonstration queries:

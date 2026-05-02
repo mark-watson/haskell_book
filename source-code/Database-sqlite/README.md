@@ -16,6 +16,8 @@ Create the test database:
 sqlite3 test.db "CREATE TABLE test (id INTEGER PRIMARY KEY, str TEXT);"
 ```
 
+![SQLite database client architecture](FIG_Database-sqlite.jpg)
+
 ## Run
 
 Using Stack:

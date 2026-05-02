@@ -29,6 +29,8 @@ The square of pi (π) is π multiplied by itself: π².
 Since π is approximately 3.14159, π² is approximately 9.8696.
 ```
 
+![Gemini API command-line client architecture](FIG_gemini_commandline.jpg)
+
 ## Installing as a Permanent Command
 
 To install the `gemini` binary on your path:

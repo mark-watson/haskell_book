@@ -49,6 +49,8 @@ The `Main.hs` program walks through a typical data analysis pipeline:
 7. **Group & aggregate** — `D.groupBy` + `D.aggregate` with `F.count`, `F.mean`
 8. **Write** — `D.writeCsv` exports the enriched dataset
 
+![DataFrame data analysis pipeline architecture](FIG_dataframe_example.jpg)
+
 ### Key API Elements Used
 
 ```haskell

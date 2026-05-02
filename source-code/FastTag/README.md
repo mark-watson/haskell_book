@@ -15,6 +15,8 @@ stack build
 stack exec fasttag
 ```
 
+![FastTag POS tagger architecture](FIG_FastTag.jpg)
+
 ## How It Works
 
 1. Tokenize input text into words.

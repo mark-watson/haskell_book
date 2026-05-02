@@ -22,6 +22,8 @@ stack build --exec ReadTextFile
 stack build --exec ReadTextFileErrorHandling
 ```
 
+![Command line IO patterns architecture](FIG_CommandLineApp.jpg)
+
 ## Source Files
 
 | File | Description |

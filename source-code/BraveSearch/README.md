@@ -21,6 +21,8 @@ cabal build
 cabal run
 ```
 
+![Brave Search API client architecture](FIG_BraveSearch.jpg)
+
 ## Source Files
 
 | File | Description |

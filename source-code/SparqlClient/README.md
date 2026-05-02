@@ -22,6 +22,8 @@ main
 
 > **Note:** The URI for the demo RDF file used in `RobsExample` is no longer valid, so that example will not run as-is.
 
+![SPARQL semantic web client architecture](FIG_SparqlClient.jpg)
+
 ## Source Files
 
 | File | Description |

@@ -25,6 +25,8 @@ stack exec DoLetExample3
 stack exec FmapExample
 ```
 
+![IO monad patterns architecture](FIG_ImPure.jpg)
+
 ## Source Files
 
 | File | Description |

@@ -6,6 +6,8 @@
 
 A concise example demonstrating the State Monad (`Control.Monad.State`). Shows how to thread mutable state through a sequence of computations in a purely functional way using `get`, `put`, and `runState`.
 
+![State monad threading architecture](FIG_StateMonad.jpg)
+
 ## Run
 
 ```bash

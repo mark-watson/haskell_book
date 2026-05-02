@@ -11,6 +11,8 @@ Demonstrates a hybrid NLP architecture: a Haskell client communicates with a Pyt
 1. Start the Python spaCy server — see `python_spacy_nlp_server/README.md` for installation and setup instructions.
 2. The Python server requires spaCy and a language model to be installed.
 
+![Hybrid Haskell-Python NLP architecture](FIG_HybridHaskellPythonNlp.jpg)
+
 ## Run
 
 ```bash

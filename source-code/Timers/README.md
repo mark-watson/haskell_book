@@ -6,6 +6,8 @@
 
 Demonstrates timing and timeout utilities in Haskell using `Data.Time.Clock.POSIX`, `System.TimeIt`, and `System.Timeout`. The example times a prime number sieve computation to show how to benchmark Haskell code and set execution time limits.
 
+![Performance measurement architecture](FIG_Timers.jpg)
+
 ## Run
 
 ```bash

@@ -6,6 +6,8 @@
 
 Demonstrates debug-only tracing in Haskell using `Debug.Trace` (`trace` and `traceShow`). These functions let you print debugging output from pure code without introducing `IO` — useful during development but should be removed before production.
 
+![Debug.Trace debugging architecture](FIG_debugging.jpg)
+
 ## Run
 
 ```bash

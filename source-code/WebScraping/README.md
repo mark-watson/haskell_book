@@ -21,6 +21,8 @@ cabal build
 cabal run TagSoupTest
 ```
 
+![Web scraping HTML parsing architecture](FIG_WebScraping.jpg)
+
 ## Source Files
 
 | File | Description |

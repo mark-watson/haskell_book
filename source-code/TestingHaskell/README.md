@@ -14,6 +14,8 @@ stack test
 
 > **Note:** One of the three tests is expected to fail — this is intentional to demonstrate test failure output.
 
+![HSpec and QuickCheck testing architecture](FIG_TestingHaskell.jpg)
+
 ## Project Structure
 
 | Path | Description |

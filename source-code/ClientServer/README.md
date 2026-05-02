@@ -24,6 +24,8 @@ stack exec Server
 stack exec Client
 ```
 
+![TCP client-server networking architecture](FIG_ClientServer.jpg)
+
 ## Source Files
 
 | File | Description |

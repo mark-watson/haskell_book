@@ -20,6 +20,8 @@ stack build --fast --exec KGCreator-exe
 stack build --fast --exec "KGCreator-exe test_data outtest"
 ```
 
+![Knowledge graph creator architecture](FIG_knowledge_graph_creator_pure.jpg)
+
 ## Project Structure
 
 | Path | Description |

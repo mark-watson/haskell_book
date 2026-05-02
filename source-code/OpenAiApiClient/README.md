@@ -14,6 +14,8 @@ Set your OpenAI API key:
 export OPENAI_API_KEY="sk-..."
 ```
 
+![OpenAI API client architecture](FIG_OpenAiApiClient.jpg)
+
 ## Run
 
 Using Stack:
