@@ -2,6 +2,8 @@
 
 Here we will write a Haskell client for using a Natural Language Processing (NLP) server written in Python. There is some common material in this chapter and the next chapter *Hybrid Haskell and Python For Coreference Resolution* because I wanted both chapters to be self contained.
 
+![Hybrid Haskell and Python NLP Architecture](FIG_HybridHaskellPythonNlp.jpg)
+
 ## Example Use of the Haskell NLP Client
 
 Before learning how to use the Python NLP server code and to understand the code for the Haskell client code, let's look at an example of running the client code so you understand the type of processing that we are performing:

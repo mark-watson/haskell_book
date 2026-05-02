@@ -4,6 +4,8 @@ This example is similar to the example in the last chapter but here we build not
 
 The directory **haskell_book/source-code/gemini_commandline** contains the code for this example.
 
+
+![Gemini Command Line Application Architecture](FIG_gemini_commandline.jpg)
 Before we look at the code let’s run the example:
 
 ```text{line-numbers: false}

@@ -11,6 +11,8 @@ My use the word "impure" is common for referring to Haskell code with side effec
 
 In addition to showing you reusable examples of impure code that you will likely need in your own programs, a major theme of this chapter is handling impure code in a convenient type safe fashion. Any **Monad**, which wraps a single value, is used to safely manage state. I will introduce you to using **Monad** types as required for the examples in this chapter. This tutorial style introduction will prepare you for understanding the sample applications later.
 
+![Impure Haskell IO Architecture](FIG_ImPure.jpg)
+
 
 ## Hello IO () Monad
 
@@ -191,6 +193,8 @@ Haskell is a "piecemeal" programming language as are the Lisp family of language
 
 
 ## Console IO Example with Stack Configuration
+
+![Console IO Application Architecture](FIG_CommandLineApp.jpg)
 
 The directory *CommandLineApps* contains two simple applications that interact with STDIO, that is to write to the console and read from the keyboard. The first example can be found in file *CommandLineApp/CommandLine1.hs*:
 
@@ -446,6 +450,8 @@ Until you need to handle runtime errors in a multi-threaded Haskell program, fol
 
 ## Network IO
 
+![Client/Server Network Architecture](FIG_ClientServer.jpg)
+
 We will experiment with three network IO examples in this book:
 
 - A simple socket client/server example in this section.
@@ -657,6 +663,8 @@ The Monad type class function **return** takes any value and wraps it in a new m
 
 ### State Monad
 
+![State Monad Architecture](FIG_StateMonad.jpg)
+
 The definition for the constructor of a State monad is:
 
 ```haskell{line-numbers: false}
@@ -860,6 +868,8 @@ I won't use this notation further but you now will recognize this pattern if you
 
 ## Dealing With Time
 
+![Timer Utilities Architecture](FIG_Timers.jpg)
+
 In the example in this section we will see how to time a block of code (using two different methods) and how to set a timeout for code that runs in an **IO ()**.
 
 The first way we time a block of code uses **getPOSIXTime** and can be used to time pure or impure code. The second method using **timeIt** takes an **IO ()** as an argument; in the following example I wrapped pure code in a **print** function call which returns an **IO ()** as its value. The last example in the file *TimerTest.hs* shows how to run impure code wrapped in a timeout.
@@ -925,6 +935,8 @@ CPU time:   0.25s
 The **timeout** function is useful for setting a maximum time that you are willing to wait for a calculation to complete. I mostly use **timeout** for timing out operations fetching data from the web.
 
 ## Using Debug.Trace
+
+![Debugging Tools Architecture](FIG_debugging.jpg)
 
 Inside an **IO** you can use print statements to understand what is going on in your code when debugging. You can not use print statements inside pure code but the Haskell base library contains the **trace** functions that internally perform impure writes to stdout. You do not want to use these debug tools in production code.
 

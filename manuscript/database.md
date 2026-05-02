@@ -2,6 +2,10 @@
 
 We will see how to use popular libraries for accessing the *sqlite* and *Postgres* (sometimes also called *PostgeSQL*) databases in this chapter. I assume that you are already familiar with *SQL*.
 
+![SQLite Database Access Architecture](FIG_Database-sqlite.jpg)
+
+![PostgreSQL Database Access Architecture](FIG_Database-postgres.jpg)
+
 ## Database Access for Sqlite
 
 We will use the [sqlite-simple](https://hackage.haskell.org/package/sqlite-simple) library in this section to access Sqlite databases and use the similar library [postgresql-simple](https://hackage.haskell.org/package/postgresql-simple) in the next section for use with Postgres.

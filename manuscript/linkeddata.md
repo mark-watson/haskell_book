@@ -20,6 +20,8 @@ In the last chapter "Natural Language Processing Tools" we resolved entities in 
 
 ## The SPARQL Query Language
 
+![SPARQL Client Architecture](FIG_SparqlClient.jpg)
+
 Example RDF N3 triples (subject, predicate, object) might look like:
 
 ```sparql{line-numbers: false}

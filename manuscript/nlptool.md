@@ -8,6 +8,8 @@ We will be using this example as an external dependency to a later example in th
 
 A few of the data files I provide in this example are fairly large. As an example the file *PeopleDbPedia.hs* which builds a map from people's names to the Wikipedia/DBPedia URI for information about them, is 2.5 megabytes in size. The first time you run *stack build* in the project directory it will take a while, so you might want to start building the project in the directory *NlpTool* and let it run while you read this chapter.
 
+![NLP Tool Architecture](FIG_NlpTool.jpg)
+
 Here are three examples using the NlpTool command line application developed in this chapter:
 
 ```{line-numbers: false}
@@ -512,6 +514,8 @@ $ stack ghci
 ```
 
 ## Part of Speech Tagging
+
+![Part of Speech Tagger Architecture](FIG_FastTag.jpg)
 
 We close out this chapter with the Haskell version of my part of speech (POS) tagger that I originally wrote in Common Lisp, then converted to Ruby and Java. The file *LexiconData.hs* is similar to the lexical data files seen earlier: I am defining a map where keys a words and map values are POS tokens like *NNP* (proper noun), *RB* (adverb), etc. The file *README.md* contains a complete list of POS tag definitions.
 

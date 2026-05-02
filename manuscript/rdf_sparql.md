@@ -5,6 +5,8 @@ Other examples in this book use full RDF datastores via their APIs. Here we impl
 - SimpleRDF.hs - A simple in-memory RDF datastore that supports queries using a non-standard pattern matching syntax.
 - RDF_simple_SPARQL.hs - Also handles simple SPARQL queries such as shown in the test code for this example:
 
+![RDF Datastore and SPARQL Engine Architecture](FIG_rdf_sparql.jpg)
+
 ```haskell
 main = do
   putStrLn "--- RDF Store Loaded ---"

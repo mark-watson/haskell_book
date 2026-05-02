@@ -8,6 +8,8 @@ You can download Ollama from [https://ollama.ai](https://ollama.com).
 
 The directory **haskell_book/source-code/ollama_commandline** contains the code for this example.
 
+![Ollama Command Line Application Architecture](FIG_ollama_commandline.jpg)
+
 Before we look at the code, let's look at how we use this command line tool:
 
 ```text{line-numbers: false}

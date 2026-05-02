@@ -52,6 +52,12 @@ I add the following to the bottom of my .emacs file:
 
 and if Intero is too "heavy weight" for my current project, then I comment out the add-hook expression. Intero can increase the startup time for Emacs for editing Haskell files. That said, I almost always keep Intero enabled in my Emacs environment.
 
+## Testing Haskell Programs
+
+![Testing Haskell Architecture](FIG_TestingHaskell.jpg)
+
+The source code directory **TestingHaskell** contains examples of using Haskell testing frameworks. Testing is an important part of the development workflow and the Haskell ecosystem provides excellent tools for both unit testing and property-based testing.
+
 ## hlint
 
 **hlint** is a wonderful tool for refining your knowledge and use of the Haskell language. After writing new code and checking that it works, then run **hlint** for suggestions on how to improve your code.

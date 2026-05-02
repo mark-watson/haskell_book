@@ -472,6 +472,8 @@ In the first example, types **a** and **b** are the same, a **Num**. The second 
 
 The directory *haskell_book/source-code/Pure*  contains the examples for this chapter. We previously used the example file *Simple.hs*. Please note that in the rest of this book I will omit the git repository top level directory name haskell_book/source-code and just specify the sub-directory name:
 
+![Pure Haskell Functions Architecture](FIG_Pure.jpg)
+
 ```haskell{line-numbers: false}
 module Main where
 

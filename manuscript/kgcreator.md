@@ -4,6 +4,8 @@ The large project described here processes raw text inputs and generates data fo
 
 This application works by identifying entities in text. Example entity types are people, companies, country names, city names, broadcast network names, political party names, and university names. We saw earlier code for detecting entities in the chapter on natural language processing (NLP) and we will reuse this code. We will discuss later three strategies for reusing code from different projects.
 
+![Knowledge Graph Creator Architecture](FIG_knowledge_graph_creator_pure.jpg)
+
 The following figure shows part of a Neo4J Knowledge Graph created with the example code. This graph has shortened labels in displayed nodes but Neo4J offers a web browser-based console that lets you interactively explore Knowledge Graphs. We don't cover setting up Neo4J here so please use the [Neo4J documentation](https://neo4j.com/docs/operations-manual/current/introduction/). As an introduction to RDF data, the semantic web, and linked data you can get free copies of my two books [Practical Semantic Web and Linked Data Applications, Common Lisp Edition](http://markwatson.com/opencontentdata/book_lisp.pdf) and [Practical Semantic Web and Linked Data Applications, Java, Scala, Clojure, and JRuby Edition](http://markwatson.com/opencontentdata/book_java.pdf).
 
 {width=60%}

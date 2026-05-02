@@ -6,6 +6,8 @@ We will walk through an example project that analyzes a California housing datas
 
 ## Setup and Boilerplate
 
+![DataFrame Analysis Pipeline Architecture](FIG_dataframe_example.jpg)
+
 Before working directly with tabular data, we initialize our project with the required extensions and imports. We make use of `OverloadedStrings` for cleaner string literals and `TemplateHaskell` to securely typecheck column names at compile time.
 
 ```haskell

@@ -4,6 +4,8 @@ Here we will write a Haskell client for using a server written in Python that pe
 
 Coreference resolution is also called anaphora resolution and is the process for replacing pronouns in text with the original nouns, proper nouns, or noun phrases that the pronouns refer to.
 
+![Hybrid Haskell and Python Coreference Resolution Architecture](FIG_HybridHaskellPythonCorefAnaphoraResolution.jpg)
+
 Before discussing setting up the Python library for performing coreference analysis and the Haskell client, let's run the client so you can see and understand anaphora resolution:
 
 ```{line-numbers: false}

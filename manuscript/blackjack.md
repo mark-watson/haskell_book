@@ -8,6 +8,8 @@ This example starts by asking how many players, besides the card dealer and the 
 
 I define the types for playing cards and an entire card deck in the file *Card.hs*:
 
+![Blackjack Card Game Architecture](FIG_Blackjack.jpg)
+
 ```haskell{line-numbers: true}
 -- Card model: defines `Rank`, `Suit`, and `Card`, with helpers
 -- `orderedCardDeck` builds a deterministic deck; `cardValue` maps ranks to scores

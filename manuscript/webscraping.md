@@ -7,6 +7,8 @@ In my past work I usually used the Ruby and Python scripting languages for web s
 Before we start a tutorial about web scraping I want to point out that much of the information on the web is copyright and the first thing that you should do is to read the terms of service for web sites to insure that your use of web scraped data conforms with the wishes of the persons or organizations who own the content and pay to run scraped web sites.
 
 As we saw in the last chapter on linked data there is a huge amount of structured data available on the web via web services, semantic web/linked data markup, and APIs. That said, you will frequently find text (usually HTML) that is useful on web sites. However, this text is often at least partially unstructured and in a messy and frequently changing format because web pages are meant for human consumption and making them easy to parse and use by software agents is not a priority of web site owners.
+![Web Scraping Architecture](FIG_WebScraping.jpg)
+
 Here is t
 he code for the entire example in directory **haskell_book/source-code/WebScraping** (code description follows the listing):
 

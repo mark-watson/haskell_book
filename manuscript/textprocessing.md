@@ -4,6 +4,8 @@ In my work in data science and machine learning, processing text is a core activ
 
 We will cover three useful techniques: parsing and using CSV (comma separated values) spreadsheet files, parsing and using JSON data, and cleaning up natural language text that contains noise characters.
 
+![Text Processing Pipeline Architecture](FIG_TextProcessing.jpg)
+
 ## CSV Spreadsheet Files
 
 The comma separated values (CSV) format is a plain text format that all spreadsheet applications support. The following example illustrates two techniques that we haven't covered yet:

@@ -13,6 +13,8 @@ While we use the GPT-4o model here, you can substitute the following models:
 - GPT-5 - expensive to run, for complex multi-step tasks
 - GPT-5-mini - inexpensive to run, for simpler tasks (this is the default model I use)
 - o1 - very expensive to run, most capable model that has massive knowledge of the real world and can solve complex multi-step reasoning problems.
+
+![OpenAI API Client Architecture](FIG_OpenAiApiClient.jpg)
 - o1-mini - slightly less expensive to run than o1-preview, less real world knowledge and simpler reasoning capabilities.
 
 ## Example Client Code

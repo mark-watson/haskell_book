@@ -5,6 +5,8 @@ We'll show the complete program listing that demonstrates how to interact with G
 
 This example is in the directory **haskell_book/source-code/webchat**.
 
+![Web Gemini Chat Application Architecture](FIG_webchat.jpg)
+
 Our focus will be on understanding the data structures used to represent Gemini requests and responses, as well as the HTTP client functionality employed to communicate with the API. We'll explore how Haskell's type system aids in constructing well-defined requests and how its data handling capabilities simplify the parsing of complex JSON responses. Through this exploration, you'll gain valuable insights into leveraging Haskell's strengths for real-world API interactions.
 
 Beyond the immediate application of the Gemini API, this chapter serves as a template for interacting with web services in Haskell. The techniques and patterns discussed here can be readily adapted to other APIs and use cases. By the end of this chapter, you'll be equipped with the knowledge and tools to confidently integrate Haskell into your projects that involve communication with external services, opening up a world of possibilities for building robust and scalable applications.
