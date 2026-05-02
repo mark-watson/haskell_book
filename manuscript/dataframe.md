@@ -6,8 +6,6 @@ We will walk through an example project that analyzes a California housing datas
 
 ## Setup and Boilerplate
 
-![DataFrame Analysis Pipeline Architecture](FIG_dataframe_example.jpg)
-
 Before working directly with tabular data, we initialize our project with the required extensions and imports. We make use of `OverloadedStrings` for cleaner string literals and `TemplateHaskell` to securely typecheck column names at compile time.
 
 ```haskell
@@ -29,6 +27,8 @@ The dataframe library uses Template Haskell to read the CSV headers at compile t
 -- column-reference bindings such as `total_rooms`, `households`, etc.
 $(F.declareColumnsFromCsvFile "./data/housing.csv")
 ```
+
+![DataFrame Analysis Pipeline Architecture](FIG_dataframe_example.jpg)
 
 ## Loading Data and Summary Statistics
 
