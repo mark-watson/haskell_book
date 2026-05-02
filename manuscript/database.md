@@ -2,13 +2,12 @@
 
 We will see how to use popular libraries for accessing the *sqlite* and *Postgres* (sometimes also called *PostgeSQL*) databases in this chapter. I assume that you are already familiar with *SQL*.
 
-![SQLite Database Access Architecture](FIG_Database-sqlite.jpg)
-
-![PostgreSQL Database Access Architecture](FIG_Database-postgres.jpg)
-
 ## Database Access for Sqlite
 
 We will use the [sqlite-simple](https://hackage.haskell.org/package/sqlite-simple) library in this section to access Sqlite databases and use the similar library [postgresql-simple](https://hackage.haskell.org/package/postgresql-simple) in the next section for use with Postgres.
+
+![SQLite Database Access Architecture](FIG_Database-sqlite.jpg)
+
 
 There are other good libraries for database connectivity like [Persistent](https://www.stackage.org/package/persistent) but I like sqlite-simple and it has a gentle learning curve so that is what we will use here. You will learn the basics of database connectivity in this and the next section. Setting up and using *sqlite* is easy because the *sqlite-simple* library includes the compiled code for *sqlite* so configuration requires only the file path to the database file.
 
@@ -128,6 +127,8 @@ sudo -u postgres createuser --interactive
 Enter name of role to add: markw
 Shall the new role be a superuser? (y/n) y
 ```
+
+![PostgreSQL Database Access Architecture](FIG_Database-postgres.jpg)
 
 
 We will need to install postgresql-server-dev-9.5 in order to use the Haskell Postgres bindings. Note that your version of Ubuntu Linux may have a different version of the server dev package which you can find using:
