@@ -4,8 +4,6 @@ This example is similar to the example in the last chapter but here we build not
 
 The directory **haskell_book/source-code/gemini_commandline** contains the code for this example.
 
-
-![Gemini Command Line Application Architecture](FIG_gemini_commandline.jpg)
 Before we look at the code let’s run the example:
 
 ```text{line-numbers: false}
@@ -32,6 +30,8 @@ Response:
 
 11 + 23 = 34
 ```
+
+![Gemini Command Line Application Architecture](FIG_gemini_commandline.jpg)
 
 Here is a listing of the source file **Main.hs** (explanation after the code). This code is a Haskell program that interacts with Google's Gemini AI model through its API. The program is structured to send prompts to Gemini and receive generated responses, implementing a command line interface for this interaction.
 
