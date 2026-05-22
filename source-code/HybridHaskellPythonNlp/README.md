@@ -18,7 +18,7 @@ Demonstrates a hybrid NLP architecture: a Haskell client communicates with a Pyt
 ```bash
 # In one terminal: start the Python server
 cd python_spacy_nlp_server
-# (follow the README instructions there)
+uv run server_spacy.py
 
 # In another terminal: run the Haskell client
 stack build --fast --exec HybridHaskellPythonNlp-exe

@@ -36,14 +36,14 @@ class AllResource(object):
             self.response['entities'] = [ent.text + "/" + ent.label_ for ent in doc.ents]
             self.response['tokens'] = [token.text for token in doc]
 
-            resp.body = json.dumps(self.response)
+            resp.text = json.dumps(self.response)
             resp.content_type = 'application/json'
         resp.append_header('Access-Control-Allow-Origin', "*")
         resp.status = falcon.HTTP_200
 
 if __name__ == '__main__':
     RESSOURCE = AllResource()
-    APP = falcon.API()
+    APP = falcon.App()
     APP.add_route('/', RESSOURCE)
     HTTPD = make_server('127.0.0.1', 8008, APP)
     HTTPD.serve_forever()

@@ -1,9 +1,15 @@
 # Installation:
 
-    pip install -U spacy
-    python -m spacy download en
-    pip install falcon
 
-    python setup.py install
+Install spacy model:
 
-    bin/spacynlpserver
+     uv run python -m spacy download en
+
+
+Run the server:
+
+     uv run server_spacy.py
+
+Optional: run Python test client before running Haskell client:
+
+    uv run test_client.py

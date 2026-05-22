@@ -8,11 +8,15 @@ module NlpWebClient
 
 import Control.Exception (SomeException, try)
 import Control.Lens
+import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Char8 (unpack)
+
 import Network.URI.Encode as E -- encode is also in Data.Aeson
 import Network.Wreq
 
 import Text.JSON.Generic
+
+type LByteString = ByteString
 
 data NlpResponse = NlpResponse {entities::[String], tokens::[String]} deriving (Show, Data, Typeable)
 
