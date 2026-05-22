@@ -254,7 +254,7 @@ textToTriples file_path meta_file_path = do
         concat
           [ generate_triple
             (snd pair)
-            "<http://knowledgebooks.com/schema/aboutTradeUnionName>"
+            "<http://knowledgebooks.com/schema/aboutUniversityName>"
             (make_literal (fst pair))
           | pair <- universities
           ]

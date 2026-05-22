@@ -13,40 +13,40 @@ I define the types for playing cards and an entire card deck in the file *Card.h
 ```haskell{line-numbers: true}
 -- Card model: defines `Rank`, `Suit`, and `Card`, with helpers
 -- `orderedCardDeck` builds a deterministic deck; `cardValue` maps ranks to scores
-module Card (Card, Rank, Suit, orderedCardDeck, cardValue) where
+module Card (Card(..), Rank(..), Suit(..), orderedCardDeck, cardValue) where
 
 import Data.Maybe (fromMaybe)
 import Data.List (elemIndex)
-import Data.Map (fromList, lookup, keys)
+import Data.Map (Map, fromList, lookup, keys)
 
 data Card = Card { rank :: Rank
                  , suit :: Suit }
                  deriving (Eq, Show)
                  
 data Suit = Hearts | Diamonds | Clubs | Spades
-          deriving (Eq, Show, Enum, Ord)
+          deriving (Eq, Show, Enum, Ord, Bounded)
 
 data Rank = Two | Three | Four
           | Five | Six | Seven | Eight
           | Nine | Ten | Jack  | Queen | King | Ace
           deriving (Eq, Show, Enum, Ord)
 
+-- | Map each 'Rank' to its Blackjack point value.
+rankMap :: Map Rank Int
 rankMap = fromList [(Two,2), (Three,3), (Four,4), (Five,5),
                     (Six,6), (Seven,7), (Eight,8), (Nine,9),
                     (Ten,10), (Jack,10), (Queen,10),
                     (King,10), (Ace,11)]
 
--- Deterministic deck: list-comprehension over all ranks and a suit range
--- Adjust the suit range if you want to include all suits (Enum ranges)
+-- | Deterministic deck: list-comprehension over all ranks and all four suits.
+-- Uses [minBound .. maxBound] to guarantee every Suit is included.
 orderedCardDeck :: [Card]
-orderedCardDeck = [Card rank suit | rank <- keys rankMap,
-                                    suit <- [Hearts .. Clubs]]
+orderedCardDeck = [Card r s | r <- keys rankMap,
+                              s <- [minBound .. maxBound]]
 
+-- | Look up the point value of a card's rank.
 cardValue :: Card -> Int
-cardValue aCard =
-  case (Data.Map.lookup (rank aCard) rankMap) of
-    Just n -> n
-    Nothing -> 0 -- should never happen
+cardValue aCard = fromMaybe 0 (Data.Map.lookup (rank aCard) rankMap)
 ```
 
 This module defines essential components for representing and working with playing cards.
@@ -179,8 +179,13 @@ The code uses lenses (`makeLenses ''Table`) to provide convenient access and mod
 ```haskell{line-numbers: true}
 {-# LANGUAGE TemplateHaskell #-}  -- for makeLens
 
--- Game state and rules for Blackjack; pure transformations on `Table`
--- Uses lenses to update nested fields concisely
+-- | Game state and rules for Blackjack; pure transformations on 'Table'.
+-- Uses lenses to update nested fields concisely.
+--
+-- Player indexing convention:
+--   0     = human player
+--   1     = dealer
+--   2 … n = AI players
 module Table (Table (..), createNewTable, setPlayerBet, showTable, initialDeal,
               changeChipStack, setCardDeck, dealCards, resetTable, scoreHands,
               dealCardToUser, handOver, setPlayerPasses) where  -- note: export dealCardToUser only for ghci development
@@ -192,8 +197,8 @@ import Data.Bool
 import Data.Maybe (fromMaybe)
 
 data Table = Table { _numPlayers        :: Int
-                   , _chipStacks       :: [Int] -- number of chips, indexed by player index
-                   , _dealtCards       :: [[Card]] -- dealt cards for user, dealer, and other players
+                   , _chipStacks       :: [Int] -- ^ number of chips, indexed by player index
+                   , _dealtCards       :: [[Card]] -- ^ dealt cards for user, dealer, and other players
                    , _currentPlayerBet :: Int
                    , _userPasses       :: Bool
                    , _cardDeck         :: [Card]
@@ -236,7 +241,8 @@ dealCards :: Table -> [Int] -> Table
 dealCards aTable playerIndices =
   last $ scanl dealCardToUser aTable playerIndices
  
--- Initial deal: reset table with a new shuffled deck, then deal two rounds
+-- | Initial deal: reset table with a new shuffled deck, then deal two rounds.
+initialDeal :: [Card] -> Table -> Int -> Table
 initialDeal cardDeck aTable numberOfPlayers =
   dealCards
     (dealCards (resetTable cardDeck aTable numberOfPlayers) [0 .. numberOfPlayers])
@@ -258,12 +264,18 @@ showTable aTable =
   "\n  Player pass: " ++
   (show (_userPasses aTable)) ++ "\n"
   
+clipScore :: Table -> Int -> Int
 clipScore aTable playerIndex =
   let s = score aTable playerIndex in
     if s < 22 then s else 0
       
--- Resolve bets for the hand: compare each player's score against dealer
--- Busts are treated as 0; updates chip stacks accordingly
+-- | Resolve bets for the hand: compare each player's score against the dealer.
+-- Busts are treated as 0; updates chip stacks accordingly.
+--
+-- Indexing: chipStacks2 !! 0 = human, !! 1 = dealer, !! 2+ = AI players.
+-- 'otherScores' starts at player index 2, so we zip with 'tail (tail chipStacks2)'
+-- to skip the human's and dealer's chip entries.
+scoreHands :: Table -> Table
 scoreHands aTable =
   let chipStacks2 = _chipStacks aTable
       playerScore = clipScore aTable 0
@@ -282,11 +294,12 @@ scoreHands aTable =
                          if x < dealerScore then
                            y - 20
                          else y) 
-            (zip otherScores (tail chipStacks2))
-      newChipStacks  = newPlayerChipStack:newOtherChipsStacks
+            (zip otherScores (tail (tail chipStacks2)))
+      dealerChipStack = chipStacks2 !! 1
+      newChipStacks  = newPlayerChipStack : dealerChipStack : newOtherChipsStacks
   in
     over chipStacks (\_ -> newChipStacks) aTable
-     
+
 setPlayerBet :: Int -> Table -> Table
 setPlayerBet newBet =
   over currentPlayerBet (\_ -> newBet)  
@@ -307,11 +320,7 @@ changeChipStack :: Int -> Int -> Table -> Table
 changeChipStack playerIndex newValue =
   over chipStacks (\a -> a & element playerIndex .~ newValue)
 
-scoreOLD aTable playerIndex =
-  let scores = map cardValue ((_dealtCards aTable) !! playerIndex)
-      totalScore = sum scores in
-    if totalScore < 22 then totalScore else 0
-
+score :: Table -> Int -> Int
 score aTable playerIndex =
   let scores = map cardValue ((_dealtCards aTable) !! playerIndex)
       totalScore = sum scores in
@@ -324,7 +333,7 @@ dealCardToUser' aTable playerIndex =
       newTable = over cardDeck (\cd -> tail cd) aTable in
     over dealtCards (\a -> a & element playerIndex .~ playerCards) newTable
 
--- Dealer/AI rule: user always draws; other players draw until score >= 17
+-- | Dealer/AI rule: user always draws; other players draw until score >= 17.
 dealCardToUser :: Table -> Int -> Table
 dealCardToUser aTable playerIndex
   | playerIndex == 0  = dealCardToUser' aTable playerIndex -- user
@@ -360,84 +369,58 @@ Similarly, we use **over** in line 113 to change the current player bet. In func
 The function **main**, defined in the file *Main.hs*, uses the code we have just seen to represent a table and modify a table, is fairly simple. A main game loop repetitively accepts game user input, and calls the appropriate functions to modify the current table, producing a new table. Remember that the table data is immutable: we always generate a new table from the old table when we need to modify it.
 
 ```haskell{line-numbers: true}
--- Simple CLI Blackjack runner; orchestrates IO and table updates
--- Prompts for players, shuffles deck, loops reading commands to hit/stay/bet
+-- Main.hs – entry point; collects player count then hands off to the TUI
 module Main where
 
-import Card   -- pure code (card types + values)
-import Table  -- pure code (game state + rules)
-import RandomizedList  -- impure code (random shuffle)
+import Card           -- pure code (card types + values)
+import Table          -- pure code (game state + rules)
+import RandomizedList -- impure code (random shuffle)
+import TUI            -- Brick-based terminal UI
+import Text.Read (readMaybe)
 
-printTable :: Table -> IO ()
-printTable aTable =
-  putStrLn $ showTable aTable
-  
-randomDeck =
-  randomizedList orderedCardDeck
+randomDeck :: IO [Card]
+randomDeck = randomizedList orderedCardDeck
 
--- Main loop: renders the table, shuffles a fresh deck each turn,
--- and processes user input; returns `IO` to keep side effects explicit
-gameLoop :: Table -> Int -> IO b
-gameLoop aTable numberOfPlayers = do
-  printTable aTable
-  cardDeck <- randomDeck
-  if (handOver aTable) then
-    do
-      putStrLn "\nHand over. State of table at the end of the game:\n"
-      printTable aTable
-      putStrLn "\nNewly dealt hand:\n"
-      gameLoop (initialDeal cardDeck (scoreHands aTable) numberOfPlayers) numberOfPlayers
-  else
-    do
-      putStrLn "Enter command: h)it or set bet to 10, 20, 30; any other key to stay:"
-      command <- getLine
-      if elem command ["10", "20", "30"] then gameLoop (setPlayerBet (read command) aTable) numberOfPlayers
-      else
-        if command == "h" then gameLoop (dealCards aTable [0 .. numberOfPlayers]) numberOfPlayers
-        else gameLoop (setPlayerPasses (dealCards aTable [1 .. numberOfPlayers])) numberOfPlayers 
-             -- player stays (no new cards)
-  
-main :: IO b
-main = do
-  print "Start a game of Blackjack. Besides yourself, how many other players do you want at the table?"
+-- | Prompt for the number of other players, validating input.
+getPlayerCount :: IO Int
+getPlayerCount = do
+  putStrLn "Besides yourself, how many other players do you want at the table? (1-4)"
   s <- getLine
-  let num = (read s :: Int) + 1 -- player indices: 0)user, 1)dealer, and > 1 are the other players
+  case readMaybe s :: Maybe Int of
+    Just n | n >= 1 && n <= 4 -> return (n + 1)  -- 0=user, 1=dealer, 2+= other players
+    _ -> do
+      putStrLn "Invalid input. Please enter a number between 1 and 4."
+      getPlayerCount
+
+main :: IO ()
+main = do
+  putStrLn "♠ ♥  Welcome to Blackjack!  ♦ ♣"
+  n <- getPlayerCount
   cardDeck <- randomDeck
-  let aTable = initialDeal cardDeck (createNewTable num) num
-  gameLoop aTable num
+  let aTable = initialDeal cardDeck (createNewTable n) n
+  runTUI aTable n
 ```
 
-This module combines the previously defined `Card` and `Table` modules with an impure `RandomizedList` module to implement the main game loop of a simplified Blackjack-like card game.
+This module combines the previously defined `Card` and `Table` modules with an impure `RandomizedList` module and a `TUI` module (Brick-based terminal UI) to implement a Blackjack card game.
 
 **Core Functions**
 
-* `printTable`: Prints the current state of the table using the `showTable` function from the `Table` module.
+* `randomDeck`: Generates a randomized version of the `orderedCardDeck` using the `randomizedList` function from the `RandomizedList` module.
 
-* `randomDeck`: Generates a randomized version of the `orderedCardDeck` using the `randomizedList` function (assumed to be from the `RandomizedList` module).
-
-* `gameLoop`: The core recursive function that drives the game:
-    - Prints the current table state.
-    - Generates a random card deck.
-    - If the hand is over (user has passed), prints the final table state, scores hands, and starts a new game with the updated chip stacks.
-    - Otherwise, prompts the user for a command:
-        - If the command is "10", "20", or "30", sets the player's bet.
-        - If the command is "h", deals cards to all players (including the user).
-        - If any other command is entered, sets the user as passed and deals cards to the dealer and other players until they stand.
-    - Recursively calls itself with the updated table state.
+* `getPlayerCount`: Prompts the user for the number of additional players (1-4), validating input with `readMaybe` and recursing on invalid input. Returns the total player count (adding 1 for the dealer).
 
 * `main`:
-    - Prompts the user for the number of additional players.
+    - Prints a welcome banner.
+    - Calls `getPlayerCount` to get the validated number of players.
     - Creates a new table with the specified number of players and an initial deal.
-    - Starts the `gameLoop`.
+    - Launches the Brick-based terminal UI via `runTUI`.
 
 **Key Points**
 
-- The code demonstrates a basic interactive text-based card game implementation.
-- It combines pure modules (`Card`, `Table`) with an impure module (`RandomizedList`) for randomization.
-- The `gameLoop` function handles user input and game state transitions.
-- The game logic is likely simplified for this example, and a full Blackjack implementation would require additional rules and features.
-
-**Remember:** The `RandomizedList` module is assumed to provide a function `randomizedList` for shuffling the card deck, introducing impurity into the game logic.
+- The code demonstrates an interactive card game implementation using a terminal UI library (Brick).
+- It combines pure modules (`Card`, `Table`) with impure modules (`RandomizedList` for randomization, `TUI` for the terminal interface).
+- Input validation is handled using `readMaybe` for safe parsing.
+- The `RandomizedList` module provides a function `randomizedList` for shuffling the card deck, introducing impurity into the game logic.
 
 
 

@@ -7,13 +7,15 @@ import Data.List (intercalate)
 import Data.Char as C
 import Data.List.Utils (replace)
 
+noiseCharacters :: [Char]
 noiseCharacters = ['[', ']', '{', '}', '\n', '\t', '&', '^', 
-                   '@', '%', '$', '#', ',']
+                   '@', '%', '$', '#']
 
 substituteNoiseCharacters :: [Char] -> [Char]
 substituteNoiseCharacters =
   map (\x -> if elem x noiseCharacters then ' ' else x)
 
+cleanText :: String -> String
 cleanText s = 
   intercalate
    " " $
@@ -24,10 +26,11 @@ cleanText s =
         (replace "," " , " 
          (replace ";" " ; " s)))
 
+stopWords :: [String]
 stopWords = ["a", "the", "that", "of", "an", "and"]
 
-toLower' :: [Char] -> [Char]
-toLower' s = map (\x -> if isLower x then x else (C.toLower x)) s
+toLower' :: String -> String
+toLower' = map C.toLower
 
 removeStopWords :: String -> [Char]
 removeStopWords s =
@@ -37,6 +40,7 @@ removeStopWords s =
       (\x -> notElem (toLower' x) stopWords) $
       words s
 
+main :: IO ()
 main = do
   let ct = cleanText "The[]@] cat, and all the dogs, escaped&^. They were caught."
   print ct

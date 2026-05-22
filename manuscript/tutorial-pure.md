@@ -773,25 +773,30 @@ You also do not use **in** inside a list comprehension as seen in the function *
 ```haskell{line-numbers: true}
 module Main where
 
+funnySummation :: Num a => a -> a -> a -> a -> a
 funnySummation w x y z =
   let bob = w + x
       sally = y + z
   in bob + sally
 
+testLetComprehension :: [(Int, Int)]
 testLetComprehension =
   [(a,b) | a <- [0..5], let b = 10 * a]
 
+testWhereBlocks :: Num a => a -> a
 testWhereBlocks a =
   z * q
     where
       z = a + 2
       q = 2
 
+functionWithWhere :: Num a => a -> a
 functionWithWhere n  =
   (n + 1) * tenn
   where
     tenn = 10 * n
-          
+
+main :: IO ()
 main = do
   print $ funnySummation 1 2 3 4
   let n = "Rigby"
@@ -801,7 +806,7 @@ main = do
   print $ functionWithWhere 1
 ```
 
-Compare the **let** **do** expressions starting on line 4 and 24. The first **let** occurs in pure code and uses **in** to define one or more **do** expressions using values bound in the **let**. In line 24 we are inside a monad, specifically using the **do** notation and here **let** is used to define pure values that can be used later in the **do** **do** expression.
+Compare the **let** **do** expressions starting on line 5 and 30. The first **let** occurs in pure code and uses **in** to define one or more **do** expressions using values bound in the **let**. In line 30 we are inside a monad, specifically using the **do** notation and here **let** is used to define pure values that can be used later in the **do** **do** expression.
 
 Loading the last code example and running the **main** function produces the following output:
 
@@ -841,8 +846,8 @@ Ok, modules loaded: Main.
 We previously used the built-in functions **head** that returns the first element of a list and **tail** that  returns a list with the first element removed. We will define these functions ourselves using what is called wild card pattern matching. It is common to append the single quote character **'** to built-in functions when we redefine them so we name our new functions **head'** and **tail'**. Remember when we used destructuring to access elements of a tuple? Wild card pattern matching is similar:
 
 ```haskell{line-numbers: false}
-head'(x:_)  = x
-tail'(_:xs) = xs
+head' (x:_) = x
+tail' (_:xs) = xs
 ```
 
 The underscore character **_** matches anything and ignores the matched value. Our **head** and **tail** definitions work as expected:
@@ -916,10 +921,10 @@ The following is a simple implementation of a map function (we will see Haskell'
 
 ```haskell{line-numbers: true}
 map' f [] = []
-map' f (x:xs) = f x : map' f xs
-~~~~~~~~
+map' f (x:xs) = (f x) : map' f xs
+```
 
-In line 2 we do not need parenthesis around **f x** because function application has a higher precedence than the operator **:** which adds an element to the beginning of a list.
+In line 2 the parenthesis around **(f x)** are optional because function application has a higher precedence than the operator **:** which adds an element to the beginning of a list. The parentheses are included here for clarity.
 
 Are you pleased with how concise this definition of a map function is? Is concise code like **map'** readable to you? Speaking as someone who has written hundreds of thousands of lines of Java code for customers, let me tell you that I love the conciseness and readability of Haskell! I appreciate the Java ecosystem with many useful libraries and frameworks and augmented like fine languages like Clojure and JRuby, but in my opinion using Haskell is a more enjoyable and generally more productive language and programming environment.
 
@@ -963,8 +968,8 @@ The examples for this section are in the file *Guards.hs*. As a first simple exa
 
 ```haskell{line-numbers: true}
 spaceship n
-  | n < 0     = -1
-  | n == 0    = 0
+  | n < 0 = -1
+  | n == 0 = 0
   | otherwise = 1
 ```
 
@@ -1063,20 +1068,22 @@ The following example shows one way to use the **Just** and **Nothing** return v
 module MapExamples where
 
 import qualified Data.Map as M -- from library containers
+import Data.Maybe (fromMaybe)
 
+
+aTestMap :: M.Map String Int
 aTestMap = M.fromList [("height", 120), ("weight", 15)]
 
-getNumericValue key aMap =
-  case M.lookup key aMap of
-    Nothing -> -1
-    Just value -> value
+getNumericValue :: Ord k => k -> M.Map k Int -> Int
+getNumericValue key aMap = fromMaybe (-1) (M.lookup key aMap)
 
+main :: IO ()
 main = do
   print $ getNumericValue "height" aTestMap
   print $ getNumericValue "age" aTestMap
 ```
 
-The function **getNumericValue** shows one way to extract a value from an instance of type **Maybe**. The function **lookup** returns a **Maybe** value and in this example I use a **case** statement to test for a **Nothing** value or extract a wrapped value in a **Just** instance. Using **Maybe** in Haskell is a better alternative to checking for **null** values in *C* or *Java*.
+The function **getNumericValue** shows one way to extract a value from an instance of type **Maybe**. The function **lookup** returns a **Maybe** value and in this example we use **fromMaybe** from **Data.Maybe** to provide a default value of **-1** when the lookup returns **Nothing**. Using **Maybe** in Haskell is a better alternative to checking for **null** values in *C* or *Java*.
 
 The output from running the **main** function in module **MapExamples** is:
 
@@ -1207,11 +1214,14 @@ The following example shows a simple case where a list is constructed in the fun
 ```haskell{line-numbers: true}
 module ChainedCalls where
   
+doubleOddElements :: Integral a => [a] -> [a]
 doubleOddElements =
   map (\x -> if x `mod` 2 == 0 then x else 2 * x)
 
+times10Elements :: Num a => [a] -> [a]
 times10Elements = map (* 10)
     
+main :: IO ()
 main = do
   print $ doubleOddElements [0,1,2,3,4,5,6,7,8]
   let aList = [0,1,2,3,4,5]
@@ -1221,7 +1231,7 @@ main = do
   print newList2
 ```
 
-Notice that the expressions being evaluated in lines 11 and 13 are the same. In line 11 we are applying function **doubleOddElements** to the value of **aList** and passing this value to the outer function **times10Elements**. In line 13 we are creating a new function from composing two existing functions: **times10Elements . doubleOddElements**. The parenthesis in line 13 are required because the **.** operator has lower precedence than the application of function **doubleOddElements** so without the parenthesis line 13 would evaluate as **times10Elements (doubleOddElements aList)** which is not what I intended and would throw an error.
+Notice that the expressions being evaluated in lines 14 and 16 are the same. In line 14 we are applying function **doubleOddElements** to the value of **aList** and passing this value to the outer function **times10Elements**. In line 16 we are creating a new function from composing two existing functions: **times10Elements . doubleOddElements**. The parenthesis in line 16 are required because the **.** operator has lower precedence than the application of function **doubleOddElements** so without the parenthesis line 16 would evaluate as **times10Elements (doubleOddElements aList)** which is not what I intended and would throw an error.
 
 The output is:
 
@@ -1332,6 +1342,7 @@ And the new *test/Spec.hs* file:
 
 ```haskell{line-numbers: true}
 import Test.Hspec
+import Control.Exception (evaluate)
 
 import MyColors
 
@@ -1341,16 +1352,21 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "head" $ do
-    it "test removing first list element" $ do
+    it "returns the first element of a list" $ do
       head [1,2,3,4] `shouldBe` 1
-      head ["the", "dog", "ran"] `shouldBe` "dog" -- should fail
+      -- NOTE: This assertion is intentionally wrong to demonstrate
+      -- what test framework failure output looks like.
+      head ["the", "dog", "ran"] `shouldBe` "the"
+    it "throws an exception on empty list" $ do
+      evaluate (head ([] :: [Int])) `shouldThrow` anyException
   describe "MyColors tests" $ do
-    it "test custom 'compare' function" $ do
+    it "test custom 'compare' function descending test" $ do
       MyColors.Green < MyColors.Red `shouldBe` True
-      Red > Silver `shouldBe` True                -- should fail
+    it "test custom 'compare' function ascending test" $ do
+      Red > Silver `shouldBe` False
 ```
 
-Notice how two of the tests are meant to fail as an example. Let's run the tests:
+The tests include an example that checks for an exception when calling **head** on an empty list. Let's run the tests:
 
 ```haskell{line-numbers: true}
 $ stack test
@@ -1358,34 +1374,19 @@ TestingHaskell-0.1.0.0: test (suite: TestingHaskell-test)
              
 Progress: 1/2
 head
-  test removing first list element FAILED [1]
+  returns the first element of a list
+  throws an exception on empty list
 MyColors tests
-  test custom 'compare' function FAILED [2]
-
-Failures:
-
-  test/Spec.hs:13: 
-  1) head test removing first list element
-       expected: "dog"
-        but got: "the"
-
-  test/Spec.hs:17: 
-  2) MyColors tests test custom 'compare' function
-       expected: True
-        but got: False
-
-Randomized with seed 1233887367
+  test custom 'compare' function descending test
+  test custom 'compare' function ascending test
 
 Finished in 0.0139 seconds
-2 examples, 2 failures
+4 examples, 0 failures
              
 Completed 2 action(s).
-Test suite failure for package TestingHaskell-0.1.0.0
-    TestingHaskell-test:  exited with: ExitFailure 1
-Logs printed to console
 ```
 
-In line one with **stack test** we are asking *stack* to run app tests in the subdirectory *test*. All Haskell source files in subdirectory *test* are assumed to be test files. In the listing for file *test/Spec.hs* we have two tests that fail on purpose and you see the output for the failed tests at lines 12-15 and 17-20.
+In line one with **stack test** we are asking *stack* to run app tests in the subdirectory *test*. All Haskell source files in subdirectory *test* are assumed to be test files. In the listing for file *test/Spec.hs* we have four tests that all pass.
 
 Because the Haskell compiler does such a good job at finding type errors I have fewer errors in my Haskell code compared to languages like Ruby and Common Lisp. As a result I find myself writing fewer tests for my Haskell code than I would write in other languages. Still, I recommend some tests for each of your projects; decide for yourself how much relative effort you want to put into writing tests.
 

@@ -5,27 +5,29 @@ module Main where
 
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.List (nub)
 
 import Text.ParserCombinators.ReadP
-import Data.Char (isSpace, isAlphaNum)
+import Data.Char (isSpace, isAlphaNum, toLower)
 
 -- ==========================================
 -- 1. RDF Data Types
 -- ==========================================
 
--- A Node can be an IRI (URI), a Literal string, or a Blank Node
+-- | A Node can be an IRI (URI), a Literal string, or a Blank Node.
 data Node
   = IRI String
   | Lit String
   | BNode Int
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
-instance Show Node where
-  show (IRI s)   = "<" ++ s ++ ">"
-  show (Lit s)   = "\"" ++ s ++ "\""
-  show (BNode i) = "_:b" ++ show i
+-- | Format an RDF Node for display using standard N-Triples notation.
+-- Use this instead of 'show' when producing human-readable output.
+formatNode :: Node -> String
+formatNode (IRI s)   = "<" ++ s ++ ">"
+formatNode (Lit s)   = "\"" ++ s ++ "\""
+formatNode (BNode i) = "_:b" ++ show i
 
 -- An RDF Triple: (Subject, Predicate, Object)
 type Triple = (Node, Node, Node)
@@ -97,22 +99,41 @@ evaluatePatterns graph (pat:pats) = do
 
 -- | The main entry point for running a query.
 -- It evaluates the WHERE clause and then projects only the requested SELECT variables.
+-- Any SELECT variable that does not appear in a WHERE pattern is flagged as an error.
 runQuery :: Graph -> SelectQuery -> [[Node]]
-runQuery graph query =
-  let 
-    -- 1. Find all valid bindings for the WHERE clause
-    -- We reverse the patterns because the list monad naturally processes right-to-left 
-    -- in the recursion above, but we want left-to-right evaluation flow.
-    allBindings = evaluatePatterns graph (reverse $ whereClause query)
-    
-    -- 2. Project specific variables (SELECT ?s ?o)
-    project binding = map (\v -> fromMaybe (Lit "NULL") (Map.lookup v binding)) (vars query)
-  in
-    nub $ map project allBindings
+runQuery graph query
+  | not (null unboundVars) =
+      error $ "SELECT variable(s) not bound in WHERE clause: " ++
+              unwords (map ('?':) unboundVars)
+  | otherwise =
+      let
+        -- 1. Find all valid bindings for the WHERE clause
+        -- We reverse the patterns because the list monad naturally processes right-to-left
+        -- in the recursion above, but we want left-to-right evaluation flow.
+        allBindings = evaluatePatterns graph (reverse $ whereClause query)
+
+        -- 2. Project specific variables (SELECT ?s ?o)
+        project binding = map (\v -> fromMaybe (Lit "NULL") (Map.lookup v binding)) (vars query)
+      in
+        nub $ map project allBindings
+  where
+    -- Collect all variable names that appear in WHERE triple patterns
+    patternVars = nub [v | TP s p o <- whereClause query, QVar v <- [s, p, o]]
+    unboundVars = filter (`notElem` patternVars) (vars query)
 
 -- ==========================================
 -- 4. SPARQL Parser
 -- ==========================================
+--
+-- Limitations of this simplified SPARQL grammar:
+--   * Only SELECT queries are supported (no ASK, CONSTRUCT, DESCRIBE).
+--   * No OPTIONAL, UNION, FILTER, BIND, or sub-queries.
+--   * No prefix declarations — IRIs must be written in full (<…>) or as
+--     bare alphanumeric words (which are treated as IRIs).
+--   * Literal values must be double-quoted strings; no language tags or
+--     datatype IRIs.
+--   * Triple patterns are separated by optional dots; no semicolon or
+--     comma shortcuts.
 
 -- | Parses a SPARQL query string into a SelectQuery
 parseQuery :: String -> Either String SelectQuery
@@ -140,7 +161,6 @@ parseQuery input =
 
     stringCI :: String -> ReadP String
     stringCI str = traverse (\c -> satisfy (\x -> toLower x == toLower c)) str
-      where toLower x = if 'A' <= x && x <= 'Z' then toEnum (fromEnum x + 32) else x
 
     parseVarName :: ReadP String
     parseVarName = do
@@ -239,5 +259,5 @@ printTable :: [String] -> [[Node]] -> IO ()
 printTable headers rows = do
   putStrLn $ unwords headers
   putStrLn $ replicate (length (unwords headers) + 5) '-'
-  mapM_ (putStrLn . unwords . map show) rows
+  mapM_ (putStrLn . unwords . map formatNode) rows
 

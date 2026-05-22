@@ -6,11 +6,11 @@ We will walk through an example project that analyzes a California housing datas
 
 ## Setup and Boilerplate
 
-Before working directly with tabular data, we initialize our project with the required extensions and imports. We make use of `OverloadedStrings` for cleaner string literals and `TemplateHaskell` to securely typecheck column names at compile time.
+Before working directly with tabular data, we initialize our project with the required extensions and imports. We make use of `OverloadedStrings` for cleaner string literals and `ScopedTypeVariables` for explicit type applications on column references.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -18,28 +18,31 @@ import qualified DataFrame          as D
 import qualified DataFrame.Functions as F
 import           DataFrame.Operators          -- re-exports (|>), (.==), (.>=), etc.
 import           Data.Text          (Text)
+import           Control.Exception  (IOException, try)
+import           System.Exit        (exitFailure)
 ```
 
-The dataframe library uses Template Haskell to read the CSV headers at compile time. This ensures type-safe column references without tedious manual definition:
-
-```haskell
--- Template-haskell: inspect the CSV at compile time and generate typed
--- column-reference bindings such as `total_rooms`, `households`, etc.
-$(F.declareColumnsFromCsvFile "./data/housing.csv")
-```
+All column references in this example use string-based `F.col @T "name"` syntax. The dataframe library also supports a Template Haskell splice (`F.declareColumnsFromCsvFile`) that generates typed column-reference bindings at compile time; if you want that extra compile-time column safety, add `{-# LANGUAGE TemplateHaskell #-}` and uncomment the splice.
 
 ![DataFrame Analysis Pipeline Architecture](FIG_dataframe_example.jpg)
 
 ## Loading Data and Summary Statistics
 
-To get started, we read the CSV into a DataFrame layout. The `dataframe` library affords commands similar to familiar database and analysis tools:
+To get started, we read the CSV into a DataFrame layout. The `dataframe` library affords commands similar to familiar database and analysis tools. We wrap the load in `try`/`catch` so we get a clear error message if the CSV is missing:
 
 ```haskell
 main :: IO ()
 main = do
-  -- Load the dataset
-  df <- D.readCsv "./data/housing.csv"
+  -- Wrap in try/catch so we get a clear error message if the CSV is missing.
+  result <- try (D.readCsv "./data/housing.csv") :: IO (Either IOException D.DataFrame)
+  df <- case result of
+    Left err -> do
+      putStrLn $ "ERROR: Could not load CSV file: " <> show err
+      putStrLn "Make sure you are running from the dataframe_example project root."
+      exitFailure
+    Right v  -> pure v
 
+  putStrLn "\n=== California Housing Dataset ==="
   putStrLn "First 5 rows:"
   print (D.take 5 df)
 ```
@@ -61,19 +64,15 @@ Often, your analysis requires data metrics not present in the original dataset. 
 Let's compute the number of rooms per household, population density per household, and bedrooms relative to total rooms:
 
 ```haskell
-  -- Derive new columns: rooms_per_household, population_per_household,
-  -- bedrooms_per_room
+  -- rooms_per_household, bedrooms_per_room, population_per_household
   let enriched =
         df
           |> D.derive "rooms_per_household"
-               (F.toDouble (F.col @Int "total_rooms") / 
-               F.toDouble (F.col @Int "households"))
+               (F.toDouble (F.col @Int "total_rooms") / F.toDouble (F.col @Int "households"))
           |> D.derive "population_per_household"
-               (F.toDouble (F.col @Int "population") / 
-               F.toDouble (F.col @Int "households"))
+               (F.toDouble (F.col @Int "population") / F.toDouble (F.col @Int "households"))
           |> D.derive "bedrooms_per_room"
-               (F.toDouble (F.col @Int "total_bedrooms") / 
-               F.toDouble (F.col @Int "total_rooms"))
+               (F.toDouble (F.col @Int "total_bedrooms") / F.toDouble (F.col @Int "total_rooms"))
 ```
 
 ## Filtering and Selection
@@ -85,8 +84,7 @@ For narrower views of data domains, the `D.filter` and `D.select` combinators sl
   let expensive =
         enriched
           |> D.filter (F.col @Double "median_house_value") (> 400000)
-          |> D.filter (F.col @Text   "ocean_proximity") 
-             (\p -> p `elem` ["NEAR BAY", "NEAR OCEAN", "<1H OCEAN"])
+          |> D.filter (F.col @Text   "ocean_proximity")    (\p -> p `elem` ["NEAR BAY", "NEAR OCEAN", "<1H OCEAN"])
 
   -- Select relevant columns only
   let selected =
@@ -113,19 +111,15 @@ Analyzing wide margins requires grouping data under unique traits and gathering 
 For instance, we can group attributes by their proximity to the ocean and compute aggregate values. Notice we leverage aliases using `F.as` for these computed categories.
 
 ```haskell
-  -- Group by ocean proximity, aggregate metrics
+  -- Group by ocean proximity, aggregate
   let byProximity =
         enriched
           |> D.groupBy ["ocean_proximity"]
           |> D.aggregate
-               [ F.count @Double (F.col @Double "median_house_value") 
-               `F.as` "num_districts"
-               , F.mean  @Double (F.col @Double "median_house_value") 
-               `F.as` "avg_house_value"
-               , F.mean  @Double (F.col @Double "median_income")      
-               `F.as` "avg_income"
-               , F.mean  @Double (F.col @Double "rooms_per_household")
-               `F.as` "avg_rooms_per_hh"
+               [ F.count @Double (F.col @Double "median_house_value") `F.as` "num_districts"
+               , F.mean  @Double (F.col @Double "median_house_value") `F.as` "avg_house_value"
+               , F.mean  @Double (F.col @Double "median_income")      `F.as` "avg_income"
+               , F.mean  @Double (F.col @Double "rooms_per_household")`F.as` "avg_rooms_per_hh"
                ]
           |> D.sortBy [D.Desc (F.col @Double "avg_house_value")]
 ```

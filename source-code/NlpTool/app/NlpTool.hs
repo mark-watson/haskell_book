@@ -15,26 +15,29 @@ import Entities
 import Summarize
 
 main = do
-  putStrLn "Enter text (all on one line)"
+  putStrLn "Enter text (or \"exit\"/\"quit\" to stop):"
   s <- getLine
-  let cats = bestCategories (splitWords s); 
-      bestCat = if not (null cats) then fst (head cats) else ""; 
-      sum = summarizeS s;
-      spwkc = splitWordsKeepCase s;
-      people = encode $ showJSON $ peopleNames spwkc;
-      countries = encode $ showJSON $ countryNames spwkc;
-      companies = encode $ showJSON $ companyNames spwkc; 
-      result = encode $ showJSON [bestCat, sum];
-      result2 = encode $ showJSON [people, countries, companies] in
-    do
-      putStr "category:\t"
-      putStrLn bestCat
-      putStr "summary:\t"
-      putStrLn sum
-      putStr "people:\t"
-      putStrLn people
-      putStr "companies:\t"
-      putStrLn companies
-      putStr "countries:\t"
-      putStrLn countries
-  main
+  if s `elem` ["exit", "quit"]
+    then putStrLn "Goodbye."
+    else do
+      let cats = bestCategories (splitWords s);
+          bestCat = if not (null cats) then fst (head cats) else "";
+          summaryText = summarizeS s;
+          spwkc = splitWordsKeepCase s;
+          people = encode $ showJSON $ peopleNames spwkc;
+          countries = encode $ showJSON $ countryNames spwkc;
+          companies = encode $ showJSON $ companyNames spwkc;
+          result = encode $ showJSON [bestCat, summaryText];
+          result2 = encode $ showJSON [people, countries, companies] in
+        do
+          putStr "category:\t"
+          putStrLn bestCat
+          putStr "summary:\t"
+          putStrLn summaryText
+          putStr "people:\t"
+          putStrLn people
+          putStr "companies:\t"
+          putStrLn companies
+          putStr "countries:\t"
+          putStrLn countries
+      main

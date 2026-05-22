@@ -21,13 +21,13 @@ executable RobsExample
   hs-source-dirs:      .
   main-is:             RobsExample.hs
   default-language:    Haskell2010
-  build-depends:       HTTP >= 4, base >= 4.7 && < 5, hsparql, mtl >= 2.2.2, rdf4h >= 3.0.0, text
+  build-depends:       HTTP >= 4, base >= 4.7 && < 5, bytestring, hsparql, http-client, http-client-tls, mtl >= 2.2.2, rdf4h >= 3.0.0, text
 
 executable HttpSparqlClient
   hs-source-dirs:      .
   main-is:             HttpSparqlClient.hs
   default-language:    Haskell2010
-  build-depends:       HTTP >= 4, HandsomeSoup, base >= 4.7 && < 5, bytestring, containers, http-conduit, hxt, mtl >= 2.2.2, text
+  build-depends:       HTTP >= 4, HandsomeSoup, base >= 4.7 && < 5, bytestring, containers, http-client, http-client-tls, http-types, http-conduit, hxt, mtl >= 2.2.2, text
 
 executable HttpSparqlJsonClient
   hs-source-dirs:      .

@@ -3,15 +3,18 @@ module Main where
 import Data.Maybe
 import System.Random -- uses random library (see Pure.cabal file)
 
+spaceship :: (Ord a, Num a) => a -> a
 spaceship n
   | n < 0 = -1
   | n == 0 = 0
   | otherwise = 1
               
+randomMaybeValue :: Integral a => a -> Maybe a
 randomMaybeValue n
   | n `mod` 2 == 0 = Just n
   | otherwise = Nothing
     
+main :: IO ()
 main = do
   print $ spaceship (-100)
   print $ spaceship 0

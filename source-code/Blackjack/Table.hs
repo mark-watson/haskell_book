@@ -1,7 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}  -- for makeLens
 
--- Game state and rules for Blackjack; pure transformations on `Table`
--- Uses lenses to update nested fields concisely
+-- | Game state and rules for Blackjack; pure transformations on 'Table'.
+-- Uses lenses to update nested fields concisely.
+--
+-- Player indexing convention:
+--   0     = human player
+--   1     = dealer
+--   2 … n = AI players
 module Table (Table (..), createNewTable, setPlayerBet, showTable, initialDeal,
               changeChipStack, setCardDeck, dealCards, resetTable, scoreHands,
               dealCardToUser, handOver, setPlayerPasses) where  -- note: export dealCardToUser only for ghci development
@@ -13,8 +18,8 @@ import Data.Bool
 import Data.Maybe (fromMaybe)
 
 data Table = Table { _numPlayers        :: Int
-                   , _chipStacks       :: [Int] -- number of chips, indexed by player index
-                   , _dealtCards       :: [[Card]] -- dealt cards for user, dealer, and other players
+                   , _chipStacks       :: [Int] -- ^ number of chips, indexed by player index
+                   , _dealtCards       :: [[Card]] -- ^ dealt cards for user, dealer, and other players
                    , _currentPlayerBet :: Int
                    , _userPasses       :: Bool
                    , _cardDeck         :: [Card]
@@ -57,7 +62,8 @@ dealCards :: Table -> [Int] -> Table
 dealCards aTable playerIndices =
   last $ scanl dealCardToUser aTable playerIndices
  
--- Initial deal: reset table with a new shuffled deck, then deal two rounds
+-- | Initial deal: reset table with a new shuffled deck, then deal two rounds.
+initialDeal :: [Card] -> Table -> Int -> Table
 initialDeal cardDeck aTable numberOfPlayers =
   dealCards
     (dealCards (resetTable cardDeck aTable numberOfPlayers) [0 .. numberOfPlayers])
@@ -79,12 +85,18 @@ showTable aTable =
   "\n  Player pass: " ++
   (show (_userPasses aTable)) ++ "\n"
   
+clipScore :: Table -> Int -> Int
 clipScore aTable playerIndex =
   let s = score aTable playerIndex in
     if s < 22 then s else 0
       
--- Resolve bets for the hand: compare each player's score against dealer
--- Busts are treated as 0; updates chip stacks accordingly
+-- | Resolve bets for the hand: compare each player's score against the dealer.
+-- Busts are treated as 0; updates chip stacks accordingly.
+--
+-- Indexing: chipStacks2 !! 0 = human, !! 1 = dealer, !! 2+ = AI players.
+-- 'otherScores' starts at player index 2, so we zip with 'tail (tail chipStacks2)'
+-- to skip the human's and dealer's chip entries.
+scoreHands :: Table -> Table
 scoreHands aTable =
   let chipStacks2 = _chipStacks aTable
       playerScore = clipScore aTable 0
@@ -103,11 +115,12 @@ scoreHands aTable =
                          if x < dealerScore then
                            y - 20
                          else y) 
-            (zip otherScores (tail chipStacks2))
-      newChipStacks  = newPlayerChipStack:newOtherChipsStacks
+            (zip otherScores (tail (tail chipStacks2)))
+      dealerChipStack = chipStacks2 !! 1
+      newChipStacks  = newPlayerChipStack : dealerChipStack : newOtherChipsStacks
   in
     over chipStacks (\_ -> newChipStacks) aTable
-     
+
 setPlayerBet :: Int -> Table -> Table
 setPlayerBet newBet =
   over currentPlayerBet (\_ -> newBet)  
@@ -128,11 +141,7 @@ changeChipStack :: Int -> Int -> Table -> Table
 changeChipStack playerIndex newValue =
   over chipStacks (\a -> a & element playerIndex .~ newValue)
 
-scoreOLD aTable playerIndex =
-  let scores = map cardValue ((_dealtCards aTable) !! playerIndex)
-      totalScore = sum scores in
-    if totalScore < 22 then totalScore else 0
-
+score :: Table -> Int -> Int
 score aTable playerIndex =
   let scores = map cardValue ((_dealtCards aTable) !! playerIndex)
       totalScore = sum scores in
@@ -145,7 +154,7 @@ dealCardToUser' aTable playerIndex =
       newTable = over cardDeck (\cd -> tail cd) aTable in
     over dealtCards (\a -> a & element playerIndex .~ playerCards) newTable
 
--- Dealer/AI rule: user always draws; other players draw until score >= 17
+-- | Dealer/AI rule: user always draws; other players draw until score >= 17.
 dealCardToUser :: Table -> Int -> Table
 dealCardToUser aTable playerIndex
   | playerIndex == 0  = dealCardToUser' aTable playerIndex -- user
@@ -156,4 +165,3 @@ dealCardToUser aTable playerIndex
 handOver :: Table -> Bool
 handOver aTable =
   _userPasses aTable
-

@@ -19,38 +19,46 @@ he code for the entire example in directory **haskell_book/source-code/WebScrapi
 
 -- HTTP client for making requests
 import Network.HTTP.Simple
+import Network.HTTP.Client (HttpException)
 -- TagSoup: tolerant HTML parser that turns HTML into a list of tags
 import Text.HTML.TagSoup
 -- Text types and IO helpers
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
--- Lazy ByteString helpers for response body
-import qualified Data.ByteString.Lazy.Char8 as BL8
+-- ByteString helpers for proper UTF-8 decoding
+import qualified Data.ByteString.Lazy as BL
+import Data.Text.Encoding (decodeUtf8)
 -- mapMaybe: map and drop Nothings
 import Data.Maybe (mapMaybe)
+-- Exception handling for network errors
+import Control.Exception (try)
 
 main :: IO ()
 main = do
-    -- Fetch the HTML content
-    response <- httpLBS "https://markwatson.com/"  -- GET request; returns `Response ByteString`
-    let body = BL8.unpack $ getResponseBody response  -- convert lazy ByteString to String
-        tags = parseTags body                          -- turn HTML into `[Tag String]`
+    -- Fetch the HTML content, catching network exceptions
+    result <- try $ httpLBS "https://markwatson.com/" :: IO (Either HttpException (Response BL.ByteString))
+    case result of
+      Left err -> putStrLn $ "Network error: " ++ show err
+      Right response -> do
+        -- Properly decode the response body from UTF-8
+        let body = T.unpack $ decodeUtf8 $ BL.toStrict $ getResponseBody response
+            tags = parseTags body                          -- turn HTML into `[Tag String]`
 
-    -- Extract and print headers
-    let headers = getResponseHeaders response  -- list of (header-name, value)
-    putStrLn "Headers:"
-    mapM_ print headers  -- `mapM_` runs `print` over the list in IO
+        -- Extract and print headers
+        let headers = getResponseHeaders response  -- list of (header-name, value)
+        putStrLn "Headers:"
+        mapM_ print headers  -- `mapM_` runs `print` over the list in IO
 
-    -- Extract and print all text content
-    let texts = extractTexts tags  -- collapse visible text nodes into a single `Text`
-    putStrLn "\nText Content:"
-    TIO.putStrLn texts  -- use Text IO to print
+        -- Extract and print all text content
+        let texts = extractTexts tags  -- collapse visible text nodes into a single `Text`
+        putStrLn "\nText Content:"
+        TIO.putStrLn texts  -- use Text IO to print
 
-    -- Extract and print all links
-    let links = extractLinks tags  -- grab `href` attributes from <a> tags
-    putStrLn "\nLinks:"
-    mapM_ TIO.putStrLn links  -- print each link line-by-line
+        -- Extract and print all links
+        let links = extractLinks tags  -- grab `href` attributes from <a> tags
+        putStrLn "\nLinks:"
+        mapM_ TIO.putStrLn links  -- print each link line-by-line
 
 -- Collect visible text from tags and normalize whitespace
 extractTexts :: [Tag String] -> Text
@@ -68,7 +76,7 @@ extractLinks = map (T.pack . fromAttrib "href") . filter isATag
     isATag _               = False
 ```
 
-This Haskell program retrieves and processes the content of the webpage at https://markwatson.com/. It utilizes the http-conduit library to perform an HTTP GET request, fetching the HTML content of the specified URL. The response body, initially in a lazy ByteString format, is converted to a String using BL8.unpack to facilitate subsequent parsing operations.
+This Haskell program retrieves and processes the content of the webpage at https://markwatson.com/. It utilizes the http-conduit library to perform an HTTP GET request, wrapping the call in **try** to catch any **HttpException** network errors gracefully. The response body, initially in a lazy ByteString format, is properly decoded from UTF-8 using **decodeUtf8** (via **BL.toStrict** and **T.unpack**) to ensure correct handling of Unicode characters.
 
 For parsing the HTML content, the program employs the TagSoup library, which is adept at handling both well-formed and malformed HTML. The parseTags function processes the HTML String into a list of Tag String elements, representing the structure of the HTML document. This parsed representation enables efficient extraction of specific components, such as headers, text content, and hyperlinks.
 

@@ -69,9 +69,9 @@ module NlpWebClient
   ( nlpClient, NlpResponse
   ) where
 
+import Control.Exception (SomeException, try)
 import Control.Lens
 import Data.ByteString.Lazy.Char8 (unpack)
-import Data.Maybe (fromJust)
 import Network.URI.Encode as E -- encode is also in Data.Aeson
 import Network.Wreq
 
@@ -79,14 +79,20 @@ import Text.JSON.Generic
 
 data NlpResponse = NlpResponse {entities::[String], tokens::[String]} deriving (Show, Data, Typeable)
 
+base_url :: String
 base_url = "http://127.0.0.1:8008?text="
 
 nlpClient :: [Char] -> IO NlpResponse
 nlpClient query = do
   putStrLn $ "\n\n***  Processing " ++ query
-  r <- get $ base_url ++ (E.encode query) ++ "&no_detail=1"
-  let ret = (decodeJSON (unpack (fromJust (r ^? responseBody)))) :: NlpResponse
-  return ret
+  result <- try (get $ base_url ++ (E.encode query) ++ "&no_detail=1") :: IO (Either SomeException (Response LByteString))
+  case result of
+    Left err -> do
+      putStrLn $ "Error connecting to NLP server: " ++ show err
+      return $ NlpResponse [] []
+    Right r -> do
+      let ret = (decodeJSON (unpack (r ^. responseBody))) :: NlpResponse
+      return ret
 ```
 
 This Haskell code snippet defines a simple web client (`nlpClient`) that interacts with an NLP (Natural Language Processing) service. 
@@ -104,9 +110,9 @@ This Haskell code snippet defines a simple web client (`nlpClient`) that interac
 
 **2. Imports**
 
-* `Control.Lens`: Used for concisely accessing nested data structures (like `r ^? responseBody`).
+* `Control.Exception`: Provides `try` and `SomeException` for catching and handling exceptions during the HTTP request.
+* `Control.Lens`: Used for concisely accessing nested data structures (like `r ^. responseBody`).
 * `Data.ByteString.Lazy.Char8`: Handles lazy ByteStrings, which are efficient for processing large responses.
-* `Data.Maybe`: Provides the `fromJust` function to safely extract values from `Maybe` types.
 * `Network.URI.Encode`: Used for URL-encoding the query text.
 * `Network.Wreq`: A simple HTTP client library for making requests.
 * `Text.JSON.Generic`: For generic JSON parsing.
@@ -133,10 +139,9 @@ This Haskell code snippet defines a simple web client (`nlpClient`) that interac
     * Appending the base URL.
     * URL-encoding the query using `E.encode`.
     * Adding the `&no_detail=1` parameter.
-* Makes an HTTP GET request to the constructed URL using `get`.
-* Extracts the response body from the result using `r ^? responseBody`.
-* Decodes the JSON response using `decodeJSON` and `unpack`.
-* Returns the parsed `NlpResponse`.
+* Wraps the HTTP GET request in `try` to catch any exceptions (e.g., if the NLP server is not running).
+* On failure (`Left err`), prints the error and returns an empty `NlpResponse`.
+* On success (`Right r`), extracts the response body using `r ^. responseBody`, decodes the JSON using `decodeJSON` and `unpack`, and returns the parsed `NlpResponse`.
 
 This code provides a basic way to interact with an NLP service from Haskell. It sends queries, handles the response, and extracts relevant information in a structured format.
 

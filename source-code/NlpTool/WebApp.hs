@@ -16,7 +16,7 @@ import Data.Maybe (fromMaybe)
 import Yesod.Core.Types (Logger)
 
 import System.IO (readLn)
-import Utils (splitWordsKeepCase, cleanText)
+import NlpUtils (splitWordsKeepCase, cleanText)
 
 import Categorize
 import Entities
@@ -70,15 +70,17 @@ getHomeR = defaultLayout $ do
   deleteSession "the_text"
   toWidget [lucius|
             body { margin: 2em; }
-            h2 { background-color: #C0C0C0; padding: 2em; -moz-border-radius: 15px; border-radius: 15px;}
-            form { background-color: #e0e0e0; padding: 1em; -moz-border-radius: 15px; border-radius: 15px;}
-            textarea { background-color: #f2f2f2; padding: 1em; -moz-border-radius: 15px; border-radius: 15px; width: 95%; }
-            input { background-color: #C0C0C0; padding: 1em; -moz-border-radius: 15px; border-radius: 15px;}
+            h2 { background-color: #C0C0C0; padding: 2em; border-radius: 15px;}
+            form { background-color: #e0e0e0; padding: 1em; border-radius: 15px;}
+            textarea { background-color: #f2f2f2; padding: 1em; border-radius: 15px; width: 95%; }
+            input { background-color: #C0C0C0; padding: 1em; border-radius: 15px;}
    |]
   [whamlet|
      <h2>This is a test of an initial port of KnowledgeBooks Natural Language Processing (NLP) code to Haskell
      <p>This system attempts to resolve entity references to Wikipedia/DBPedia subject URIs.
      <h4>Enter plain text (no special characters):
+     <!-- NOTE: Yesod handles CSRF protection automatically via its form framework.
+          If switching to raw HTML forms, add a CSRF token hidden input here. -->
      <form method=post>
         <textarea type=text name=name rows="6" cols="70">
         <br>
@@ -100,7 +102,7 @@ getHomeR = defaultLayout $ do
      <p>#{fromMaybe "" cityNames}
      <h4>Company names found in text:
      <p>#{fromMaybe "" companyNames}
-     <h4>Braodcast network names found in text:
+     <h4>Broadcast network names found in text:
      <p>#{fromMaybe "" broadcastNetworkNames}
      <h4>Political party names found in text:
      <p>#{fromMaybe "" politicalPartyNames}

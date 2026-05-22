@@ -16,5 +16,5 @@ executable TraceTimerTest
   hs-source-dirs:      .
   main-is:             TraceTimerTest.hs
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5, time, timeit
+  build-depends:       base >= 4.7 && < 5
 

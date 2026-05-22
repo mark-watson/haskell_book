@@ -13,11 +13,14 @@ instance FromJSON Person  -- DeriveGeneric language setting allows
 instance ToJSON Person    -- automatic generation of instance of
                           -- types deriving Generic.
 
+main :: IO ()
 main = do
   let a = encode $ Person "Sam" "sam@a.com"
   print a
-  let (Just d) = (decode a :: Maybe Person)
-  print d
-  print $ name d
-  print $ email d
+  case decode a :: Maybe Person of
+    Nothing -> putStrLn "Error: failed to decode JSON back to Person"
+    Just d  -> do
+      print d
+      print $ name d
+      print $ email d
 

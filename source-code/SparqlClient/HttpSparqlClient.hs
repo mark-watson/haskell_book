@@ -2,24 +2,40 @@
 
 module Main where
 
-import Network.HTTP.Conduit (simpleHttp)
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Base (urlEncode)
+import Network.HTTP.Types.Status (statusCode)
 import Text.XML.HXT.Core
 import Text.HandsomeSoup
 import qualified Data.ByteString.Lazy.Char8 as B
---import qualified Data.Text as T
 
-prefixUrl :: [Char]
-prefixUrl = "http://dbpedia.org/sparql/?query="
+prefixUrl :: String
+prefixUrl = "https://dbpedia.org/sparql?format=xml&query="
 
-buildQuery :: String -> [Char]
+buildQuery :: String -> String
 buildQuery sparqlString = prefixUrl ++ urlEncode sparqlString
-  
+
 main :: IO ()
 main = do
-  let query = buildQuery "select * where {<http://dbpedia.org/resource/IBM> <http://dbpedia.org/ontology/abstract> ?o . FILTER langMatches(lang(?o), \"EN\")} LIMIT 100"
-  res <- simpleHttp query
-  let doc = readString [] (B.unpack res)
-  putStrLn "\nAbstracts:\n"
-  abstracts <- runX $ doc >>> css "binding" >>> (getAttrValue "name" &&& (deep getText))
-  print abstracts
+  let url = buildQuery "select ?label where {<http://dbpedia.org/resource/IBM> <http://www.w3.org/2000/01/rdf-schema#label> ?label . FILTER langMatches(lang(?label), \"EN\")}"
+  manager <- newManager tlsManagerSettings
+  initialReq <- parseRequest url
+  let req = initialReq
+              { requestHeaders =
+                  [ ("User-Agent", "HaskellSparqlClient/1.0 (educational example)")
+                  , ("Accept",     "application/sparql-results+xml")
+                  ]
+              }
+  response <- httpLbs req manager
+  let status = statusCode (responseStatus response)
+  if status /= 200
+    then putStrLn $ "HTTP error: " ++ show status
+    else do
+      let body = responseBody response
+      let doc  = readString [] (B.unpack body)
+      putStrLn "\nIBM rdfs:labels:\n"
+      labels <- runX $ doc >>> css "binding" >>> (getAttrValue "name" &&& (deep getText))
+      if null labels
+        then putStrLn "(no results — check the SPARQL endpoint or query)"
+        else mapM_ print labels

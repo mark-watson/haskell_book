@@ -21,9 +21,9 @@ While we use the GPT-4o model here, you can substitute the following models:
 
 This Haskell program demonstrates how to interact with the OpenAI ChatCompletion API using the Openai-hs library. The code sends a prompt to the OpenAI API and prints the assistant’s response to the console. It’s a practical example of how to set up an OpenAI client, create a request, handle the response, and manage potential errors in a Haskell application.
 
-Firstly, the code imports necessary modules and libraries. It imports **OpenAI.Client** for interacting with the OpenAI API and **Network.HTTP.Client** along with **Network.HTTP.Client.TLS** for handling HTTP requests over TLS. The **System.Environment** module is used to access environment variables, specifically to retrieve the OpenAI API key. Additionally, **Data.Text** is imported for efficient text manipulation, and **Data.Maybe** is used for handling optional values.
+Firstly, the code imports necessary modules and libraries. It imports **OpenAI.Client** for interacting with the OpenAI API and **Network.HTTP.Client** along with **Network.HTTP.Client.TLS** for handling HTTP requests over TLS. The **System.Environment** module is used to access environment variables via **lookupEnv**, specifically to retrieve the OpenAI API key. The **System.Exit** module provides **exitFailure** for graceful error handling when the key is missing. Additionally, **Data.Text** is imported for efficient text manipulation, and **Data.Maybe** is used for handling optional values.
 
-The core of the program is the **completionRequestToString** function. This function takes a String argument **prompt** and returns an IO String, representing the assistant’s response.
+The core of the program is the **completionRequestToString** function. This function takes a shared HTTP **Manager**, an API key as **T.Text**, and a String argument **prompt**, and returns an IO String, representing the assistant's response. By accepting the manager and API key as parameters (rather than creating them internally), the function avoids opening a new TLS connection on every call.
 
 What is an **IO String**? In Haskell, IO String represents an action that, when executed, produces a String, whereas String is simply a value.
 
@@ -32,13 +32,13 @@ What is an **IO String**? In Haskell, IO String represents an action that, when 
 
 You can’t directly extract a String from IO String; you need to perform the IO action (e.g., using main or inside the do notation) to get the result.
 
-Inside function **completionRequestToString**, an HTTP manager with TLS support is created using **newManager tlsManagerSettings**. Then, it retrieves the OpenAI API key from the OPENAI_KEY environment variable using getEnv "OPENAI_KEY" and packs it into a **Text type** with **T.pack**.
+Inside function **completionRequestToString**, the shared HTTP manager and API key are received as parameters rather than being created anew on each call.
 
-An OpenAI client is instantiated using **makeOpenAIClient**, passing the API key, the HTTP manager, and an integer 4, which represents a maximum number of retries. The code then constructs a **ChatCompletionRequest**, specifying the model to use (in this case, **ModelId** "gpt-4o") and the messages to send. The messages consist of a single **ChatMessage** with the user’s prompt, setting **chmContent** to **Just (T.pack prompt)** and **chmRole** to "user". All other optional parameters in the request are left as Nothing, implying default values will be used.
+An OpenAI client is instantiated using **makeOpenAIClient**, passing the API key, the HTTP manager, and an integer 4, which represents a maximum number of retries. The code then constructs a **ChatCompletionRequest**, specifying the model to use (in this case, **ModelId** "gpt-5-mini") and the messages to send. The messages consist of a single **ChatMessage** with the user's prompt, setting **chmContent** to **Just (T.pack prompt)** and **chmRole** to "user". All other optional parameters in the request are left as Nothing, implying default values will be used.
 
 The function then sends the chat completion request using **completeChat** client request and pattern matches on the result to handle both success and failure cases. If the request fails **(Left failure)**, it returns a string representation of the failure. On success **(Right success)**, it extracts the assistant’s reply from the **chrChoices** field. It unpacks the content from Text to String, handling the case where content might be absent by providing a default message “No content”.
 
-Finally, the function **main** serves as the entry point of the program. It calls **completionRequestToString** with the prompt "Write a hello world program in Haskell" and prints the assistant’s response using **putStrLn**. This demonstrates how to use the function in a real-world scenario, providing a complete example of sending a prompt to the OpenAI API and displaying the result.
+Finally, the function **main** serves as the entry point of the program. It first checks for the **OPENAI_API_KEY** environment variable using **lookupEnv**, exiting with a friendly error message if it is not set. It then creates a single HTTPS manager shared across all requests and calls **completionRequestToString** with the prompt "Write a hello world program in Haskell", printing the assistant's response using **putStrLn**. This demonstrates how to use the function in a real-world scenario, providing a complete example of sending a prompt to the OpenAI API and displaying the result.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
@@ -46,21 +46,23 @@ import OpenAI.Client
 
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
-import System.Environment (getEnv)
+import System.Environment (lookupEnv)
+import System.Exit (exitFailure)
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.Text (splitOn)
 
--- Example using openai-hs for chat completions
--- Requires `OPENAI_KEY` in your environment (e.g., `export OPENAI_KEY=sk-...`)
+-- | This module uses the @openai-hs@ library (and its dependency @openai-servant@)
+-- to call the OpenAI chat-completion API.  You must set the @OPENAI_API_KEY@
+-- environment variable to a valid API key before running, e.g.:
+--
+-- > export OPENAI_API_KEY=sk-...
 
--- Sends a chat prompt and returns the assistant's text as String
-completionRequestToString :: String -> IO String
-completionRequestToString prompt = do
-    -- Create an HTTPS-capable connection manager
-    manager <- newManager tlsManagerSettings
-    -- Read your OpenAI API key from the environment
-    apiKey <- T.pack <$> getEnv "OPENAI_KEY"
+-- | Sends a chat prompt and returns the assistant's text as String.
+-- Requires a shared 'Manager' (created once in 'main') to avoid
+-- opening a new TLS connection on every call.
+completionRequestToString :: Manager -> T.Text -> String -> IO String
+completionRequestToString manager apiKey prompt = do
     -- Build a client; the last argument (4) retries on transient network errors
     let client = makeOpenAIClient apiKey manager 4
     -- Describe the chat request to send
@@ -97,39 +99,47 @@ completionRequestToString prompt = do
                     return $ fromMaybe "No content" $ T.unpack <$> content
                 _ -> return "No choices returned"
 
--- find place names
--- Extracts place names from `text` (comma-separated) using the chat model
-findPlaces :: String -> IO [String]
-findPlaces text = do
-    -- Construct the extraction prompt
+-- | Extracts place names from @text@ (comma-separated) using the chat model.
+findPlaces :: Manager -> T.Text -> String -> IO [String]
+findPlaces manager apiKey text = do
     let prompt = "Extract only the place names separated by commas from the following text:\n\n" ++ text
-    response <- completionRequestToString prompt 
-    -- Convert Text to String using T.unpack before filtering
-    let places = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response) 
-    -- Strip leading and trailing whitespace from each place name
+    response <- completionRequestToString manager apiKey prompt
+    let places = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response)
     return $ map (T.unpack . T.strip . T.pack) places
 
--- Extracts person names from `text` (comma-separated) using the chat model
-findPeople :: String -> IO [String]
-findPeople text = do
+-- | Extracts person names from @text@ (comma-separated) using the chat model.
+findPeople :: Manager -> T.Text -> String -> IO [String]
+findPeople manager apiKey text = do
     let prompt = "Extract only the person names separated by commas from the following text:\n\n" ++ text
-    response <- completionRequestToString prompt
+    response <- completionRequestToString manager apiKey prompt
     let people = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response)
     return $ map (T.unpack . T.strip . T.pack) people
 
 -- Demo: generate text, then extract places and people
 main :: IO ()
 main = do
+    -- Look up the API key; exit with a friendly message if missing
+    maybeKey <- lookupEnv "OPENAI_API_KEY"
+    apiKey <- case maybeKey of
+      Nothing -> do
+        putStrLn "Error: OPENAI_API_KEY environment variable not set."
+        putStrLn "Please set it with: export OPENAI_API_KEY=sk-..."
+        exitFailure
+      Just k  -> return (T.pack k)
+
+    -- Create a single HTTPS manager shared across all requests
+    manager <- newManager tlsManagerSettings
+
     -- Generic text generation
-    response <- completionRequestToString "Write a hello world program in Haskell"
+    response <- completionRequestToString manager apiKey "Write a hello world program in Haskell"
     putStrLn response
 
     -- Extract place names
-    places <- findPlaces "I visited London, Paris, and New York last year."
+    places <- findPlaces manager apiKey "I visited London, Paris, and New York last year."
     print places
 
     -- Extract person names
-    people <- findPeople "John Smith met with Sarah Johnson and Michael Brown at the conference."
+    people <- findPeople manager apiKey "John Smith met with Sarah Johnson and Michael Brown at the conference."
     print people
 ```
 
@@ -185,17 +195,15 @@ The example file **GenText.hs** contains a small application example that uses t
 Here we define a new function:
 
 ```haskell
-findPlaces :: String -> IO [String]
-findPlaces text = do
+findPlaces :: Manager -> T.Text -> String -> IO [String]
+findPlaces manager apiKey text = do
     let prompt = "Extract only the place names separated by commas from the following text:\n\n" ++ text
-    response <- completionRequestToString prompt 
-    -- Convert Text to String using T.unpack before filtering
-    let places = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response) 
-    -- Strip leading and trailing whitespace from each place name
+    response <- completionRequestToString manager apiKey prompt
+    let places = filter (not . null) $ map T.unpack $ splitOn "," (T.pack response)
     return $ map (T.unpack . T.strip . T.pack) places
 ```
 
-The function **findPlaces** extracts a list of place names from a given text using an LLM (Large Language Model).
+The function **findPlaces** takes a shared HTTP **Manager**, an API key, and a text string, and extracts a list of place names from the text using an LLM (Large Language Model).
 
 - It constructs a prompt instructing the LLM to extract only comma-separated place names.
 - It sends this prompt to the LLM using the **completionRequestToString** function.
@@ -207,10 +215,9 @@ You should use the function **findPlaces** as a template for prompting the OpenA
 Given the example code:
 
 ```haskell
-main :: IO ()
-main = do
-    places <- findPlaces "I visited London, Paris, and New York last year."
-    print places 
+    -- Extract place names
+    places <- findPlaces manager apiKey "I visited London, Paris, and New York last year."
+    print places
 ```
 
 The output would look like:

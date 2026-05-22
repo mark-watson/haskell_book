@@ -15,55 +15,57 @@ There are other good libraries for database connectivity like [Persistent](https
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-} -- allow string literals for multiple string types (e.g., Text)
 
+-- | SQLite database example using the @sqlite-simple@ library.
+--
+-- SQLite is a __serverless__, zero-configuration, file-based database engine.
+-- There is no separate server process – the library reads and writes directly
+-- to an ordinary disk file (here @test.db@).
+--
+-- This example is derived from the example at github.com/nurpax/sqlite-simple
+-- Program flow: connect → ensure table exists → list tables → show schema
+--                → insert a row → list rows
+
 module Main where
-  
-import Database.SQLite.Simple -- open, close, query_, execute, Only, fromOnly
 
-{-
-   Create sqlite database:
-     sqlite3 test.db "create table test (id integer primary key, str text);"
+import Database.SQLite.Simple -- open, close, withConnection, query_, execute, execute_, Only, fromOnly
 
-   This example is derived from the example at github.com/nurpax/sqlite-simple
-   Program flow: connect → list tables → show schema of 'test' → insert a row → list rows
--}
-
+-- | Entry point: perform database actions inside IO.
+--
+-- Uses 'withConnection' (instead of manual 'open'/'close') so the database
+-- handle is always released, even if an exception is thrown.
 main :: IO ()
--- program entry point: perform database actions inside IO
-main = do
-  -- open a connection to the SQLite database file (creates it if missing)
-  conn <- open "test.db"
-  -- list table names in the database:
-  do
-    -- `query_` runs a SQL string and returns rows; `Only` wraps a single-column result
-    r <- query_ conn "SELECT name FROM sqlite_master WHERE type='table'" :: IO [Only String]
-    print "Table names in database test.db:"
-    -- `fromOnly` unwraps the single column from `Only`
-    mapM_ (print . fromOnly) r
-  
-  -- get the metadata for table test in test.db:
-  do
-    -- each row is a single text column containing the table's CREATE statement
-    r <- query_ conn "SELECT sql FROM sqlite_master WHERE type='table' and name='test'" :: IO [Only String]
-    print "SQL to create table 'test' in database test.db:"
-    -- again, use `fromOnly` to unwrap the single column
-    mapM_ (print . fromOnly) r
-  
-  -- add a row to table 'test' and then print out the rows in table 'test':
-  do
-    -- `execute` runs a parameterized statement; `Only` binds the single placeholder ("?")
-    execute conn "INSERT INTO test (str) VALUES (?)"
-      (Only ("test string 2" :: String))
-    -- query all rows; result type is a tuple matching columns: (id :: Int, str :: String)
-    r2 <- query_ conn "SELECT * from test" :: IO [(Int, String)]
-    print "number of rows in table 'test':"
-    print (length r2)
-    print "rows in table 'test':"
-    -- `mapM_` applies `print` to each row in the result list
-    mapM_ print  r2
-    
-  -- always close the connection when done
-  close conn
-  ```
+main = withConnection "test.db" $ \conn -> do
+  -- Self-initialize: create the table if it doesn't already exist.
+  -- This removes the need for the external `sqlite3 test.db "create table …"` step.
+  execute_ conn "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, str text)"
+
+  -- List table names in the database:
+  -- `query_` runs a SQL string and returns rows.
+  -- `Only` is a newtype wrapper for single-column results – it exists because
+  -- Haskell tuples need at least two elements, so a one-element "tuple" is
+  -- represented by `Only a`.  `fromOnly` unwraps the value back out.
+  r <- query_ conn "SELECT name FROM sqlite_master WHERE type='table'" :: IO [Only String]
+  print "Table names in database test.db:"
+  mapM_ (print . fromOnly) r
+
+  -- Get the metadata for table 'test' in test.db:
+  -- Each row is a single text column containing the table's CREATE statement.
+  r1 <- query_ conn "SELECT sql FROM sqlite_master WHERE type='table' and name='test'" :: IO [Only String]
+  print "SQL to create table 'test' in database test.db:"
+  mapM_ (print . fromOnly) r1
+
+  -- Add a row to table 'test' and then print out the rows in table 'test':
+  -- `execute` runs a parameterized statement; `Only` binds the single placeholder ("?").
+  execute conn "INSERT INTO test (str) VALUES (?)"
+    (Only ("test string 2" :: String))
+  -- Query all rows; result type is a tuple matching columns: (id :: Int, str :: String).
+  r2 <- query_ conn "SELECT * from test" :: IO [(Int, String)]
+  print "number of rows in table 'test':"
+  print (length r2)
+  print "rows in table 'test':"
+  -- `mapM_` applies `print` to each row in the result list.
+  mapM_ print r2
+```
 
 This Haskell code interacts with an SQLite database named "test.db" using the `Database.SQLite.Simple` library. 
 
@@ -72,7 +74,8 @@ This Haskell code interacts with an SQLite database named "test.db" using the `D
 1. **Imports `Database.SQLite.Simple`:** Includes necessary functions for working with SQLite databases.
 
 2. **`main` Function:**
-   - **Opens a connection to "test.db".**
+   - **Opens a connection to "test.db" using `withConnection`**, which guarantees the connection is closed even if an exception is thrown.
+   - **Creates the table if it doesn't exist** using `execute_` with `CREATE TABLE IF NOT EXISTS`.
    - **Retrieves and prints table names:**
      - Executes an SQL query to get table names from the `sqlite_master` table.
      - Prints the table names using `mapM_`.
@@ -83,29 +86,25 @@ This Haskell code interacts with an SQLite database named "test.db" using the `D
      - Inserts a new row with the string "test string 2" into the 'test' table.
      - Selects all rows from the 'test' table.
      - Prints the number of rows and the rows themselves.
-   - **Closes the database connection.**
 
 **Key Points:**
 
 - Demonstrates basic database interaction using Haskell and SQLite.
 - `query_` is used to execute SELECT queries, and `execute` is used for INSERT queries.
-- The code assumes the existence of the "test.db" database and the "test" table with the specified schema.
+- Uses `withConnection` for safe resource management instead of manual `open`/`close`.
+- The table is self-initialized with `CREATE TABLE IF NOT EXISTS`, removing the need for external setup.
 
 
-The type **Only** used in line 20 acts as a container for a single value and is defined in the *simple-sqlite* library. It can also be used to pass values for queries like:
+The type **Only** used in line 33 acts as a container for a single value and is defined in the *sqlite-simple* library. It can also be used to pass values for queries like:
 
 
 ```haskell{line-numbers: false}
 r <- query_ conn "SELECT name FROM customers where id = ?" (Only 4::Int)
 ```
 
-To run this example start by creating a sqlite database that is stored in the file *test.db*:
+To run this example, simply build and run — the program automatically creates the *test.db* file and the *test* table if they do not already exist.
 
-```{line-numbers: false}
-sqlite3 test.db "create table test (id integer primary key, str text);"
-```
-
-Then build and run the example:
+Build and run the example:
 
 ```{line-numbers: false}
 stack build --exec TestSqLite1
@@ -216,50 +215,80 @@ ConnectInfo
   connectDatabase :: String
 ```
 
-In the following example on lines 9-10 I use **defaultConnectInfo** that lets me override just some settings, leaving the rest set at default values. The code to access a database using *simple-postgresql* is similar to that in the last section, with a few API changes.
+In the following example I use **defaultConnectInfo** that lets me override just some settings, leaving the rest set at default values. Connection parameters are read from environment variables (`PGDATABASE`, `PGUSER`, `PGPASSWORD`) with sensible defaults, and `bracket` is used to guarantee the connection is closed even if an exception is thrown. The code to access a database using *postgresql-simple* is similar to that in the last section, with a few API changes.
 
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | PostgreSQL database example using the @postgresql-simple@ library.
+--
+-- __Prerequisites__: Before running, ensure the @customers@ table exists:
+--
+-- @
+--   CREATE TABLE customers (
+--     id    INTEGER PRIMARY KEY,
+--     name  TEXT NOT NULL,
+--     email TEXT NOT NULL
+--   );
+-- @
+--
+-- Connection credentials are read from environment variables:
+--
+--   * @PGDATABASE@ – database name  (default: @haskell@)
+--   * @PGUSER@     – database user   (default: @postgres@)
+--   * @PGPASSWORD@ – user password   (default: empty)
+
 module Main where
-  
+
+import Control.Exception          (bracket)
+import Data.Maybe                 (fromMaybe)
 import Database.PostgreSQL.Simple
+import System.Environment         (lookupEnv)
 
 main :: IO ()
 main = do
-  conn <- connect defaultConnectInfo { connectDatabase = "haskell",
-                                       connectUser = "markw" }
-  -- start by getting table names in database:
-  do
+  -- Read connection parameters from environment variables, with sensible defaults.
+  dbName <- fromMaybe "haskell"  <$> lookupEnv "PGDATABASE"
+  dbUser <- fromMaybe "postgres" <$> lookupEnv "PGUSER"
+  dbPass <- fromMaybe ""         <$> lookupEnv "PGPASSWORD"
+
+  let connInfo = defaultConnectInfo
+        { connectDatabase = dbName
+        , connectUser     = dbUser
+        , connectPassword = dbPass
+        }
+
+  -- Use `bracket` to guarantee the connection is closed even if an exception
+  -- is thrown during the database operations.
+  bracket (connect connInfo) close $ \conn -> do
+    -- List names from the 'customers' table:
     r <- query_ conn "SELECT name FROM customers" :: IO [(Only String)]
     print "names and emails in table 'customers' in database haskell:"
     mapM_ (print . fromOnly) r
-  
-  -- add a row to table 'test' and then print out the rows in table 'test':
-  do
+
+    -- Add a row to table 'customers' and print the updated contents:
     let rows :: [(Int, String, String)]
         rows = [(4, "Mary Smith", "marys@acme.com")]
-    executeMany conn
-      "INSERT INTO customers (id, name, email) VALUES (?,?,?)" rows
+    executeMany conn "INSERT INTO customers (id, name, email) VALUES (?,?,?)" rows
     r2 <- query_ conn "SELECT * from customers" :: IO [(Int, String, String)]
     print "number of rows in table 'customers':"
     print (length r2)
     print "rows in table 'customers':"
-    mapM_ print  r2
-    
-  close conn
+    mapM_ print r2
 ```
 
 This Haskell code interacts with a PostgreSQL database named "haskell". It utilizes the `Database.PostgreSQL.Simple` library to establish a connection, retrieve and insert data into a "customers" table.
 
 **Code Breakdown**
 
-1. **Import `Database.PostgreSQL.Simple`**:  Imports necessary functions for working with PostgreSQL databases.
+1. **Imports**: `Database.PostgreSQL.Simple` for database operations, `Control.Exception` for `bracket`, `Data.Maybe` for `fromMaybe`, and `System.Environment` for `lookupEnv`.
 
 2. **`main` Function**:
-   * **Establishes a connection**: 
-     - Connects to the "haskell" database using the default connection information.
-     - The connection specifies the username as "markw".
+   * **Reads connection parameters from environment variables** (`PGDATABASE`, `PGUSER`, `PGPASSWORD`) with sensible defaults.
+
+   * **Establishes a connection using `bracket`**: 
+     - Uses `bracket` to guarantee the connection is closed even if an exception is thrown.
+     - Connection parameters are configured via `defaultConnectInfo`.
 
    * **Retrieves and prints data from the "customers" table**:
      - Executes an SQL query to fetch names from the "customers" table.
@@ -271,23 +300,22 @@ This Haskell code interacts with a PostgreSQL database named "haskell". It utili
      - Selects all rows from the "customers" table.
      - Prints the number of rows and the rows themselves.
 
-   * **Closes the database connection**: 
-     - Terminates the established connection.
-
 **Key Points**
 
 - The code assumes a "customers" table with columns: `id` (integer), `name` (string), and `email` (string).
 - `query_` is used for SELECT queries, and `executeMany` is used for bulk INSERT queries.
+- Uses `bracket` for safe resource management — the connection is always closed.
+- Connection credentials are configurable via environment variables rather than hardcoded.
 - The code provides a basic illustration of database interaction in Haskell using the `Database.PostgreSQL.Simple` library.
 
 
-The type **Only** used in line 13 acts as a container for a single value that is defined in the *simple-postgresql* library. It can also be used to pass values for queries like:
+The type **Only** used in line 45 acts as a container for a single value that is defined in the *postgresql-simple* library. It can also be used to pass values for queries like:
 
 ```haskell{line-numbers: false}
 r <- query_ conn "SELECT name FROM customers where id = ?" (Only 4::Int)
 ```
 
-The monad mapping function **mapM\_** using in line 15 is like **mapM** but is used when we do not need the resulting collection from executing the map operation. **mapM\_** is used for side effects, in this case extracting the value for a collection of **Only** values and printing them. I removed some output from building the example in the following listing:
+The monad mapping function **mapM\_** used in line 47 is like **mapM** but is used when we do not need the resulting collection from executing the map operation. **mapM\_** is used for side effects, in this case extracting the value for a collection of **Only** values and printing them. I removed some output from building the example in the following listing:
 
 ```haskell{line-numbers: false}
 $ Database-postgres git:(master) > stack build --exec TestPostgres1

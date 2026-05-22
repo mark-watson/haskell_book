@@ -30,25 +30,27 @@ import qualified Data.Text as T -- strict Text type
 import Control.Exception (try) -- catch exceptions and return Either
 import Network.HTTP.Client (HttpException) -- HTTP error type
 import qualified Data.ByteString.Char8 as BS -- UTF-8 ByteString for headers
--- unused: Data.ByteString.Lazy.Char8
 
--- Top-level response from the Brave Search API
+
+-- | Top-level response from the Brave Search API, containing the
+-- original query information and web search results.
 data SearchResponse = SearchResponse
   { query :: QueryInfo
   , web :: WebResults
   } deriving (Show)
 
--- Info about the original query the API received
+-- | Metadata about the original query as echoed back by the API.
 data QueryInfo = QueryInfo
   { original :: T.Text
   } deriving (Show)
 
--- Container for the list of web results
+-- | Container wrapping the list of individual web results returned by the API.
 data WebResults = WebResults
   { results :: [WebResult]
   } deriving (Show)
 
--- One result item; several fields are optional (`Maybe`)
+-- | A single web search result. Several fields are optional ('Maybe')
+-- because the API may omit them depending on the result type.
 data WebResult = WebResult
   { type_ :: T.Text
   , index :: Maybe Int
@@ -162,7 +164,7 @@ This Haskell code implements a function, `getSearchSuggestions`, that fetches se
 * `Data.Text` - For efficient text handling.
 * `Control.Exception` - For error handling.
 * `Network.HTTP.Client` - For additional HTTP functionalities.
-* `Data.ByteString.Char8` and `Data.ByteString.Lazy.Char8` - For working with byte strings.
+* `Data.ByteString.Char8` - For working with byte strings.
 
 #### Language Extensions:
 
@@ -183,31 +185,33 @@ module Main where
 
 import BraveSearch (getSearchSuggestions)
 import qualified Data.ByteString.Char8 as BS
-import System.Environment (getEnv)
+import System.Environment (lookupEnv)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 -- Entry point: runs an interactive search
 main :: IO ()
 main = do
-  -- Get the API key from the environment variable
-  -- Read API key from environment and convert to ByteString
-  apiKeyRaw <- getEnv "BRAVE_SEARCH_API_KEY"
-  let apiKey = BS.pack apiKeyRaw
-  
-  -- Prompt the user for a search query
-  TIO.putStrLn "Enter a search query:"
-  query <- TIO.getLine
-  
-  -- Call the function to get search suggestions
-  result <- getSearchSuggestions apiKey query
-  
-  -- Handle `Either`: Left is an error, Right is a list of suggestion lines
-case result of
-  Left err -> TIO.putStrLn $ "Error: " <> err
-  Right suggestions -> do
-    TIO.putStrLn "Search suggestions:"
-    mapM_ (TIO.putStrLn . ("- " <>)) suggestions -- print each suggestion
+  -- Read API key from environment; fail with a descriptive message if unset
+  maybeKey <- lookupEnv "BRAVE_SEARCH_API_KEY"
+  case maybeKey of
+    Nothing -> TIO.putStrLn "Error: BRAVE_SEARCH_API_KEY environment variable is not set. Please set it to your Brave Search API key."
+    Just apiKeyRaw -> do
+      let apiKey = BS.pack apiKeyRaw
+
+      -- Prompt the user for a search query
+      TIO.putStrLn "Enter a search query:"
+      query <- TIO.getLine
+
+      -- Call the function to get search suggestions
+      result <- getSearchSuggestions apiKey query
+
+      -- Handle `Either`: Left is an error, Right is a list of suggestion lines
+      case result of
+        Left err -> TIO.putStrLn $ "Error: " <> err
+        Right suggestions -> do
+          TIO.putStrLn "Search suggestions:"
+          mapM_ (TIO.putStrLn . ("- " <>)) suggestions -- print each suggestion
 ```
 
 
@@ -227,14 +231,14 @@ The code interacts with the `BraveSearch` module to demonstrate how to fetch and
 2. **`main` Function**
 
    1. **Get API Key**
-      - It uses `getEnv "BRAVE_SEARCH_API_KEY"` to retrieve the Brave Search API key from an environment variable named `BRAVE_SEARCH_API_KEY`. This assumes you have set this environment variable in your system before running the code.
+      - It uses `lookupEnv "BRAVE_SEARCH_API_KEY"` to safely look up the Brave Search API key from an environment variable named `BRAVE_SEARCH_API_KEY`. If the variable is not set, it prints a descriptive error message and exits. Otherwise, it proceeds with the key.
 
    2. **Prompt for Query**
       - It prints the message "Enter a search query:" to the console, prompting the user to input a search term.
       - It reads the user's input using `TIO.getLine` and stores it in the `query` variable.
 
    3. **Fetch Search Suggestions**
-      - It calls the `getSearchSuggestions` function from the `BraveSearch` module, passing the API key and the user's query (converted from `Text` to `String` using `T.unpack`).
+       - It calls the `getSearchSuggestions` function from the `BraveSearch` module, passing the API key and the user's query.
       - It stores the result of this call in the `result` variable.
 
    4. **Handle Result**

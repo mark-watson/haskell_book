@@ -79,28 +79,45 @@ The **do** notation makes working with monads easier. There are alternatives to 
 One thing to note is that if you are doing bindings inside a **do** expression using a **let** with a **in** expression, you need to wrap the bindings in a new (inner) **do** expression if there is more than one line of code following the **let** statement. The way to avoid requiring a nested **do** expression is to not use **in** in a **let** expression inside a **do** block of code. Yes, this sounds complicated but let's clear up any confusion by looking at the examples found in the file *ImPure/DoLetExample.hs* (you might also want to look at the similar example file *ImPure/DoLetExample2.hs* that uses *bind* operators instead of a **do** statement; we will look at *bind* operators in the next section):
 
 ```haskell{line-numbers: false}
-module DoLetExample where
-  
+module Main where
+
+import Text.Read (readMaybe)
+
+-- | Safely read an Int from stdin, re-prompting on invalid input.
+readInt :: IO Int
+readInt = do
+  putStrLn "Enter an integer number:"
+  s <- getLine
+  case readMaybe s :: Maybe Int of
+    Nothing -> do
+      putStrLn "Error: invalid integer, please try again."
+      readInt
+    Just n  -> return n
+
+-- Prompts for an Int, binds with `let` inside a do-block, and prints the value plus 2.
+example1 :: IO ()
 example1 = do  -- good style
-  putStrLn "Enter an integer number:"
-  s <- getLine
-  let number = (read s :: Int) + 2
-  putStrLn $ "Number plus 2 = " ++ (show number)
+  number <- readInt
+  let result = number + 2
+  putStrLn $ "Number plus 2 = " ++ (show result)
 
+-- Shows `let ... in` inside a do-block (discouraged); the binding only scopes the next expression.
+example2 :: IO ()
 example2 = do  -- avoid using "in" inside a do statement
-  putStrLn "Enter an integer number:"
-  s <- getLine
-  let number = (read s :: Int) + 2 in
-    putStrLn $ "Number plus 2 = " ++ (show number)
+  number <- readInt
+  let result = number + 2 in
+    putStrLn $ "Number plus 2 = " ++ (show result)
 
+-- Uses a nested do with `let ... in`; still better to use `let` without `in` for multi-statement blocks.
+example3 :: IO ()
 example3 = do  -- avoid using "in" inside a do statement
-  putStrLn "Enter an integer number:"
-  s <- getLine
-  let number = (read s :: Int) + 2 in
-    do -- this do is required since we have two dependent statements:
+  number <- readInt
+  let result = number + 2 in
+    do
       putStrLn "Result is:"
-      putStrLn $ "Number plus 2 = " ++ (show number)
+      putStrLn $ "Number plus 2 = " ++ (show result)
 
+main :: IO ()
 main = do
   example1
   example2
@@ -148,14 +165,33 @@ main = example1 >> example2 >> example3
 The operator **>>=** is similar to **>>** except that it evaluates the left-hand expression and pipes its value into the right-hand side expression. The left-hand side expression is evaluated to some type of **IO ()** and the expression on the right-hand side typically reads from the input **IO ()**. An example will make this simpler to understand:
 
 ```haskell{line-numbers: false}
-module DoLetExample3 where
-  
+module Main where
+
+import Text.Read (readMaybe)
+
+-- | Safely read an Int from stdin, re-prompting on invalid input.
+readInt :: IO Int
+readInt = do
+  putStrLn "Enter an integer number:"
+  s <- getLine
+  case readMaybe s :: Maybe Int of
+    Nothing -> do
+      putStrLn "Error: invalid integer, please try again."
+      readInt
+    Just n  -> return n
+
+example3 :: IO String
 example3 =  putStrLn "Enter an integer number:" >>  getLine
 
-example4 mv = do
-  let number = (read mv :: Int) + 2
-  putStrLn $ "Number plus 2 = " ++ (show number)
+example4 :: String -> IO ()
+example4 mv =
+  case readMaybe mv :: Maybe Int of
+    Nothing -> putStrLn "Error: invalid integer."
+    Just n  -> do
+      let number = n + 2
+      putStrLn $ "Number plus 2 = " ++ (show number)
 
+main :: IO ()
 main = example3 >>= example4
 ```
 
@@ -204,11 +240,15 @@ module Main where
 import System.IO
 import Data.Char (toUpper)
 
+main :: IO ()
 main = do
-  putStrLn "Enter a line of text for test 1:"
+  putStrLn "Enter a line of text for test 1 (or \"exit\"/\"quit\" to stop):"
   s <- getLine
-  putStrLn $ "As upper case:\t" ++ (map toUpper s)
-  main
+  if s == "exit" || s == "quit"
+    then putStrLn "Goodbye!"
+    else do
+      putStrLn $ "As upper case:\t" ++ (map toUpper s)
+      main
 ```
 
 Lines 3 and 4 import the entire **System.IO** module (that is, import all exported symbols from **System.IO**) and just the function **toUpper** from module **Data.Char**. **System.IO** is a standard Haskell module and we do not have to do anything special to import it. The **Data.Char** is stored in the package **text**. The package **text** is contained in the library package **base** which is specifies in the *CommandLineApp.cabal* configuration file that we will look at soon.
@@ -250,7 +290,13 @@ executable ReadTextFile
   hs-source-dirs:      .
   main-is:             ReadTextFile.hs
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base >= 4.7 && < 5, directory
+
+executable ReadTextFileErrorHandling
+  hs-source-dirs:      .
+  main-is:             ReadTextFileErrorHandling.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5, mtl
 
 executable GameLoop1
   hs-source-dirs:      .
@@ -328,12 +374,16 @@ module Main where
 import System.IO
 import Data.Char (toUpper)
 
+main :: IO ()
 main = do
-  putStrLn "Enter a line of text for test2:"
+  putStrLn "Enter a line of text for test2 (or \"exit\"/\"quit\" to stop):"
   s <- getLine
-  putStrLn $ "As upper case:\t" ++ (map toUpper s)
-  appendFile "temp.txt" $ s ++ "\n"
-  main
+  if s == "exit" || s == "quit"
+    then putStrLn "Goodbye!"
+    else do
+      putStrLn $ "As upper case:\t" ++ (map toUpper s)
+      appendFile "temp.txt" $ s ++ "\n"
+      main
 ```
 
 Note the use of recursion in line 11 to make this program loop forever until you use a *Control-c* to stop the program.
@@ -368,12 +418,20 @@ module Main where
   
 import System.IO
 import Control.Monad
+import System.Directory (doesFileExist)
 
+main :: IO ()
 main = do
-  entireFileAsString <- readFile "temp.txt"
-  print entireFileAsString
-  let allWords = words entireFileAsString
-  print allWords
+  let filePath = "temp.txt"
+  exists <- doesFileExist filePath
+  if exists
+    then do
+      entireFileAsString <- readFile filePath
+      print entireFileAsString
+      let allWords = words entireFileAsString
+      print allWords
+    else
+      putStrLn $ "Error: file '" ++ filePath ++ "' does not exist."
 ```
 
 **readFile** is a high-level function because it manages for you reading a file and closing the file handle it uses internally. The built in function **words** splits a string on spaces and returns a list of strings **[String]** that are printed on line 7:
@@ -407,21 +465,25 @@ Let's modify this last example in a new file *ReadTextFileErrorHandling.hs* that
 
 ```haskell{line-numbers: true}
 module Main where
-  
-import System.IO
-import Control.Exception
 
--- catchAny by Michael Snoyman:
-catchAny :: IO a -> (SomeException -> IO a) -> IO a
-catchAny = Control.Exception.catch
+import System.IO
+import Control.Exception (IOException, catch)
+
+-- | Catch only IOExceptions rather than SomeException.
+-- Catching SomeException is considered bad practice because it also
+-- catches async exceptions (e.g. ThreadKilled, UserInterrupt) that
+-- should normally be allowed to propagate.  Narrowing the catch to
+-- IOException ensures we only handle file-system / IO errors.
+catchIO :: IO a -> (IOException -> IO a) -> IO a
+catchIO = Control.Exception.catch
 
 safeFileReader :: FilePath -> IO String
 safeFileReader fPath = do
-  entireFileAsString <- catchAny (readFile "temp.txt") $ \error -> do
-    putStrLn $ "Error: " ++ show error
+  entireFileAsString <- catchIO (readFile fPath) $ \err -> do
+    putStrLn $ "Error: " ++ show err
     return ""
   return entireFileAsString
-  
+
 main :: IO ()
 main = do
   fContents <- safeFileReader "temp.txt"
@@ -467,12 +529,14 @@ The Haskell **Network** and **Network.Simple** modules use strings represented a
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Server where
+module Main where
 
 import Control.Monad
+import Control.Exception (IOException, try)
 import qualified Data.ByteString.Char8 as B
 import qualified Network.Simple.TCP as T
 
+reverseStringLoop :: T.Socket -> IO ()
 reverseStringLoop sock = do
   mbs <- T.recv sock 4096
   case mbs of
@@ -480,12 +544,16 @@ reverseStringLoop sock = do
     Nothing -> return ()
 
 main :: IO ()
-main = T.withSocketsDo $ do -- derived from library example
-  T.listen "*" "3000" $ \(lsock, laddr) -> do
-    putStrLn $ "Listening at " ++ show laddr
-    forever . T.acceptFork lsock $ \(sock, addr) -> do
-      putStrLn $ "Connection from " ++ show addr
-      reverseStringLoop sock
+main = do
+  result <- try $ T.withSocketsDo $
+    T.listen "127.0.0.1" "3000" $ \(lsock, laddr) -> do
+      putStrLn $ "Listening at " ++ show laddr
+      forever . T.acceptFork lsock $ \(sock, addr) -> do
+        putStrLn $ "Connection from " ++ show addr
+        reverseStringLoop sock
+  case result of
+    Left err -> putStrLn $ "Server error: " ++ show (err :: IOException)
+    Right _  -> return ()
 ```
 
 The server accepts a string, reverses the string, and returns the reversed string to the client.
@@ -539,19 +607,25 @@ I want to use automatic conversion between strings represented as **Data.ByteStr
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Client where
+module Main where
 
 import Control.Monad
+import Control.Exception (IOException, try)
+import qualified Data.ByteString.Char8 as B
 import qualified Network.Simple.TCP as T
 
+main :: IO ()
 main = do
-  T.connect "127.0.0.1" "3000" $ \(connectionSocket, remoteAddr) -> do
-  putStrLn $ "Connection established to " ++ show remoteAddr
-  T.send connectionSocket "test123"
-  response <- T.recv connectionSocket 100
-  case response of
-    Just s -> putStrLn $ "Response: " ++ show s
-    Nothing -> putStrLn "No response from server"
+  result <- try $ T.connect "127.0.0.1" "3000" $ \(connectionSocket, remoteAddr) -> do
+    putStrLn $ "Connection established to " ++ show remoteAddr
+    T.send connectionSocket "test123"
+    response <- T.recv connectionSocket 100
+    case response of
+      Just s  -> B.putStrLn $ B.append "Response: " s
+      Nothing -> putStrLn "No response from server"
+  case result of
+    Left err -> putStrLn $ "Connection error: " ++ show (err :: IOException)
+    Right _  -> return ()
 ```
 
 The function **T.connect** in line 9 accepts arguments for a host name, a port, and a function to call with the connection socket to the server and the server's address. The body of this inline function, defined in in the middle on line 9 and continuing in lines 10-15, prints the server address, sends a string "test123" to the server, and waits for a response back from the server (**T.recv** in line 12). The server response is printed, or a warning that no response was received.
@@ -575,28 +649,34 @@ The example in this section can be found in the file *GameLoop2.hs* in the direc
 This is an important example because it demonstrates one way to maintain state in a functional way. We have a read-only game state value that is passed to the function **gameLoop** which modifies the read-only game state passed as an argument and returns a newly constructed game state as the function's returned value. This is a common pattern that we will see again later when we develop an application to play a simplified version of the card game Blackjack in the chapter "Haskell Program to Play the Blackjack Card Game."
 
 ```haskell{line-numbers: true}
-module GameLoop2 where
+module Main where
 
 import System.Random
+import Text.Read (readMaybe)
 
 data GameState = GameState { numberToGuess::Integer, numTries::Integer}
                    deriving (Show)
 
 gameLoop :: GameState -> IO GameState
-gameLoop gs = do      
-  print $ numberToGuess gs
+gameLoop gs = do
   putStrLn "Enter a number:"
   s <- getLine
-  let num = read s :: Integer
-  if num == numberToGuess gs then
-    return gs
-  else gameLoop $ GameState (numberToGuess gs) ((numTries gs) + 1)
-         
+  case readMaybe s :: Maybe Integer of
+    Nothing -> do
+      putStrLn "Invalid input, please enter a number."
+      gameLoop gs
+    Just num ->
+      if num == numberToGuess gs then
+        return gs
+      else gameLoop $ GameState (numberToGuess gs) ((numTries gs) + 1)
+
+main :: IO ()
 main = do
   pTime <- randomRIO(1,4)
   let gameState = GameState pTime 1
   print "Guess a number between 1 and 4"
-  gameLoop gameState
+  _ <- gameLoop gameState
+  return ()
 ```
 
 You notice in line 12 that since we are inside of a **do** expression we can *lift* (or unwrap) the **IO String ()** value returned from **getLine** to a string value that we can use directly. This is a pattern we will use repeatedly. The value returned from **getLine** is not used until line 13 when we use function **read** to extract the value from the **IO String ()** value **getLine** returned.
@@ -682,20 +762,23 @@ module Main where
 
 import Control.Monad.State
 
+-- | Increment state using do-notation.
 incrementState :: State Int Int
 incrementState = do
   n <- get
   put (n + 1)
   return n
 
--- same state monad without using a 'do' expression:
+-- | Same state monad without using a 'do' expression.
 incrementState2 :: State Int Int
 incrementState2 = get >>= \a ->
-                  put (a + 1) >>= \b ->
+                  put (a + 1) >>
                   return a
 
+bumpVals :: (Int, Int) -> (Int, Int)
 bumpVals (a,b) = (a+1, b+2)
 
+main :: IO ()
 main = do
   print $ runState incrementState 1  -- (1,2) == (return value, final state)
   print $ runState incrementState2 1 -- (1,2) == (return value, final state)
@@ -731,17 +814,26 @@ Before we begin I need to introduce you to a new term: **Functor** which is a ty
 **fmap** can be used to apply a pure function like **(a -> b)** to an **IO a** and return a new **IO b** without unwrapping the original **IO ()**. The following short example (in file *ImPure/FmapExample.hs*) will let you play with this idea:
 
 ```haskell{line-numbers: true}
-module FmapExample where
+module Main where
 
+import System.Directory (doesFileExist)
+
+fileToWords :: FilePath -> IO [String]
 fileToWords fileName = do
   fileText <- readFile fileName
   return $ words fileText
-    
+
+main :: IO ()
 main = do
-  words1 <- fileToWords "text1.txt"
-  print $ reverse words1
-  words2 <- fmap reverse $ fileToWords "text1.txt"
-  print words2
+  let fileName = "text1.txt"
+  exists <- doesFileExist fileName
+  if exists
+    then do
+      words1 <- fileToWords fileName
+      print $ reverse words1
+      words2 <- fmap reverse $ fileToWords fileName
+      print words2
+    else putStrLn $ "Error: file '" ++ fileName ++ "' not found."
 ```
 
 In lines 8-9 I am unwrapping the result of the **IO [String]** returned by the function **fileToWords** and then applying the pure function **words** to the unwrapped value. Wouldn't it be nice to operate on the words in the file without unwrapping the **[String]** value? You can do this using **fmap** as seen in lines 10-11. Please take a moment to understand what line 10 is doing. Here is line 10:
@@ -791,30 +883,35 @@ We will use both <$> and <*> in the function **commonWords3** in this example an
 This practical example will give you a chance to experiment more with Haskell (you do have a GHCi repl open now, right?). The source file for this example is in the file *ImPure/CommonWords.hs*:
 
 ```haskell{line-numbers: true}
-module CommonWords where
+module Main where
 
-import Data.Set (fromList, toList, intersection)
+import Data.Set (Set, fromList, toList, intersection)
 import Data.Char (toLower)
 
+fileToWords :: FilePath -> IO (Set String)
 fileToWords fileName = do
   fileText <- readFile fileName
   return $ (fromList . words) (map toLower fileText)
   
+commonWords :: FilePath -> FilePath -> IO [String]
 commonWords file1 file2 = do  
   words1 <- fileToWords file1
   words2 <- fileToWords file2
   return $  toList $ intersection words1 words2
 
+commonWords2 :: FilePath -> FilePath -> IO [String]
 commonWords2 file1 file2 =
   fileToWords file1 >>= \f1 ->
   fileToWords file2 >>= \f2 ->
   return $  toList $ intersection f1 f2
                                                             
+commonWords3 :: FilePath -> FilePath -> IO [String]
 commonWords3 file1 file2 =
   (\f1 f2 -> toList $ intersection f1 f2)
     <$> fileToWords file1
     <*> fileToWords file2
     
+main :: IO ()
 main = do
   cw <- commonWords "text1.txt" "text2.txt"
   print cw
@@ -881,12 +978,14 @@ import Data.Time.Clock.POSIX -- for getPOSIXTime
 import System.TimeIt         -- for timeIt
 import System.Timeout        -- for timeout
 
-anyCalculationWillDo n =  -- a function that can take a while to run
+anyCalculationWillDo :: Int -> [Integer]
+anyCalculationWillDo n =
   take n $ sieve [2..]
             where
               sieve (x:xs) =
                 x:sieve [y | y <- xs, rem y x > 0]
-                
+
+main :: IO ()
 main = do
   startingTime <- getPOSIXTime
   print startingTime
@@ -894,18 +993,42 @@ main = do
   endingTime <- getPOSIXTime
   print endingTime
   print (endingTime - startingTime)
-  timeIt $ print $ last $ anyCalculationWillDo 2000
 
+  timeIt $ print $ last $ anyCalculationWillDo 2000
   let somePrimes = anyCalculationWillDo 3333 in
     timeIt $ print $ last somePrimes
 
-  -- 100000 microseconds timeout tests:
-  timeout 100000 $ print "simple print **do** expression did not timeout"
-  timeout 100000 $ print $ last $ anyCalculationWillDo 4
-  timeout 100000 $ print $ last $ anyCalculationWillDo 40
-  timeout 100000 $ print $ last $ anyCalculationWillDo 400
-  timeout 100000 $ print $ last $ anyCalculationWillDo 4000
-  timeout 100000 $ print $ last $ anyCalculationWillDo 40000
+  -- 100000 microseconds (0.1 second) timeout tests:
+  res1 <- timeout 100000 $ print "simple print statement did not timeout"
+  case res1 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
+  res2 <- timeout 100000 $ print $ last $ anyCalculationWillDo 4
+  case res2 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
+  res3 <- timeout 100000 $ print $ last $ anyCalculationWillDo 40
+  case res3 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
+  res4 <- timeout 100000 $ print $ last $ anyCalculationWillDo 400
+  case res4 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
+  res5 <- timeout 100000 $ print $ last $ anyCalculationWillDo 4000
+  case res5 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
+  res6 <- timeout 100000 $ print $ last $ anyCalculationWillDo 40000
+  case res6 of
+    Nothing -> putStrLn "Calculation timed out!"
+    Just _  -> putStrLn "Calculation finished in time."
+
   print $ anyCalculationWillDo 5
 ```
 
@@ -947,18 +1070,21 @@ module Main where
 
 import Debug.Trace  (trace, traceShow) -- for debugging only!
 
+anyCalculationWillDo :: Int -> [Int]
 anyCalculationWillDo n =
   trace
       ("+++ anyCalculationWillDo: " ++ show n) $
       anyCalculationWillDo' n
 
+anyCalculationWillDo' :: Int -> [Int]
 anyCalculationWillDo' n =
   take n $ trace ("   -- sieve n:" ++ (show n)) $ sieve [2..]
             where
               sieve (x:xs) =
                   traceShow ("     -- inside sieve recursion") $
                             x:sieve [y | y <- xs, rem y x > 0]
-                
+
+main :: IO ()
 main = do
   print $ anyCalculationWillDo 5
 ```

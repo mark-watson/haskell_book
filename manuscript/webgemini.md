@@ -34,7 +34,10 @@ import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
 import qualified Data.Text as T
 import System.IO (hFlush, stdout)
-import System.Environment (getEnv)
+import System.Environment (lookupEnv)
+import System.Exit (exitFailure)
+import Control.Exception (try, SomeException)
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Vector as V
 
 data GeminiRequest = GeminiRequest
@@ -42,34 +45,34 @@ data GeminiRequest = GeminiRequest
   } deriving (Show, Generic, FromJSON, ToJSON)
 
 data GeminiResponse = GeminiResponse
-  { candidates :: [Candidate]
-  , promptFeedback :: Maybe PromptFeedback
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { candidates :: [Candidate]
+  , promptFeedback :: Maybe PromptFeedback
+  } deriving (Show, Generic, FromJSON, ToJSON)
 
 data Candidate = Candidate
-  { content :: Content2
-  , finishReason :: Maybe String
-  , index :: Maybe Int
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { content :: Content2
+  , finishReason :: Maybe String
+  , index :: Maybe Int
+  } deriving (Show, Generic, FromJSON, ToJSON)
 
 data Content2 = Content2
-  { parts :: [Part]
-  , role :: Maybe String
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { parts :: [Part]
+  , role :: Maybe String
+  } deriving (Show, Generic, FromJSON, ToJSON)
 
 data Part = Part
-  { text :: String
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { text :: String
+  } deriving (Show, Generic, FromJSON, ToJSON)
 
 data PromptFeedback = PromptFeedback
-  { blockReason :: Maybe String
-  , safetyRatings :: Maybe [SafetyRating]
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { blockReason :: Maybe String
+  , safetyRatings :: Maybe [SafetyRating]
+  } deriving (Show, Generic, FromJSON, ToJSON)
 
 data SafetyRating = SafetyRating
-  { category :: String
-  , probability :: String
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  { category :: String
+  , probability :: String
+  } deriving (Show, Generic, FromJSON, ToJSON)
 ```
 
 There are two parts to function **main**. The first part defined the template for showing a HTML input form with embedded JavaScript:
@@ -77,7 +80,15 @@ There are two parts to function **main**. The first part defined the template fo
 ```haskell{line-numbers: false}
 main :: IO ()
 main = do
-  apiKey <- getEnv "GOOGLE_API_KEY"
+  maybeKey <- lookupEnv "GOOGLE_API_KEY"
+  apiKey <- case maybeKey of
+    Nothing -> do
+      putStrLn "Error: GOOGLE_API_KEY environment variable not set."
+      putStrLn "Please set it with: export GOOGLE_API_KEY=your-key-here"
+      exitFailure
+    Just k  -> return k
+  -- Create a single TLS manager shared across all request handlers
+  manager <- newManager tlsManagerSettings
   scotty 3000 $ do
     get "/" $ do
       html $ TL.pack
@@ -121,75 +132,84 @@ main = do
 The second part of function **main** defines the HTTP POST processing. When a user clicks the **submit** button on the web page. This handler is called by the JavaScript embedded on the web page:
 
 ```haskell{line-numbers: false}
-    post "/chat" $ do
-      req <- jsonData :: ActionM GeminiRequest
-      liftIO $ putStrLn $ "Received request: " ++ show req
-      liftIO $ hFlush stdout
-
-      manager <- liftIO $ newManager tlsManagerSettings
-
-      initialRequest <- liftIO $ parseRequest 
-        "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
-
-      let geminiRequestBody = Aeson.object
-            [ ("contents", Aeson.Array $ V.singleton $ Aeson.object
-                [ ("parts", Aeson.Array $ V.singleton $ Aeson.object
-                    [ ("text", Aeson.String $ T.pack $ prompt req)
-                    ]
-                  )
-                ]
-              )
-            , ("generationConfig", Aeson.object
-                [ ("temperature", Aeson.Number 0.1)
-                , ("maxOutputTokens", Aeson.Number 800)
-
-                ]
-              )
-            ]
-
-      let request2 = initialRequest
-            { requestHeaders =
-                [ ("Content-Type", "application/json")
-                , ("x-goog-api-key", BS.pack apiKey)
-                ]
-            , method = "POST"
-            , requestBody = RequestBodyLBS $ Aeson.encode geminiRequestBody
-            }
-
-      liftIO $ putStrLn $ "Request body: " ++ show (Aeson.encode geminiRequestBody)
-      liftIO $ hFlush stdout
-
-      response2 <- liftIO $ httpLbs request2 manager
-      liftIO $ do
-        putStrLn $ "Response status: " ++ show (responseStatus response2)
-        putStrLn $ "Response headers: " ++ show (responseHeaders response2)
-        putStrLn $ "Raw response: " ++ show (responseBody response2)
-        hFlush stdout
-
-      let maybeGeminiResponse =
-	      Aeson.decode (responseBody response2) :: Maybe GeminiResponse
-      
-      liftIO $ putStrLn $ "Parsed response: " ++ show maybeGeminiResponse
+    post "/chat" $ do
+      req <- jsonData :: ActionM GeminiRequest
+      liftIO $ putStrLn $ "Received request: " ++ show req
       liftIO $ hFlush stdout
 
-      case maybeGeminiResponse of
-        Just geminiResponse -> do
-          case candidates geminiResponse of
-            (candidate:_) -> do
-              case parts (content candidate) of
-                (part:_) -> do
-                  liftIO $ putStrLn $ "Sending response: " ++ show part
-                  liftIO $ hFlush stdout
-                  json part
-                [] -> do
-                  liftIO $ putStrLn "No parts in response"
-                  status status500 >> Web.Scotty.text "No content in response"
-            [] -> do
-              liftIO $ putStrLn "No candidates in response"
-              status status500 >> Web.Scotty.text "No candidates in response"
-        Nothing -> do
-          liftIO $ putStrLn "Failed to parse response"
-          status status500 >> Web.Scotty.text "Failed to parse Gemini response"
+      initialRequest <- liftIO $ parseRequest 
+        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
+
+      let geminiRequestBody = Aeson.object
+            [ ("contents", Aeson.Array $ V.singleton $ Aeson.object
+                [ ("parts", Aeson.Array $ V.singleton $ Aeson.object
+                    [ ("text", Aeson.String $ T.pack $ prompt req)
+                    ]
+                  )
+                ]
+              )
+            , ("generationConfig", Aeson.object
+                [ ("temperature", Aeson.Number 0.1)
+                , ("maxOutputTokens", Aeson.Number 800)
+                ]
+              )
+            ]
+
+
+      let request2 = initialRequest
+            { requestHeaders =
+                [ ("Content-Type", "application/json")
+                , ("x-goog-api-key", BS.pack apiKey)
+                ]
+            , method = "POST"
+            , requestBody = RequestBodyLBS $ Aeson.encode geminiRequestBody
+            }
+
+      liftIO $ putStrLn $ "Request body: " ++ show (Aeson.encode geminiRequestBody)
+      liftIO $ hFlush stdout
+
+      -- Wrap the API call in try to catch network errors gracefully
+      eitherResponse <- liftIO $ (try (httpLbs request2 manager) :: IO (Either SomeException (Response LBS.ByteString)))
+      case eitherResponse of
+        Left ex -> do
+          liftIO $ do
+            putStrLn $ "Network error: " ++ show ex
+            hFlush stdout
+          status status500
+          json $ Aeson.object [("error", Aeson.String $ T.pack $ "Network error: " ++ show ex)]
+        Right response2 -> do
+          liftIO $ do
+            putStrLn $ "Response status: " ++ show (responseStatus response2)
+            putStrLn $ "Response headers: " ++ show (responseHeaders response2)
+            putStrLn $ "Raw response: " ++ show (responseBody response2)
+            hFlush stdout
+
+          let maybeGeminiResponse = Aeson.decode (responseBody response2) :: Maybe GeminiResponse
+
+          liftIO $ putStrLn $ "Parsed response: " ++ show maybeGeminiResponse
+          liftIO $ hFlush stdout
+
+          case maybeGeminiResponse of
+            Just geminiResponse -> do
+              case candidates geminiResponse of
+                (candidate:_) -> do
+                  case parts (content candidate) of
+                    (part:_) -> do
+                      liftIO $ putStrLn $ "Sending response: " ++ show part
+                      liftIO $ hFlush stdout
+                      json part
+                    [] -> do
+                      liftIO $ putStrLn "No parts in response"
+                      status status500
+                      json $ Aeson.object [("error", Aeson.String "No content in response")]
+                [] -> do
+                  liftIO $ putStrLn "No candidates in response"
+                  status status500
+                  json $ Aeson.object [("error", Aeson.String "No candidates in response")]
+            Nothing -> do
+              liftIO $ putStrLn "Failed to parse response"
+              status status500
+              json $ Aeson.object [("error", Aeson.String "Failed to parse Gemini response")]
 ```
 
 

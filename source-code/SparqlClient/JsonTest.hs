@@ -4,15 +4,13 @@ import qualified Data.ByteString.Char8 as S8
 import qualified Data.Yaml             as Yaml
 import           Network.HTTP.Simple
 
-import Data.Typeable(typeOf) -- for debugging
-import Control.Monad.Trans(lift) -- experiment only
+
 
 main :: IO ()
 main = do
-
+    -- NOTE: The SPARQL query parameter should ideally be URL-encoded
+    -- (e.g. via Network.HTTP.Base.urlEncode) to handle special characters safely.
     response <- httpJSON "http://dbpedia.org/sparql/?query=select * where {?s ?p ?o} limit 2"
-    print $ typeOf response
---    rb <- lift $ (getResponseBody response) --  :: Value)
     putStrLn $ "The status code was: " ++
                show (getResponseStatusCode response)
     print $ getResponseHeader "Content-Type" response

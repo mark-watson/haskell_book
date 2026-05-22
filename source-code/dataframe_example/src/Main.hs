@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Housing data analysis using the dataframe 1.0.0.0 library.
 --
@@ -11,6 +11,9 @@
 --   * Sorting
 --   * Grouping and aggregation
 --
+-- __Working directory__: This program uses relative paths (@.\/data\/housing.csv@)
+-- so it must be run from the @dataframe_example@ project root directory.
+--
 -- Reference: https://discourse.haskell.org/t/ann-dataframe-1-0-0-0/13834
 --            https://hackage.haskell.org/package/dataframe
 
@@ -20,12 +23,14 @@ import qualified DataFrame          as D
 import qualified DataFrame.Functions as F
 import           DataFrame.Operators          -- re-exports (|>), (.==), (.>=), etc.
 import           Data.Text          (Text)
+import           Control.Exception  (IOException, try)
+import           System.Exit        (exitFailure)
 
--- ---------------------------------------------------------------------------
--- Template-haskell: inspect the CSV at compile time and generate typed
--- column-reference bindings such as `total_rooms`, `households`, etc.
--- ---------------------------------------------------------------------------
-$(F.declareColumnsFromCsvFile "./data/housing.csv")
+-- NOTE: The Template Haskell splice `$(F.declareColumnsFromCsvFile "./data/housing.csv")`
+-- was removed because the generated typed column-reference bindings (e.g. total_rooms,
+-- households) were never used in this module.  All column references below use
+-- string-based `F.col @T "name"` instead.  If you want compile-time column safety,
+-- uncomment the splice and add {-# LANGUAGE TemplateHaskell #-} back.
 
 -- ---------------------------------------------------------------------------
 -- Helper
@@ -39,7 +44,14 @@ separator = putStrLn (replicate 70 '-')
 main :: IO ()
 main = do
   -- ── 1. Load ──────────────────────────────────────────────────────────────
-  df <- D.readCsv "./data/housing.csv"
+  -- Wrap in try/catch so we get a clear error message if the CSV is missing.
+  result <- try (D.readCsv "./data/housing.csv") :: IO (Either IOException D.DataFrame)
+  df <- case result of
+    Left err -> do
+      putStrLn $ "ERROR: Could not load CSV file: " <> show err
+      putStrLn "Make sure you are running from the dataframe_example project root."
+      exitFailure
+    Right v  -> pure v
 
   putStrLn "\n=== California Housing Dataset ==="
   putStrLn "First 5 rows:"

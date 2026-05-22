@@ -33,15 +33,15 @@ This example program is listed below. I will describe the code after the listing
 
 ```haskell{line-numbers: false}
 -- Simple command-line client for Ollama's local API
--- Usage: run as `Main "<prompt>" [model]` or `runghc Main.hs "<prompt>" [model]`. Default model: `llama3.2:latest`
+-- Usage: run as `Main "<prompt>" [model]` or `runghc Main.hs "<prompt>" [model]`. Default model: `qwen3:1.7b`
 -- LANGUAGE pragmas enable features used below
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 -- Core utilities
-import Control.Monad (when)
 import System.Environment (getArgs)
+import Control.Exception (try)
 
 -- JSON support
 import qualified Data.Aeson as Aeson
@@ -55,12 +55,16 @@ import Network.HTTP.Client
   , parseRequest
   , Request(..)
   , RequestBody(..)
+  , Response(..)
   , responseBody
   , responseStatus
   , defaultManagerSettings
   , Manager
+  , HttpException
   )
 import Network.HTTP.Types.Status (statusIsSuccessful)
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy.Char8 as LBS8
 
 -- Types that mirror Ollama's request and response JSON
 data OllamaRequest = OllamaRequest
@@ -75,6 +79,11 @@ data OllamaResponse = OllamaResponse
   , response :: String     -- the generated text from the model
   , done :: Bool
   , done_reason :: Maybe String -- may be missing; use Maybe
+  } deriving (Show, Generic, FromJSON)
+
+-- | An error message returned by Ollama when a request fails (e.g. missing model).
+data OllamaError = OllamaError
+  { error :: String
   } deriving (Show, Generic, FromJSON)
 
 -- Call Ollama's local API and decode the JSON response
@@ -95,22 +104,28 @@ callOllama manager modelName userPrompt = do
         , requestBody = RequestBodyLBS $ Aeson.encode ollamaRequestBody -- encode as JSON
         }
 
-  -- Send the request and get the HTTP response
-  httpResponse <- httpLbs request manager
+  -- Send the request; catch network/connection errors
+  eitherResponse <- try (httpLbs request manager) :: IO (Either HttpException (Response LBS.ByteString))
+  case eitherResponse of
+    Left _ex ->
+      return $ Left "Could not connect to Ollama. Please ensure the Ollama service is running on port 11434."
+    Right httpResponse -> do
+      let status = responseStatus httpResponse
+          body = responseBody httpResponse
 
-  let status = responseStatus httpResponse
-      body = responseBody httpResponse
-
-  if statusIsSuccessful status
-    then do
-      -- Try to decode the JSON body into our Haskell type
-      let maybeOllamaResponse = Aeson.decode body :: Maybe OllamaResponse
-      case maybeOllamaResponse of
-        Just ollamaResponse -> return $ Right ollamaResponse
-        Nothing -> return $ Left $ "Error: Failed to parse JSON response. Body: " ++ show body
-    else
-      -- Non-2xx HTTP status
-      return $ Left $ "Error: HTTP request failed with status " ++ show status ++ ". Body: " ++ show body
+      if statusIsSuccessful status
+        then do
+          -- Try to decode the JSON body into our Haskell type
+          let maybeOllamaResponse = Aeson.decode body :: Maybe OllamaResponse
+          case maybeOllamaResponse of
+            Just ollamaResponse -> return $ Right ollamaResponse
+            Nothing -> return $ Left $ "Error: Failed to parse JSON response. Body: " ++ show body
+        else do
+          -- Non-2xx HTTP status: try to extract a structured error message
+          let errorMsg = case Aeson.decode body :: Maybe OllamaError of
+                Just ollamaErr -> Main.error ollamaErr
+                Nothing        -> LBS8.unpack body
+          return $ Left $ "Error: HTTP " ++ show status ++ ": " ++ errorMsg
 
 main :: IO ()
 main = do
@@ -122,7 +137,7 @@ main = do
       -- Choose model: use user-provided or default
       let modelName = case modelArgs of
                         (m:_) -> m
-                        []    -> "llama3.2:latest"
+                        []    -> "qwen3:1.7b"
 
       -- Create an HTTP connection manager
       manager <- newManager defaultManagerSettings
@@ -138,19 +153,20 @@ main = do
           putStrLn "\n--- Response ---"
           putStrLn ollamaResponse.response
           -- Print reason if present
-          when (ollamaResponse.done_reason /= Nothing) $
-              putStrLn $ "\nDone reason: " ++ show ollamaResponse.done_reason
+          case ollamaResponse.done_reason of
+            Just reason -> putStrLn $ "\nDone reason: " ++ reason
+            Nothing     -> return ()
         Left err -> do
           putStrLn $ "API Error: " ++ err
 ```
 
 This Haskell code defines a program that interacts with a local HTTP API provided by Ollama to send a prompt to a language model and retrieve its response. The program uses several Haskell features and libraries, including **OverloadedRecordDot** for concise record field access and **DuplicateRecordFields** to allow multiple data types to share field names. The program is structured around two main data types, **OllamaRequest** and **OllamaResponse**, which represent the request and response payloads for the API. These data types are derived from the Generic type class, enabling automatic JSON serialization and deserialization using the Aeson library. The **OllamaRequest** type includes fields for specifying the model, the prompt, and whether the response should be streamed, while the **OllamaResponse** type captures the model's response, creation time, and additional metadata.
 
-The function **main** begins by reading command-line arguments using **getArgs**. If no arguments are provided, the program outputs an error message and terminates. Otherwise, it extracts the first argument as the prompt and proceeds to set up an HTTP client using **newManager** with default settings. The program constructs an HTTP POST request to the local API endpoint (http://localhost:11434/api/generate) using **parseRequest**. It then creates an instance of **OllamaRequest** with a hardcoded model name (llama3.2:latest), the user-provided prompt, and stream set to **False**. This request is serialized to JSON using **Aeson.encode** and included in the HTTP request body, with the appropriate Content-Type header.
+The function **main** begins by reading command-line arguments using **getArgs**. If no arguments are provided, the program outputs an error message and terminates. Otherwise, it extracts the first argument as the prompt and proceeds to set up an HTTP client using **newManager** with default settings. The program constructs an HTTP POST request to the local API endpoint (http://localhost:11434/api/generate) using **parseRequest**. It then creates an instance of **OllamaRequest** with a default model name (qwen3:1.7b, overridable via a second command-line argument), the user-provided prompt, and stream set to **False**. This request is serialized to JSON using **Aeson.encode** and included in the HTTP request body, with the appropriate Content-Type header.
 
-The program sends the HTTP request using **httpLbs**, which performs the request and returns the response. It then checks the HTTP status code of the response using **responseStatus** and **statusCode**. If the status code is 200 (indicating success), the program attempts to decode the response body into an **OllamaResponse** object using **Aeson.decode**. If decoding is successful, it extracts and prints the response field from the **OllamaResponse** object using the **OverloadedRecordDot** extension for concise field access. If decoding fails, the program outputs an error message indicating that the response could not be parsed.
+The program sends the HTTP request using **httpLbs** wrapped in **try** to catch network-level exceptions (such as when the Ollama service is not running). If the connection fails, a user-friendly error message is returned. On a successful connection, it checks the HTTP status using **responseStatus** and **statusIsSuccessful**. If the status indicates success, the program attempts to decode the response body into an **OllamaResponse** object using **Aeson.decode**. If decoding is successful, it extracts and prints the response field from the **OllamaResponse** object using the **OverloadedRecordDot** extension for concise field access. If decoding fails, the program outputs an error message indicating that the response could not be parsed.
 
-If the HTTP status code is not 200, the program outputs an error message with the status code. This error handling ensures that the user is informed of any issues with the API request or response. Overall, the program demonstrates how to use Haskell's type system and libraries to build a robust and type-safe client for interacting with a JSON-based HTTP API. It also highlights the use of modern Haskell features, such as record dot syntax and generic programming, to simplify code and improve readability.
+If the HTTP status is not successful, the program attempts to decode the body as an **OllamaError** (a structured error type returned by Ollama, e.g. when a model is not found) and displays the error message. This layered error handling—catching connection failures, HTTP errors, and JSON decode errors—ensures that the user is informed of any issues with the API request or response. Overall, the program demonstrates how to use Haskell's type system and libraries to build a robust and type-safe client for interacting with a JSON-based HTTP API. It also highlights the use of modern Haskell features, such as record dot syntax and generic programming, to simplify code and improve readability.
 
 In general when you are writing code to access a LLM model using a REST interface, look for examples using the **curl** command, examine the returned JSON payload and write code to decode the JSON and extract the information you need. I started writing this example by finding the following **curl** example in the Ollama documentation and running it:
 

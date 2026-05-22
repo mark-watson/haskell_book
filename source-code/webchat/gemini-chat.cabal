@@ -29,5 +29,5 @@ executable gemini-chat
   hsc2hs: --with-hsc2hs=/opt/homebrew/bin/hsc2hs
   
   -- Compiler flags
-  ghc-options: -Wall -O2
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
 

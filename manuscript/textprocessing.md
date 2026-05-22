@@ -10,12 +10,12 @@ We will cover three useful techniques: parsing and using CSV (comma separated va
 
 The comma separated values (CSV) format is a plain text format that all spreadsheet applications support. The following example illustrates two techniques that we haven't covered yet:
 
-- Extracting values from the **Either** type.
+- Handling the **Either** type with pattern matching.
 - Using destructuring to concisely extract parts of a list.
 
-The **Either** type *Either a b* contains either a *Left a* or a *Right b* value and is usually used to return an error in **Left** or a value in **Right**. We will using the **Data.Either.Unwrap** module to unwrap the **Right** part of a call to the **Text.CSV.parseCSVFromFile** function that reads a CSV file and returns a **Left** error or the data in the spreadsheet in a list as the **Right** value.
+The **Either** type *Either a b* contains either a *Left a* or a *Right b* value and is usually used to return an error in **Left** or a value in **Right**. The **Text.CSV.parseCSVFromFile** function reads a CSV file and returns a **Left** error or the data in the spreadsheet in a list as the **Right** value. We use a **case** expression to pattern match on the result.
 
-The destructuring trick in line 15 in the following listing lets us separate the head and rest of a list in one operation; for example:
+The destructuring trick in line 21 in the following listing lets us separate the head and rest of a list in one operation; for example:
 
 ```haskell{line-numbers: false}
 *TestCSV> let z = [1,2,3,4,5]
@@ -30,27 +30,33 @@ The destructuring trick in line 15 in the following listing lets us separate the
 
 Here is how to read a CSV file:
 
-```haskell{line-numbers: false}
-module TestCSV where
+```haskell{line-numbers: true}
+module Main where
 
 import Text.CSV (parseCSVFromFile, CSV)
-import Data.Either.Unwrap (fromRight)
 
-readCsvFile :: FilePath -> CSV
+readCsvFile :: FilePath -> IO CSV
 readCsvFile fname = do
   c <- parseCSVFromFile fname
-  return $ fromRight c
+  case c of
+    Left err -> do
+      putStrLn $ "CSV parse error: " ++ show err
+      return []
+    Right csv -> return csv
 
+main :: IO ()
 main = do
   c <- readCsvFile "test.csv"
-  print  c  -- includes header and data rows
-  print $ map head c  -- print header
-  let header:rows = c -- destructure
-  print header
-  print rows
+  print  c
+  print $ map head c
+  case c of
+    [] -> putStrLn "Warning: CSV file is empty, no header or rows."
+    (header:rows) -> do
+      print header
+      print rows
 ```
 
-Function **readCsvFile** reads from a file and returns a **CSV**. What is a **CSV** type? You could search the web for documentation, but dear reader, if you have worked this far learning Haskell, by now you know to rely on the GHCi repl:
+Function **readCsvFile** reads from a file and returns an **IO CSV**. It uses a **case** expression to handle the **Either** value returned by **parseCSVFromFile**: if parsing fails (a **Left** error), we print the error and return an empty list; on success (a **Right** csv), we return the parsed data. What is a **CSV** type? You could search the web for documentation, but dear reader, if you have worked this far learning Haskell, by now you know to rely on the GHCi repl:
 
 ```haskell{line-numbers: false}
 *TestCSV> :i CSV
@@ -88,23 +94,26 @@ In the first example, we set the language type to include DeriveDataTypeable so 
 ```haskell{line-numbers: true}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module TestTextJSON where
+module Main where
 
+-- NOTE: Text.JSON.Generic is deprecated. Consider using Data.Aeson
+-- (from the 'aeson' package) with DeriveGeneric for new projects.
 import Text.JSON.Generic
-          
-data Person = Person {name::String, email::String}
-                     deriving (Show, Data, Typeable)
 
+data Person = Person {name::String, email::String } deriving (Show, Data, Typeable)
+
+main :: IO ()
 main = do
   let a = encodeJSON $ Person "Sam" "sam@a.com"
   print a
-  let d = (decodeJSON a :: Person)
+  --let d = (decodeJSON a :: Person)
+  let d = (decodeJSON a)
   print d
   print $ name d
   print $ email d
 ```
 
-Notice that in line 13 that I specified the expected type in the **decodeJSON** call. This is not strictly required, the Haskell GHC compiler knows what to do in this case. I specified the type for code readability. The Haskell compiler wrote the **name** and **email** functions for me and I use these functions in lines 15 and 16 to extract these fields. Here is the output from running this example:
+Notice that we call **decodeJSON** without specifying the expected type — the Haskell GHC compiler can infer it from context. The Haskell compiler wrote the **name** and **email** functions for me and I use these functions in lines 18 and 19 to extract these fields. Also note the deprecation comment: **Text.JSON.Generic** is deprecated in favor of **Data.Aeson** which we use in the next example. Here is the output from running this example:
 
 ```haskell{line-numbers: false}
 Prelude> :l TestTextJSON.hs 
@@ -124,7 +133,7 @@ Using *Aeson*, we set a language type *DeriveGeneric*  and in this case have the
 ```haskell{line-numbers: true}
 {-# LANGUAGE DeriveGeneric #-}
 
-module TestJSON where
+module Main where
 
 import Data.Aeson
 import GHC.Generics
@@ -137,16 +146,19 @@ instance FromJSON Person  -- DeriveGeneric language setting allows
 instance ToJSON Person    -- automatic generation of instance of
                           -- types deriving Generic.
 
+main :: IO ()
 main = do
   let a = encode $ Person "Sam" "sam@a.com"
   print a
-  let (Just d) = (decode a :: Maybe Person)
-  print d
-  print $ name d
-  print $ email d
+  case decode a :: Maybe Person of
+    Nothing -> putStrLn "Error: failed to decode JSON back to Person"
+    Just d  -> do
+      print d
+      print $ name d
+      print $ email d
 ```
 
-I use a short cut in line 19, assuming that the **Maybe** object returned from **decode** (which the compiler wrote automatically for the type **FromJSON**) contains a **Just** value instead of an empty **Nothing** value. So in line 19 I directly unwrap the **Just** value.
+We use a **case** expression to safely handle the **Maybe** result returned from **decode** (which the compiler wrote automatically for the type **FromJSON**). If decoding fails, we print an error message; if it succeeds, we unwrap the **Just** value and use it.
 
 Here is the output from running this example:
 
@@ -176,7 +188,7 @@ You might be asking why we would need to clean up text. Here are a few common us
 - Special unicode characters are not desired.
 - Sometimes we want white space around punctuation to make tokenizing text easier.
 
-Notice the **module** statement on line 1 of the following listing: I am exporting functions **cleanText** and **removeStopWords** so they will be visible and available for use by any other modules that import this module. In line 6 we import **intercalate** which constructs a string from a space character and an [String]  (i.e., a list of strings); here is an example where instead of adding a space character between the strings joined together, I add "*" characters:
+In line 6 we import **intercalate** which constructs a string from a space character and an [String]  (i.e., a list of strings); here is an example where instead of adding a space character between the strings joined together, I add "*" characters:
 
 ```haskell{line-numbers: false}
 *CleanText> intercalate "*" ["the", "black", "cat"]
@@ -186,21 +198,25 @@ Notice the **module** statement on line 1 of the following listing: I am exporti
 The function **cleanText** removes garbage characters and makes sure that any punctuation characters are surrounded by white space (this makes it easier, for example, to determine sentence boundaries). Function **removeStopWords** removes common words like "a", "the", etc. from text.
 
 ```haskell{line-numbers: true}
-module CleanText (cleanText, removeStopWords)  where
+--  {-# LANGUAGE OverloadedStrings #-}
+
+module Main where
 
 import Data.List.Split (splitOn)
 import Data.List (intercalate)
 import Data.Char as C
 import Data.List.Utils (replace)
 
+noiseCharacters :: [Char]
 noiseCharacters = ['[', ']', '{', '}', '\n', '\t', '&', '^', 
-                   '@', '%', '$', '#', ',']
+                   '@', '%', '$', '#']
 
 substituteNoiseCharacters :: [Char] -> [Char]
 substituteNoiseCharacters =
   map (\x -> if elem x noiseCharacters then ' ' else x)
 
-cleanText s =
+cleanText :: String -> String
+cleanText s = 
   intercalate
    " " $
    filter
@@ -210,10 +226,11 @@ cleanText s =
         (replace "," " , " 
          (replace ";" " ; " s)))
 
-stopWords = ["a", "the", "that", "of", "an"]
+stopWords :: [String]
+stopWords = ["a", "the", "that", "of", "an", "and"]
 
-toLower' :: [Char] -> [Char]
-toLower' s = map (\x -> if isLower x then x else (C.toLower x)) s
+toLower' :: String -> String
+toLower' = map C.toLower
 
 removeStopWords :: String -> [Char]
 removeStopWords s =
@@ -223,8 +240,9 @@ removeStopWords s =
       (\x -> notElem (toLower' x) stopWords) $
       words s
 
+main :: IO ()
 main = do
-  let ct = cleanText "The[]@] cat, and all dog, escaped&^. They were caught."
+  let ct = cleanText "The[]@] cat, and all the dogs, escaped&^. They were caught."
   print ct
   let nn = removeStopWords ct
   print nn
@@ -238,12 +256,12 @@ Then, the function **filter** is used to remove any words that match a specific 
 Here is the output from this example:
 
 ```haskell{line-numbers: false}
-*TestCleanText> :l CleanText.hs 
-[1 of 1] Compiling TestCleanText    ( CleanText.hs, interpreted )
-Ok, modules loaded: TestCleanText.
-*TestCleanText> main
-"The cat and all dog escaped . They were caught ."
-"cat dog escaped . They were caught ."
+*Main> :l CleanText.hs 
+[1 of 1] Compiling Main             ( CleanText.hs, interpreted )
+Ok, modules loaded: Main.
+*Main> main
+"The cat , all the dogs , escaped . They were caught ."
+"cat , dogs , escaped . They were caught ."
 ```
 
 We will continue working with text in the next chapter.

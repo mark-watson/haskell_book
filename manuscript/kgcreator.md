@@ -179,19 +179,26 @@ If you are using KGCreator in production, then you will want to copy the compile
 The following listing shows the file **app/Main.hs**, the main program for this example that handles command line arguments and calls two top level functions in **src/toplevel/Apis.hs**:
 
 ```haskell{line-numbers: true}
+-- Entry point: parses command-line args and runs batch processing
+-- Usage: run with an input directory and an output file root, e.g.
+--   `kgcreator ./test_data out` generates `out.n3` and `out.cypher`
 module Main where
 
 import System.Environment (getArgs)
 import Apis (processFilesToRdf, processFilesToNeo4j)
 
 main :: IO ()
-main = do
+main
+  -- Minimal argument handling: expect 2 args (input dir, output root)
+ = do
   args <- getArgs
   case args of
     [] -> error "must supply an input directory containing text and meta files"
-    [_] -> error "in addition to an input directory, also specify a root file name for the generated RDF and Cypher files"
+    [_] -> error "also specify a root file name for the generated RDF and Cypher files"
     [inputDir, outputFileRoot] -> do
+        -- Generate RDF triples (.n3) from input text/meta files
         processFilesToRdf   inputDir $ outputFileRoot ++ ".n3"
+        -- Generate Neo4j Cypher (.cypher) from the same input
         processFilesToNeo4j inputDir $ outputFileRoot ++ ".cypher"
     _ -> error "too many arguments"
 ```
@@ -222,6 +229,7 @@ The map *category_to_uri_map** created in lines 36 to 84 maps a topic name to a 
 The utility function **textToTriple** takes a file path to a text input file and a path to  meta file path, calculates the text string representing the generated triples for the input text file, and returns the result wrapped in an IO monad.
 
 ```haskell{line-numbers: true}
+-- Builds RDF triples from input text and `.meta` data
 module GenTriples
   ( textToTriples
   , category_to_uri_map
@@ -250,12 +258,15 @@ import Summarize (summarize, summarizeS)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 
+-- Helper to format an RDF triple line: subject predicate object .
 generate_triple :: [Char] -> [Char] -> [Char] -> [Char]
 generate_triple s p o = s ++ "  " ++ p ++ "  " ++ o ++ " .\n"
 
+-- Wrap a string as an RDF literal
 make_literal :: [Char] -> [Char]
 make_literal s = "\"" ++ s ++ "\""
 
+-- Maps classifier category keys to schema URIs used in triples
 category_to_uri_map :: M.Map [Char] [Char]
 category_to_uri_map =
   M.fromList
@@ -311,6 +322,7 @@ uri_from_category :: [Char] -> [Char]
 uri_from_category key =
   fromMaybe ("\"" ++ key ++ "\"") $ M.lookup key category_to_uri_map
 
+-- Read a `.txt` and matching `.meta` file; emit RDF describing entities, categories, and summary.
 textToTriples :: FilePath -> [Char] -> IO [Char]
 textToTriples file_path meta_file_path = do
   word_tokens <- filePathToWordTokens file_path
@@ -473,7 +485,7 @@ textToTriples file_path meta_file_path = do
         concat
           [ generate_triple
             (snd pair)
-            "<http://knowledgebooks.com/schema/aboutTradeUnionName>"
+            "<http://knowledgebooks.com/schema/aboutUniversityName>"
             (make_literal (fst pair))
           | pair <- universities
           ]
@@ -557,6 +569,7 @@ Notice that we import in line 29 the map **category_to_uri_map** that was define
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- Builds Neo4j Cypher statements (nodes and relationships) from text/meta
 module GenNeo4jCypher
   ( textToCypher
   , neo4j_category_node_defs
@@ -588,11 +601,8 @@ import Summarize (summarize, summarizeS)
 
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
-import Database.SQLite.Simple
 
--- for debug:
-import Data.Typeable (typeOf)
-
+-- Pre-create CategoryType nodes for all known categories
 neo4j_category_node_defs :: [Char]
 neo4j_category_node_defs =
   replace
@@ -615,6 +625,7 @@ repl c = c
 filterChars :: [Char] -> [Char]
 filterChars = filter (\c -> c /= '?' && c /= '=' && c /= '<' && c /= '>')
 
+-- Create a Neo4j node name and Cypher for a source URI (DbPedia or News)
 create_neo4j_node :: [Char] -> ([Char], [Char])
 create_neo4j_node uri =
   let name =
@@ -637,6 +648,7 @@ create_neo4j_link :: [Char] -> [Char] -> [Char] -> [Char]
 create_neo4j_link node1 linkName node2 =
   "CREATE (" ++ node1 ++ ")-[:" ++ linkName ++ "]->(" ++ node2 ++ ")\n"
 
+-- Create a Summary node attached to the source URI
 create_summary_node :: [Char] -> [Char] -> [Char]
 create_summary_node uri summary =
   let name =
@@ -667,6 +679,7 @@ entity_node_helper relation_name node_name entity_list =
   concat [create_contains_entity
            relation_name node_name entity | entity <- entity_list]
 
+-- Read `.txt` + `.meta`, build Cypher to describe entities, categories, and summary
 textToCypher :: FilePath -> [Char] -> IO [Char]
 textToCypher file_path meta_file_path = do
   let prelude_nodes = neo4j_category_node_defs
@@ -753,6 +766,8 @@ So far we have looked at processing command line arguments and processing indivi
 The functions **processFilesToRdf** and **processFilesToNeo4j** both have the function type signature **FilePath->FilePath->IO()** and are very similar except for calling different helper functions to generate RDF triples or Cypher input graph data:
 
 ```haskell{line-numbers: true}
+-- High-level API: batch processes a directory of text/meta files
+-- Exposes two entry points to produce RDF triples and Neo4j Cypher.
 module Apis
   ( processFilesToRdf
   , processFilesToNeo4j
@@ -770,6 +785,7 @@ import System.Directory (getDirectoryContents)
 
 import Data.Typeable (typeOf)
 
+-- Given `dirPath` with `.txt` and matching `.meta` files, write all RDF triples to `outputRdfFilePath`.
 processFilesToRdf :: FilePath -> FilePath -> IO ()
 processFilesToRdf dirPath outputRdfFilePath = do
   files <- getDirectoryContents dirPath :: IO [FilePath]
@@ -787,6 +803,7 @@ processFilesToRdf dirPath outputRdfFilePath = do
   putStrLn tripleS
   writeFile outputRdfFilePath tripleS
 
+-- Given `dirPath`, write Neo4j Cypher nodes/relationships to `outputRdfFilePath`.
 processFilesToNeo4j :: FilePath -> FilePath -> IO ()
 processFilesToNeo4j dirPath outputRdfFilePath = do
   files <- getDirectoryContents dirPath :: IO [FilePath]

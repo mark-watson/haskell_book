@@ -1,18 +1,24 @@
 module Main where
 
 import Text.CSV (parseCSVFromFile, CSV)
-import Data.Either.Unwrap (fromRight)
 
 readCsvFile :: FilePath -> IO CSV
 readCsvFile fname = do
   c <- parseCSVFromFile fname
-  return $ fromRight c
+  case c of
+    Left err -> do
+      putStrLn $ "CSV parse error: " ++ show err
+      return []
+    Right csv -> return csv
 
+main :: IO ()
 main = do
   c <- readCsvFile "test.csv"
   print  c
   print $ map head c
-  let header:rows = c
-  print header
-  print rows
+  case c of
+    [] -> putStrLn "Warning: CSV file is empty, no header or rows."
+    (header:rows) -> do
+      print header
+      print rows
 

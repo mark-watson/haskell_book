@@ -86,67 +86,78 @@ If you try this query using the [web interface for DBPedia SPARQL queries](http:
          
 ## A Haskell HTTP Based SPARQL Client
 
-One approach to query the DBPedia SPARQL endpoint is to build a HTTP GET request, send it to the SPARQL endpoint server, and parse the returned XML response. We will start with this simple approach. You will recognize the SPARQL query from the last section:
+One approach to query the DBPedia SPARQL endpoint is to build a HTTP GET request, send it to the SPARQL endpoint server, and parse the returned XML response. We will start with this simple approach:
 
 ```haskell{line-numbers: true}
 {-# LANGUAGE OverloadedStrings #-}
 
-module HttpSparqlClient where
+module Main where
 
-import Network.HTTP.Conduit (simpleHttp)
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Base (urlEncode)
+import Network.HTTP.Types.Status (statusCode)
 import Text.XML.HXT.Core
 import Text.HandsomeSoup
 import qualified Data.ByteString.Lazy.Char8 as B
 
-buildQuery :: String -> [Char]
-buildQuery sparqlString =
-  "http://dbpedia.org/sparql/?query=" ++ urlEncode sparqlString
-  
+prefixUrl :: String
+prefixUrl = "https://dbpedia.org/sparql?format=xml&query="
+
+buildQuery :: String -> String
+buildQuery sparqlString = prefixUrl ++ urlEncode sparqlString
+
 main :: IO ()
 main = do
-  let query = buildQuery "select * where {<http://dbpedia.org/resource/IBM> <http://dbpedia.org/ontology/abstract> ?o . FILTER langMatches(lang(?o), \"EN\")} LIMIT 100"
-  res <- simpleHttp query
-  let doc = readString []  (B.unpack res)
-  putStrLn "\nAbstracts:\n"
-  abstracts <- runX $ doc >>> css "binding" >>>
-                              (getAttrValue "name" &&& (deep getText))
-  print abstracts
+  let url = buildQuery "select ?label where {<http://dbpedia.org/resource/IBM> <http://www.w3.org/2000/01/rdf-schema#label> ?label . FILTER langMatches(lang(?label), \"EN\")}"
+  manager <- newManager tlsManagerSettings
+  initialReq <- parseRequest url
+  let req = initialReq
+              { requestHeaders =
+                  [ ("User-Agent", "HaskellSparqlClient/1.0 (educational example)")
+                  , ("Accept",     "application/sparql-results+xml")
+                  ]
+              }
+  response <- httpLbs req manager
+  let status = statusCode (responseStatus response)
+  if status /= 200
+    then putStrLn $ "HTTP error: " ++ show status
+    else do
+      let body = responseBody response
+      let doc  = readString [] (B.unpack body)
+      putStrLn "\nIBM rdfs:labels:\n"
+      labels <- runX $ doc >>> css "binding" >>> (getAttrValue "name" &&& (deep getText))
+      if null labels
+        then putStrLn "(no results — check the SPARQL endpoint or query)"
+        else mapM_ print labels
 ```
 
-The function **buildQuery** defined in lined 11-13 takes any SPARQL query, URL encodes it so it can be passed as part of a URI, and builds a query string for the DBPedia SPARQL endpoint. The returned data is in XML format. In lines 22-23 I am using the **XHT** parsing library to extract the names (values bound to the variable **?o** in the query in line 17). I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
+The constant **prefixUrl** on line 14 specifies the DBPedia SPARQL endpoint URL with an XML format parameter. The function **buildQuery** on line 17 takes any SPARQL query, URL encodes it, and appends it to the endpoint URL. In **main**, we create an HTTP manager with TLS settings (line 22), build a request with custom headers for a User-Agent and to request XML results (lines 24-29), and then execute the request (line 30). We check the HTTP status code and, if successful, parse the XML response. On lines 37-38 I use the **HXT** parsing library with the **HandsomeSoup** CSS selector to extract bindings. I covered the use of the **HandsomeSoup** parsing library in the chapter *Web Scraping*.
 
 We use **runX** to execute a series of operations on an XML document (the **doc** variable). We first select all elements in **doc** that have the CSS class **binding** using the **css** function. Next we extract the value of the **name** attribute from each selected element using **getAttrValue** and also extract the text inside the element using the function **deep**.
 The **&&&** operator is used to combine the two values for the name attribute and the element text into a tuple.
-
-In the **main** function, we use the utility function **simpleHttp** in line 19 to fetch the results as a ByteString and in line 20 we unpack this to a regular Haskell String.
-
-```haskell{line-numbers: true}
-Prelude> :l HttpSparqlClient.hs 
-[1 of 1] Compiling HttpSparqlClient ( HttpSparqlClient.hs, interpreted )
-Ok, modules loaded: HttpSparqlClient.
-*HttpSparqlClient> main
-
-Abstracts:
-
-[("o","International Business Machines Corporation (commonly referred to as IBM) is an American multinational technology and consulting corporation, with corporate headquarters in Armonk, New York.
-  ...)]
-```
-
-On line 8, "o" corresponds to the SPARQL query variable **?o** and the value bound to the variable **?o** is the string "International Business...".
 
 ## Querying Remote SPARQL Endpoints
 
 We will write some code in this section to make the example query to get the names of web browsers from DBPedia. In the last section we made a SPARQL query using fairly low level Haskell libraries. We will be using the high level library *HSparql* to build SPARQL queries and call the DBPedia SPARQL endpoint.
 
-The example in this section can be found in *SparqlClient/TestSparqlClient.hs*. In the **main** function notice how I have commented out printouts of the raw query results. Because Haskell is type safe, extracting the values wrapped in query results requires knowing RDF element return types. I will explain this matching after the program listing:
+The example in this section can be found in *SparqlClient/TestSparqlClient.hs*. Because Haskell is type safe, extracting the values wrapped in query results requires knowing RDF element return types. The code defines an **extractBinding** helper function that pattern-matches on the various RDF node types to extract a display string:
 
 ```haskell{line-numbers: true}
 -- simple experiments with the excellent HSparql library
+--
+-- HSparql DSL mapping to raw SPARQL:
+--   prefix "name" (iriRef url) => PREFIX name: <url>
+--   var                        => a fresh ?varN variable
+--   triple s p o               => s p o  (in the WHERE clause)
+--   resource .:. "Foo"         => name:Foo  (prefixed IRI)
+--   SelectQuery { queryVars }  => SELECT ?var1 ?var2 ...
+
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import Database.HSparql.Connection (BindingValue(Bound))
+import Database.HSparql.Connection (BindingValue(..))
 
 import Data.RDF hiding (triple)
 import Database.HSparql.QueryGenerator
@@ -180,34 +191,48 @@ companyTypeSelect = do
     triple (resource .:. "Edinburgh_University_Press") (ontology .:. "type") o
     return SelectQuery { queryVars = [o] }
 
+-- | Extract a display string from a single binding row.
+-- Handles the main RDF node types: language-tagged literals, plain literals,
+-- typed literals, URI nodes, and blank nodes.
+extractBinding :: [BindingValue] -> String
+extractBinding [Bound (LNode (PlainLL s _))] = show s  -- language-tagged literal
+extractBinding [Bound (LNode (PlainL s))]    = show s  -- plain literal
+extractBinding [Bound (LNode (TypedL s _))]  = show s  -- typed literal
+extractBinding [Bound (UNode s)]             = show s  -- URI node
+extractBinding [Bound (BNode s)]             = "_:" ++ show s  -- blank node
+extractBinding [Bound (BNodeGen i)]          = "_:b" ++ show i -- generated blank node
+extractBinding [Unbound]                     = "(unbound)"
+extractBinding _                             = "(unexpected binding shape)"
+
 main :: IO ()
 main = do
+  -- companyAbstractSelect => SELECT ?o WHERE { dbprop:Edinburgh_University_Press ontology:abstract ?o }
   sq1 <- selectQuery "http://dbpedia.org/sparql" companyAbstractSelect
-  --putStrLn "\nRaw results of company abstract SPARQL query:\n"
-  --print sq1
-  putStrLn "\nWeb browser names extracted from the company abstract query results:\n"
+  putStrLn "\nAbstracts extracted from the company abstract query results:\n"
   case sq1 of
-    Just a -> print $ map (\[Bound (LNode (PlainLL s _))] -> s) a
-    Nothing -> putStrLn "nothing"
+    Just a  -> mapM_ (putStrLn . extractBinding) a
+    Nothing -> putStrLn "No results returned."
+
+  -- companyTypeSelect => SELECT ?o WHERE { dbprop:Edinburgh_University_Press ontology:type ?o }
   sq2 <- selectQuery "http://dbpedia.org/sparql" companyTypeSelect
-  --putStrLn "\nRaw results of company type SPARQL query:\n"
-  --print sq2
-  putStrLn "\nWeb browser names extracted from the company type query results:\n"
+  putStrLn "\nTypes extracted from the company type query results:\n"
   case sq2 of
-    Just a -> print $ map (\[Bound (UNode  s)] -> s) a
-    Nothing -> putStrLn "nothing"
+    Just a  -> mapM_ (putStrLn . extractBinding) a
+    Nothing -> putStrLn "No results returned."
+
+  -- webBrowserSelect => SELECT ?name WHERE { ?x dbpedia:genre dbprop:Web_browser . ?x foaf:name ?name }
   sq3 <- selectQuery "http://dbpedia.org/sparql" webBrowserSelect
-  --putStrLn "\nRaw results of SPARQL query:\n"
-  --print sq3
   putStrLn "\nWeb browser names extracted from the query results:\n"
   case sq3 of
-    Just a -> print $ map (\[Bound (LNode (PlainLL s _))] -> s) a
-    Nothing -> putStrLn "nothing"
+    Just a  -> mapM_ (putStrLn . extractBinding) a
+    Nothing -> putStrLn "No results returned."
 ```
 
 ### Haskell Code for SPARQL Queries with HSparql
 
 This provided Haskell code demonstrates the use of the HSparql library to interact with a SPARQL endpoint (specifically, DBpedia) to perform semantic queries on linked data.
+
+The comment block at the top of the file (lines 3-8) documents how the HSparql DSL maps to raw SPARQL syntax, which is helpful when learning the library.
 
 #### SPARQL Query Definitions
 
@@ -225,59 +250,25 @@ It begins by defining three SPARQL queries, each constructed using the `Query` m
 * **`companyTypeSelect`**:
     * Similar to the previous query, this one focuses on the "Edinburgh University Press" but retrieves its "type," which indicates the category or class it belongs to within the DBpedia ontology.
 
+#### The `extractBinding` Helper
+
+The **extractBinding** function (lines 51-59) pattern-matches on the various RDF node types returned by HSparql to extract a display string. It handles language-tagged literals, plain literals, typed literals, URI nodes, blank nodes, unbound values, and unexpected shapes. This is more robust than inline pattern matching and handles all the cases you might encounter when querying different SPARQL endpoints.
+
 #### `main` Function
 
 The `main` function serves as the entry point of the program. It performs the following actions:
 
 1. **Query Execution**: It executes each of the defined SPARQL queries against the DBpedia SPARQL endpoint using the `selectQuery` function. This function returns the query results wrapped in a `Maybe` type to handle potential query failures.
 
-2. **Result Processing**: The code then pattern matches on the query results to extract and process the relevant information.  It handles both successful query results (`Just a`) and potential query failures (`Nothing`).
+2. **Result Processing**: The code uses `mapM_` with `extractBinding` to process and print each binding row. It handles both successful query results (`Just a`) and potential query failures (`Nothing`).
 
-3. **Output**: Finally, the extracted information (primarily names in this case) is printed to the console, providing the user with the desired results of the SPARQL queries.
+3. **Output**: The extracted information is printed to the console, with each result on its own line.
 
 #### Summary
 
-In summary, this Haskell code showcases a practical example of how to leverage the HSparql library to interact with a SPARQL endpoint (DBpedia) to retrieve and process structured data from the Semantic Web. It demonstrates the construction of SPARQL queries, their execution, and the subsequent handling and presentation of query results. 
+In summary, this Haskell code showcases a practical example of how to leverage the HSparql library to interact with a SPARQL endpoint (DBpedia) to retrieve and process structured data from the Semantic Web. It demonstrates the construction of SPARQL queries, their execution, and the subsequent handling and presentation of query results.
 
-
-
-**Notes on matching result types of query results:**
-
-You will notice how I have commented out print statements in the last example. When trying new queries you need to print out the results in order to know how to extract the wrapped query results. Let's look at a few examples:
-
-If we print the value for **sq1**:
-
-```{line-numbers: false}
-Raw results of company abstract SPARQL query:
-
-Just [[Bound (LNode (PlainLL "Edinburgh University Press ...
-```
-
-we see that inside a **Just** we have a list of lists. Each inner list is a **Bound** wrapping types defined in HSparql. We would unwrap **sq1** using:
-
-```haskell{line-numbers: false}
-  case sq1 of
-    Just a -> print $ map (\[Bound (LNode (PlainLL s _))] -> s) a
-    Nothing -> putStrLn "nothing"
-```
-
-In a similar way I printed out the values of **sq2** and **sq3** to see the form os **case** statement I would need to unwrap them.
-
-The output from this example with three queries to the DBPedia SPARQL endpoint is:
-
-```text{line-numbers: false}
-Web browser names extracted from the company abstract query results in sq1:
-
-["Edinburgh University Press \195\168 una casa editrice scientifica di libri accademici e riviste, con sede a Edimburgo, in Scozia.","Edinburgh University Press \195\169 uma editora universit\195\161ria com base em Edinburgh, Esc\195\179cia.","Edinburgh University Press is a scholarly publisher of academic books and journals, based in Edinburgh, Scotland."]
-
-The type of company is extracted from the company type query results in sq2:
-
-["http://dbpedia.org/resource/Publishing"]
-
-Web browser names extracted from the query results in sq3:
-
-["Grail","ViolaWWW","Kirix Strata","SharkWire Online","MacWeb","Camino","eww","TenFourFox","WiseStamp","X-Smiles","Netscape Navigator 2","SimpleTest","AWeb","IBrowse","iCab","ANT Fresco","Netscape Navigator 9.0","HtmlUnit","ZAC Browser","ELinks","ANT Galio","Nintendo DSi Browser","Nintendo DS Browser","Netscape Navigator","NetPositive","OmniWeb","Abaco","Flock","Steel","Kazehakase","GNU IceCat","FreeWRL","UltraBrowser","AMosaic","NetCaptor","NetSurf","Netscape Browser","SlipKnot","ColorZilla","Internet Channel","Obigo Browser","Swiftfox","BumperCar","Swiftweasel","Swiftdove","IEs4Linux","MacWWW","IBM Lotus Symphony","SlimBrowser","cURL","FoxyTunes","Iceweasel","MenuBox","Timberwolf web browser","Classilla","Rockmelt","Galeon","Links","Netscape Navigator","NCSA Mosaic","MidasWWW","w3m","PointerWare","Pogo Browser","Oregano","Avant Browser","Wget","NeoPlanet","Voyager","Amaya","Midori","Sleipnir","Tor","AOL Explorer"]
-```
+The output from this example with three queries to the DBPedia SPARQL endpoint will show abstracts for Edinburgh University Press, its type(s), and names of web browsers, each printed on its own line.
 
 ## Linked Data and Semantic Web Wrap Up
 

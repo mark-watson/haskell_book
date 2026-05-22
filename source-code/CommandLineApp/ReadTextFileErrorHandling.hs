@@ -1,17 +1,20 @@
 module Main where
 
 import System.IO
-import Control.Exception
+import Control.Exception (IOException, catch)
 
--- catchAny from Michael Snoyman's aticle:
--- (https://www.schoolofhaskell.com/user/snoyberg/general-haskell/exceptions/catching-all-exceptions:
-catchAny :: IO a -> (SomeException -> IO a) -> IO a
-catchAny = Control.Exception.catch
+-- | Catch only IOExceptions rather than SomeException.
+-- Catching SomeException is considered bad practice because it also
+-- catches async exceptions (e.g. ThreadKilled, UserInterrupt) that
+-- should normally be allowed to propagate.  Narrowing the catch to
+-- IOException ensures we only handle file-system / IO errors.
+catchIO :: IO a -> (IOException -> IO a) -> IO a
+catchIO = Control.Exception.catch
 
 safeFileReader :: FilePath -> IO String
 safeFileReader fPath = do
-  entireFileAsString <- catchAny (readFile fPath) $ \error -> do
-    putStrLn $ "Error: " ++ show error
+  entireFileAsString <- catchIO (readFile fPath) $ \err -> do
+    putStrLn $ "Error: " ++ show err
     return ""
   return entireFileAsString
 

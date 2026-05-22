@@ -15,25 +15,27 @@ import qualified Data.Text as T -- strict Text type
 import Control.Exception (try) -- catch exceptions and return Either
 import Network.HTTP.Client (HttpException) -- HTTP error type
 import qualified Data.ByteString.Char8 as BS -- UTF-8 ByteString for headers
--- unused: Data.ByteString.Lazy.Char8
 
--- Top-level response from the Brave Search API
+
+-- | Top-level response from the Brave Search API, containing the
+-- original query information and web search results.
 data SearchResponse = SearchResponse
   { query :: QueryInfo
   , web :: WebResults
   } deriving (Show)
 
--- Info about the original query the API received
+-- | Metadata about the original query as echoed back by the API.
 data QueryInfo = QueryInfo
   { original :: T.Text
   } deriving (Show)
 
--- Container for the list of web results
+-- | Container wrapping the list of individual web results returned by the API.
 data WebResults = WebResults
   { results :: [WebResult]
   } deriving (Show)
 
--- One result item; several fields are optional (`Maybe`)
+-- | A single web search result. Several fields are optional ('Maybe')
+-- because the API may omit them depending on the result type.
 data WebResult = WebResult
   { type_ :: T.Text
   , index :: Maybe Int

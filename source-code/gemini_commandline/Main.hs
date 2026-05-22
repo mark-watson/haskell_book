@@ -4,17 +4,17 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-import System.Environment (getArgs, getEnv)
+import System.Environment (getArgs, lookupEnv)
 import qualified Data.Aeson as Aeson
 import Data.Aeson (FromJSON, ToJSON, eitherDecode)
 import GHC.Generics (Generic)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
-import Network.HTTP.Client (newManager, httpLbs, parseRequest, Manager, Request(..), RequestBody(..), Response(..), responseStatus)
+import Network.HTTP.Client (newManager, httpLbs, parseRequest, Manager, Request(..), RequestBody(..), Response(..), responseStatus, HttpException)
 import Network.HTTP.Types.Status (statusCode)
--- Replace qualified import with explicit import list:
 import Data.Text (Text, pack, unpack, splitOn, strip, null)
 import Data.Text.Encoding (encodeUtf8)
-import Control.Exception (SomeException, handle)
+import Control.Exception (try)
+import qualified Data.ByteString.Lazy as LBS
 
 -- --- Request Data Types ---
 
@@ -58,8 +58,13 @@ data Candidate = Candidate
   { content :: ResponseContent
   } deriving (Show, Generic, FromJSON)
 
--- Assuming promptFeedback might be present at the top level of the response
--- alongside candidates, adjust if it's nested differently.
+-- | Safety checking: the Gemini API returns 'SafetyRating' entries for each
+-- response candidate, scoring potential harm across categories (e.g.
+-- HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_HATE_SPEECH). When the
+-- combined ratings exceed the configured threshold, the API may block the
+-- response entirely and report a 'blockReason' via 'PromptFeedback'.
+-- Always inspect 'promptFeedback' when the candidate list is empty to
+-- determine whether the prompt was blocked for safety reasons.
 data SafetyRating = SafetyRating
   { category    :: String
   , probability :: String
@@ -99,33 +104,36 @@ completion apiKey manager promptText = do
         , requestBody = RequestBodyLBS $ Aeson.encode apiRequest
         }
 
-  -- Send the request using the shared HTTP manager
-  response <- httpLbs request manager
-  let status = responseStatus response
-      body = responseBody response
+  -- Send the request using the shared HTTP manager; catch network errors
+  eitherResponse <- try (httpLbs request manager) :: IO (Either HttpException (Response LBS.ByteString))
+  case eitherResponse of
+    Left ex -> return $ Left ("Network error: " ++ show ex)
+    Right response -> do
+      let status = responseStatus response
+          body = responseBody response
 
   -- Check HTTP status and decode JSON into our Haskell types
-  if statusCode status == 200
-    then do
-      case eitherDecode body :: Either String GeminiApiResponse of
-        Left err -> return $ Left ("Error decoding JSON response: " ++ err)
-        Right geminiResponse ->
-          -- Extract first candidate and its first text part
-          case candidates geminiResponse of
-            (candidate:_) ->
-              case parts (content candidate) of
-                (part:_) -> return $ Right (text part)
-                [] -> return $ Left "Error: Received candidate with no parts."
-            [] ->
-              -- No candidates: check if the prompt was blocked and report why
-              case promptFeedback geminiResponse of
-                Just pf -> case blockReason pf of
-                             Just reason -> return $ Left ("API Error: Blocked - " ++ reason)
-                             Nothing -> return $ Left "Error: No candidates found and no block reason provided."
-                Nothing -> return $ Left "Error: No candidates found in response."
-    else do
-      let err = "Error: API request failed with status " ++ show (statusCode status) ++ "\nBody: " ++ show body
-      return $ Left err
+      if statusCode status == 200
+        then do
+          case eitherDecode body :: Either String GeminiApiResponse of
+            Left err -> return $ Left ("Error decoding JSON response: " ++ err)
+            Right geminiResponse ->
+              -- Extract first candidate and its first text part
+              case candidates geminiResponse of
+                (candidate:_) ->
+                  case parts (content candidate) of
+                    (part:_) -> return $ Right (text part)
+                    [] -> return $ Left "Error: Received candidate with no parts."
+                [] ->
+                  -- No candidates: check if the prompt was blocked and report why
+                  case promptFeedback geminiResponse of
+                    Just pf -> case blockReason pf of
+                                 Just reason -> return $ Left ("API Error: Blocked - " ++ reason)
+                                 Nothing -> return $ Left "Error: No candidates found and no block reason provided."
+                    Nothing -> return $ Left "Error: No candidates found in response."
+        else do
+          let err = "Error: API request failed with status " ++ show (statusCode status) ++ "\nBody: " ++ show body
+          return $ Left err
 
 -- | A generic function to extract entities from text using a specific prompt pattern.
 extractEntities :: String             -- ^ Type of entity to extract (e.g., "place names")
@@ -226,8 +234,3 @@ main = do
           case result of
             Left errMsg -> putStrLn $ "API Call Failed:\n" ++ errMsg
             Right completionText -> putStrLn $ "Response:\n\n" ++ completionText
-
-
--- Helper: safely read an environment variable (returns `Nothing` if missing)
-lookupEnv :: String -> IO (Maybe String)
-lookupEnv name = handle (\(_ :: SomeException) -> return Nothing) $ Just <$> getEnv name

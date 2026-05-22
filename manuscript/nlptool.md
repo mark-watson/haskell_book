@@ -66,139 +66,116 @@ peopleMap = M.fromList [
 
 There are 35,146 names in the file *PeopleDbPedia.hs*. I have built for eight different types of entity names: Haskell maps that take entity names (String) and maps the entity names into relevant DBPedia URIs. Simple in principle, but a lot of work preparing the data. As I mentioned, we will use these data-specific files to resolve entity references in text.
 
-The next listing shows the file *Entities.hs*. In lines 5-7 I import the entity mapping files I just described. In this example and later code I make heavy use of the **Data.Map** and **Data.Set** modules in the *collections* library (see the NlpTools.cabal file).
+The next listing shows the file *Entities.hs*. In this example and later code I make heavy use of the **Data.Map** and **Data.Set** modules in the *collections* library (see the NlpTools.cabal file).
 
-The operator **`isSubsetOf`** defined in line 39 tests to see if a value is contained in a collection. The built-in function **all** applies a function or operator to all elements in a collection and returns a true value if the function or operator returns true applied to each element in the collection.
+The operator **`isSubsetOf`** defined in line 42 tests to see if a value is contained in a collection. The built-in function **all** applies a function or operator to all elements in a collection and returns a true value if the function or operator returns true applied to each element in the collection.
 
-The local utility function **namesHelper** defined in lines 41-53 is simpler than it looks. The function **filter** in line 42 applies the inline function in lines 43-45 (this function returns true for **Maybe** values that contain data) to a second list defined in lines 48-55. This second list is calculated by mapping an inline function over the input argument **ngrams**. The inline function looks up an ngram in a DBPedia map (passed as the second function argument) and returns the lookup value if it is not empty and if it is empty looks up the same ngram  in a word map (last argument to this function).
+The local utility function **namesHelper** defined in lines 45-58 is simpler than it looks. The function **filter** in line 46 applies the inline function in lines 47-50 (this function returns true for **Maybe** values that contain data) to a second list defined in lines 51-58. This second list is calculated by mapping an inline function over the input argument **ngrams**. The inline function looks up an ngram in a DBPedia map (passed as the second function argument) and returns the lookup value if it is not empty.
 
-The utility function **namesHelper** is then used to define functions to recognize company names, country names, people names, city names, broadcast network names, political party names, trade union names, and university names:
+The utility function **namesHelper** is then used via an **entityHelper** function to define functions to recognize company names, country names, people names, city names, broadcast network names, political party names, trade union names, and university names:
 
 ```haskell{line-numbers: true}
 -- Copyright 2014 by Mark Watson. All rights reserved. The software and data in this project can be used under the terms of either the GPL version 3 license or the Apache 2 license.
+-- Identify entities (people, places, companies, etc.) in text and
+-- return entities and URIs to further information in DBPedia/WikiPedia
+module Entities
+  ( companyNames
+  , peopleNames
+  , countryNames
+  , cityNames
+  , broadcastNetworkNames
+  , politicalPartyNames
+  , tradeUnionNames
+  , universityNames
+  ) where
 
-module Entities (companyNames, peopleNames,
-                 countryNames, cityNames, broadcastNetworkNames,
-                 politicalPartyNames, tradeUnionNames, universityNames) where
-
-import qualified Data.Map as M
-import qualified Data.Set as S
 import Data.Char (toLower)
-import Data.List (sort, intersect, intersperse)
-import Data.Set (empty)
+import Data.List (intersect, intersperse, sort)
+import qualified Data.Map as M
 import Data.Maybe (isJust)
+import Data.Set (empty)
+import qualified Data.Set as S
 
-import Utils (splitWords, bigram, bigram_s, splitWordsKeepCase,
-              trigram, trigram_s, removeDuplicates)
+import NlpUtils
+  ( bigram
+  , bigram_s
+  , removeDuplicates
+  , splitWords
+  , splitWordsKeepCase
+  , trigram
+  , trigram_s
+  )
 
-import FirstNames (firstNames)
-import LastNames (lastNames)
-import NamePrefixes (namePrefixes)
-
+import CityNamesDbpedia (cityMap)
+import CompanyNamesDbpedia (companyMap)
+import CountryNamesDbpedia (countryMap)
 import PeopleDbPedia (peopleMap)
 
-import CountryNamesDbpedia (countryMap)
-import CountryNames (countryNamesOneWord, countryNamesTwoWords, countryNamesThreeWords)
-
-import CompanyNamesDbpedia (companyMap)
-import CompanyNames (companyNamesOneWord, companyNamesTwoWords, companyNamesThreeWords)
-import CityNamesDbpedia (cityMap)
- 
 import BroadcastNetworkNamesDbPedia (broadcastNetworkMap)
 import PoliticalPartyNamesDbPedia (politicalPartyMap)
 import TradeUnionNamesDbPedia (tradeUnionMap)
 import UniversityNamesDbPedia (universityMap)
 
+isSubsetOf :: (Foldable t1, Foldable t2, Eq a) => t1 a -> t2 a -> Bool
 xs `isSubsetOf` ys = all (`elem` ys) xs
-    
-namesHelper ngrams dbPediaMap wordMap =
-  filter 
-    (\x -> case x of
+
+namesHelper ngrams dbPediaMap =
+  filter
+    (\x ->
+       case x of
          (_, Just x) -> True
          _ -> False) $
-    map (\ngram -> (ngram,
-                let v = M.lookup ngram dbPediaMap in
-                if isJust v
-                   then return (ngram, v)
-                   else if S.member ngram wordMap
-                           then Just (ngram, Just "")
-                           else Nothing))
-        ngrams   
+  map
+    (\ngram ->
+       ( ngram
+       , let v = M.lookup ngram dbPediaMap
+          in if isJust v
+               then return (ngram, v)
+               else Nothing))
+    ngrams
 
 helperNames1W = namesHelper
 
 helperNames2W wrds = namesHelper (bigram_s wrds)
-    
-helperNames3W wrds =  namesHelper (trigram_s wrds)
 
-companyNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds companyMap companyNamesOneWord ++
-              helperNames2W wrds companyMap companyNamesTwoWords ++
-              helperNames3W wrds companyMap companyNamesThreeWords in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
-  
-countryNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds countryMap countryNamesOneWord ++
-              helperNames2W wrds countryMap countryNamesTwoWords ++
-              helperNames3W wrds countryMap countryNamesThreeWords in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+helperNames3W wrds = namesHelper (trigram_s wrds)
 
-peopleNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds peopleMap Data.Set.empty ++
-              helperNames2W wrds peopleMap Data.Set.empty ++
-              helperNames3W wrds peopleMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+entityHelper entityTypeMap wrds =
+  let cns =
+        removeDuplicates $
+        sort $
+        helperNames1W wrds entityTypeMap ++
+        helperNames2W wrds entityTypeMap ++ helperNames3W wrds entityTypeMap
+   in map (\(s, Just (a, Just b)) -> (a, b)) cns
 
-cityNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds cityMap Data.Set.empty ++
-              helperNames2W wrds cityMap Data.Set.empty ++
-              helperNames3W wrds cityMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+companyNames wrds = entityHelper companyMap wrds
 
-broadcastNetworkNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds broadcastNetworkMap Data.Set.empty ++
-              helperNames2W wrds broadcastNetworkMap Data.Set.empty ++
-              helperNames3W wrds broadcastNetworkMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+countryNames wrds = entityHelper countryMap wrds
 
-politicalPartyNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds politicalPartyMap Data.Set.empty ++
-              helperNames2W wrds politicalPartyMap Data.Set.empty ++
-              helperNames3W wrds politicalPartyMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+peopleNames wrds = entityHelper peopleMap wrds
 
-tradeUnionNames wrds =
-  let cns = removeDuplicates $ sort $
-              helperNames1W wrds tradeUnionMap Data.Set.empty ++
-              helperNames2W wrds tradeUnionMap Data.Set.empty ++
-              helperNames3W wrds tradeUnionMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+cityNames wrds = entityHelper cityMap wrds
 
-universityNames wrds =
-  let cns = removeDuplicates $ sort $
-             helperNames1W wrds universityMap Data.Set.empty ++
-             helperNames2W wrds universityMap Data.Set.empty ++
-             helperNames3W wrds universityMap Data.Set.empty in
-  map (\(s, Just (a,Just b)) -> (a,b)) cns
+broadcastNetworkNames wrds = entityHelper broadcastNetworkMap wrds
 
+politicalPartyNames wrds = entityHelper politicalPartyMap wrds
 
+tradeUnionNames wrds = entityHelper tradeUnionMap wrds
+
+universityNames wrds = entityHelper universityMap wrds
+
+main :: IO ()
 main = do
-    let s = "As read in the San Francisco Chronicle, the company is owned by John Smith, Bill Clinton, Betty Sanders, and Dr. Ben Jones. Ben Jones and Mr. John Smith are childhood friends who grew up in Brazil, Canada, Buenos Aires, and the British Virgin Islands. Apple Computer relased a new version of OS X yesterday. Brazil Brazil Brazil. John Smith bought stock in ConocoPhillips, Heinz, Hasbro, and General Motors, Fox Sports Radio. I listen to B J Cole. Awami National Party is a political party. ALAEA is a trade union. She went to Brandeis University."
-    --print $ humanNames s
-    print $ peopleNames $ splitWordsKeepCase s
-    print $ countryNames $ splitWordsKeepCase s
-    print $ companyNames $ splitWordsKeepCase s
-    print $ cityNames $ splitWordsKeepCase s
-    print $ broadcastNetworkNames $ splitWordsKeepCase s
-    print $ politicalPartyNames $ splitWordsKeepCase s
-    print $ tradeUnionNames $ splitWordsKeepCase s
-    print $ universityNames $ splitWordsKeepCase s
+  let s =
+        "As read in the San Francisco Chronicle, the company is owned by John Smith, Bill Clinton, Betty Sanders, and Dr. Ben Jones. Ben Jones and Mr. John Smith are childhood friends who grew up in Brazil, Canada, Buenos Aires, and the British Virgin Islands. Apple Computer relased a new version of OS X yesterday. Brazil Brazil Brazil. John Smith bought stock in ConocoPhillips, Heinz, Hasbro, and General Motors, Fox Sports Radio. I listen to B J Cole. Awami National Party is a political party. ALAEA is a trade union. She went to Brandeis University."
+  print $ peopleNames $ splitWordsKeepCase s
+  print $ countryNames $ splitWordsKeepCase s
+  print $ companyNames $ splitWordsKeepCase s
+  print $ cityNames $ splitWordsKeepCase s
+  print $ broadcastNetworkNames $ splitWordsKeepCase s
+  print $ politicalPartyNames $ splitWordsKeepCase s
+  print $ tradeUnionNames $ splitWordsKeepCase s
+  print $ universityNames $ splitWordsKeepCase s
 ```
 
 The following output is generated by running the test **main** function defined at the bottom of the file *app/NlpTool.hs*:
@@ -328,7 +305,7 @@ bestCategories1 :: [[Char]] -> [([Char], Double)]
 [("chemistry",8.2),("physics",2.4)]
 ```
 
-The top level function **bestCategories** uses 1gram data. Here is an example for using it:
+The top level function **bestCategories** combines 1gram and 2gram data along with stemmed versions, and normalizes scores to probabilities. Here is an example for using it:
 
 ```haskell{line-numbers: false}
 *Categorize> splitWords "The chemist made a periodic table and explained a chemical reaction"
@@ -344,10 +321,16 @@ Notice that these words were also classified as category "health_nutrition" but 
 Here is the entire example in file *Categorize.hs*:
 
 ```haskell{line-numbers: true}
-module Categorize (bestCategories, splitWords, bigram) where
+-- Copyright 2014-2016 by Mark Watson. All rights reserved.
+-- The software and data in this project can be used under the terms of the AGPL version 3.
+module Categorize
+  ( bestCategories
+  , splitWords
+  , bigram
+  ) where
 
-import qualified Data.Map as M
 import Data.List (sortBy)
+import qualified Data.Map as M
 
 import Category1Gram (onegrams)
 import Category2Gram (twograms)
@@ -356,62 +339,71 @@ import Sentence (segment)
 
 import Stemmer (stem)
 
-import Utils (splitWords, bigram, bigram_s)
+import NlpUtils (bigram, bigram_s, splitWords)
 
 catnames1 = map fst onegrams
+
 catnames2 = map fst twograms
 
+stemWordsInString :: String -> [Char]
 stemWordsInString s = init $ concatMap ((++ " ") . stem) (splitWords s)
 
-stemScoredWordList = map (\(str,score) -> (stemWordsInString str, score))
+stemScoredWordList = map (\(str, score) -> (stemWordsInString str, score))
 
-stem2 = map (\(category, swl) ->
-              (category, M.fromList (stemScoredWordList (M.toList swl))))
-			twograms
+stemHelper =
+  map
+    (\(category, swl) ->
+       (category, M.fromList (stemScoredWordList (M.toList swl))))
 
-stem1 = map (\(category, swl) ->
-              (category, M.fromList (stemScoredWordList (M.toList swl))))
-		    onegrams
+stem2 :: [([Char], M.Map [Char] Double)]
+stem2 = stemHelper twograms
 
-scoreCat wrds amap =
-  sum $ map (\x ->  M.findWithDefault 0.0 x amap) wrds
+stem1 :: [([Char], M.Map [Char] Double)]
+stem1 = stemHelper onegrams
+
+scoreCat wrds amap = sum $ map (\x -> M.findWithDefault 0.0 x amap) wrds
 
 score wrds amap =
- filter (\(a, b) -> b > 0.9) $ zip [0..] $ map (\(s, m) -> scoreCat wrds m) amap
- 
-cmpScore (a1, b1) (a2, b2) = compare b2 b1
-                              
-bestCategoriesHelper wrds ngramMap categoryNames=
-  let tg = bigram_s wrds in
-    map (first (categoryNames !!)) $ sortBy cmpScore $ score wrds ngramMap
-       
-bestCategories1 wrds =
-  take 3 $ bestCategoriesHelper wrds onegrams catnames1
+  filter (\(a, b) -> b > 0.9) $
+  zip [0 ..] $ map (\(s, m) -> scoreCat wrds m) amap
 
+cmpScore (a1, b1) (a2, b2) = compare b2 b1
+
+bestCategoriesHelper wrds ngramMap categoryNames =
+  let tg = bigram_s wrds
+   in map (\(a, b) -> (categoryNames !! a, b)) $
+      sortBy cmpScore $ score wrds ngramMap
+
+bestCategories1 wrds = take 3 $ bestCategoriesHelper wrds onegrams catnames1
+
+bestCategories2 :: [[Char]] -> [([Char], Double)]
 bestCategories2 wrds =
   take 3 $ bestCategoriesHelper (bigram_s wrds) twograms catnames2
-       
-bestCategories1stem wrds =
-  take 3 $ bestCategoriesHelper wrds stem1 catnames1
 
+bestCategories1stem :: [[Char]] -> [([Char], Double)]
+bestCategories1stem wrds = take 3 $ bestCategoriesHelper wrds stem1 catnames1
+
+bestCategories2stem :: [[Char]] -> [([Char], Double)]
 bestCategories2stem wrds =
   take 3 $ bestCategoriesHelper (bigram_s wrds) stem2 catnames2
 
 bestCategories :: [String] -> [(String, Double)]
-bestCategories wrds =
-  let sum1 = M.unionWith (+) (M.fromList $ bestCategories1 wrds) ( M.fromList $ bestCategories2 wrds)
-      sum2 = M.unionWith (+) (M.fromList $ bestCategories1stem wrds) ( M.fromList $ bestCategories2stem wrds) 
-  in sortBy cmpScore $ M.toList $ M.unionWith (+) sum1 sum2
-      
-main = do
-    let s = "The sport of hocky is about 100 years old by ahdi dates. American Football is a newer sport. Programming is fun. Congress passed a new budget that might help the economy. The frontier initially was a value path. The ai research of john mccarthy."
-    print $ bestCategories1 (splitWords s)    
-    print $ bestCategories1stem (splitWords s)
-    print $ score (splitWords s) onegrams
-    print $ score (bigram_s (splitWords s)) twograms
-    print $ bestCategories2 (splitWords s)
-    print $ bestCategories2stem (splitWords s)
-    print $ bestCategories (splitWords s)
+bestCategories wrds = map do_normalization_to_probabilities non_normalized
+  where
+    sum1 =
+      M.unionWith
+        (+)
+        (M.fromList $ bestCategories1 wrds)
+        (M.fromList $ bestCategories2 wrds)
+    sum2 =
+      M.unionWith
+        (+)
+        (M.fromList $ bestCategories1stem wrds)
+        (M.fromList $ bestCategories2stem wrds)
+    non_normalized = sortBy cmpScore $ M.toList $ M.unionWith (+) sum1 sum2
+    total_scores = foldl (+) 0 $ map snd non_normalized
+    do_normalization_to_probabilities (name, value) =
+      (name, value / total_scores)
 ```
 
 Here is the output:
@@ -436,71 +428,119 @@ I called all of the utility fucntions in function **main** to demonstrate what t
 
 ## Text Summarization
 
-This application uses both the *Categorize.hs* code and the 1gram data from the last section. The algorithm I devised for this example is based on a simple idea: we categorize text and keep track of which words provide the strongest evidence for the highest ranked categories. We then return a few sentences from the original text that contain the largest numbers of these important words.
-
-```haskell{line-numbers: false}
-module Summarize (summarize, summarizeS) where
-
-import qualified Data.Map as M
-import Data.List.Utils (replace)
-import Data.Maybe (fromMaybe)
+This application uses both the *Categorize.hs* code and the 1gram data from the last section. The algorithm I devised for this example is based on a simple idea: we categorize text and keep track of which words provide the strongest evidence for the highest ranked categories. We then return a few sentences from the original text that contain the largest numbers of these important words.```haskell{line-numbers: false}
+-- Copyright 2014 by Mark Watson. All rights reserved.
+-- The software and data in this project can be used under the terms of the AGPL version 3 license or Apache 2 license.
+module Summarize
+  ( summarize
+  , summarizeS
+  ) where
 
 import Categorize (bestCategories)
+import Data.List.Utils (replace)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import NlpUtils (bigram_s, cleanText, splitWords)
 import Sentence (segment)
-import Utils (splitWords, bigram_s, cleanText)
 
 import Category1Gram (onegrams)
 import Category2Gram (twograms)
 
-scoreSentenceHelper words scoreMap = -- just use 1grams for now
-  sum $ map (\word ->  M.findWithDefault 0.0 word scoreMap) words
+scoreSentenceHelper words scoreMap -- just use 1grams for now
+ = sum $ map (\word -> M.findWithDefault 0.0 word scoreMap) words
 
-safeLookup key alist =
-  fromMaybe 0 $ lookup key alist
- 
+safeLookup key alist = fromMaybe 0 $ lookup key alist
+
 scoreSentenceByBestCategories words catDataMaps bestCategories =
-  map (\(category, aMap) -> 
-        (category, safeLookup category bestCategories * 
-                   scoreSentenceHelper words aMap)) catDataMaps
+  map
+    (\(category, aMap) ->
+       ( category
+       , safeLookup category bestCategories * scoreSentenceHelper words aMap))
+    catDataMaps
 
-scoreForSentence words catDataMaps bestCategories =  
+scoreForSentence words catDataMaps bestCategories =
   sum $ map snd $ scoreSentenceByBestCategories words catDataMaps bestCategories
 
 summarize s =
   let words = splitWords $ cleanText s
       bestCats = bestCategories words
       sentences = segment s
-      result1grams = map (\sentence ->
-                           (sentence,
-                            scoreForSentence (splitWords sentence)
-                                             onegrams bestCats)) 
-                         sentences
-      result2grams = map (\sentence ->
-                           (sentence,
-                            scoreForSentence (bigram_s (splitWords sentence))
-                                             twograms bestCats)) 
-                         sentences
-      mergedResults = M.toList $ M.unionWith (+)
-                      (M.fromList result1grams) (M.fromList result1grams)
-      c400 = filter (\(sentence, score) -> score > 400) mergedResults
-      c300 = filter (\(sentence, score) -> score > 300) mergedResults
-      c200 = filter (\(sentence, score) -> score > 200) mergedResults
-      c100 = filter (\(sentence, score) -> score > 100) mergedResults
-      c000 = mergedResults in
-  if not (null c400) then c400 else if not (null c300) then c300 else if not (null c200) then c200 else if not (null c100) then c100 else c000
+      result1grams =
+        map
+          (\sentence ->
+             ( sentence
+             , scoreForSentence (splitWords sentence) onegrams bestCats))
+          sentences
+      result2grams =
+        map
+          (\sentence ->
+             ( sentence
+             , scoreForSentence
+                 (bigram_s (splitWords sentence))
+                 twograms
+                 bestCats))
+          sentences
+      mergedResults =
+        filter (\(s, v) -> v > 0.05) $
+        M.toList $
+        M.unionWith (+) (M.fromList result1grams) (M.fromList result1grams)
+      c400 = filter (\(sentence, score) -> score > 10) mergedResults
+      c300 = filter (\(sentence, score) -> score > 7) mergedResults
+      c280 = filter (\(sentence, score) -> score > 4) mergedResults
+      c250 = filter (\(sentence, score) -> score > 3) mergedResults
+      c200 = filter (\(sentence, score) -> score > 2) mergedResults
+      c100 = filter (\(sentence, score) -> score > 1) mergedResults
+      c050 = filter (\(sentence, score) -> score > 0.5) mergedResults
+      c000 = mergedResults
+   in if (not (null c400)) && (length c400) > 1 && (length c400) < 3
+        then c400
+        else if (not (null c300)) && (length c300) > 1 && (length c300) < 3
+               then c300
+               else if not (null c280) && (length c280) > 1 && (length c280) < 3
+                      then c280
+                      else if not (null c250) &&
+                              (length c250) > 1 && (length c250) < 3
+                             then c250
+                             else if not (null c200) &&
+                                     (length c200) > 1 && (length c200) < 3
+                                    then c200
+                                    else if not (null c100) &&
+                                            (length c100) > 1 &&
+                                            (length c100) < 3
+                                           then c100
+                                           else if not (null c050) &&
+                                                   (length c050) > 1 &&
+                                                   (length c050) < 3
+                                                  then c050
+                                                  else if (length mergedResults) <
+                                                          3
+                                                         then c000
+                                                         else [ head
+                                                                  mergedResults
+                                                              , (head . tail)
+                                                                  mergedResults
+                                                              ]
 
 summarizeS s =
-  let a = replace "\"" "'" $ concatMap (\x -> fst x ++ " ") $ summarize s in
-  if not (null a) then a else safeFirst $ segment s where
-    safeFirst x 
+  let a =
+        replace "\"" "'" $
+        replace "\n" " " $ concatMap (\x -> fst x ++ " ") $ summarize s
+   in init $
+      if not (null a)
+        then a
+        else safeFirst $ segment s
+  where
+    safeFirst x
       | length x > 1 = head x ++ x !! 1
-      | not (null x)   = head x
-      | otherwise    = ""
-      
-main = do     
-  let s = "Plunging European stocks, wobbly bonds and grave concerns about the health of Portuguese lender Banco Espirito Santo SA made last week feel like a rerun of the euro crisis, but most investors say it was no more than a blip for a resurgent region. Banco Espirito Santo has been in investors’ sights since December, when The Wall Street Journal first reported on accounting irregularities at the complex firm. Nerves frayed on Thursday when Banco Espirito Santo's parent company said it wouldn't be able to meet some short-term debt obligations."
+      | not (null x) = head x
+      | otherwise = " "
+
+main = do
+  let s =
+        "Plunging European stocks, wobbly bonds and grave concerns about the health of Portuguese lender Banco Espirito Santo SA made last week feel like a rerun of the euro crisis, but most investors say it was no more than a blip for a resurgent region. Banco Espirito Santo has been in investors' sights since December, when The Wall Street Journal first reported on accounting irregularities at the complex firm. Nerves frayed on Thursday when Banco Espirito Santo's parent company said it wouldn't be able to meet some short-term debt obligations."
   print $ summarize s
   print $ summarizeS s
+```
 ```
 
 Lazy evaluation allows us in function **summarize** to define summaries of various numbers of sentences, but not all of these possible summaries are calculated.
@@ -558,11 +598,16 @@ Function **bigram** takes a list or words and returns a list of word pairs. We n
 Here is the entire example:
 
 ```haskell{line-numbers: true}
+-- | A simplified Brill part-of-speech (POS) tagger.
+-- Uses a small set of transformation rules to correct initial tag
+-- assignments derived from a static lexicon. Based on Eric Brill's
+-- rule-based approach to POS tagging.
 module Main where
 
 import qualified Data.Map as M
 import Data.Strings (strEndsWith, strStartsWith)
 import Data.List (isInfixOf)
+import Data.Char (toLower)
 
 import LexiconData (lexicon)
 
@@ -571,8 +616,11 @@ bigram [] = []
 bigram [_] = []
 bigram xs = take 2 xs : bigram (tail xs)
 
+containsString :: String -> String -> Bool
 containsString word substring = isInfixOf substring word
 
+
+fixTags :: [[[String]]] -> [String]
 fixTags twogramList =
   map
   -- in the following inner function, [last,current] might be bound,
@@ -600,20 +648,19 @@ fixTags twogramList =
             -- rule 5: convert a common noun (NN or NNS) to an
             --         adjective if it ends with "al"
             if strStartsWith (current !! 1) "NN" &&
-               strEndsWith (current !! 1) "al"
+               strEndsWith (current !! 0) "al"
             then "JJ"
             else
               -- rule 6: convert a noun to a verb if the preceeding
               --         word is "would"
               if strStartsWith (current !! 1) "NN" &&
-                 (last !! 0) == "would" -- should be case insensitive
+                 map toLower (last !! 0) == "would"
               then "VB"
               else
                 -- rule 7: if a word has been categorized as a
                 --         common noun and it ends with "s",
                 --         then set its type to plural common noun (NNS)
-                if strStartsWith (current !! 1) "NN" &&
-                   strEndsWith (current !! 0) "s"
+                if strStartsWith (current !! 1) "NN" && strEndsWith (current !! 0) "s"
                 then "NNS"
                 else
                   -- rule 8: convert a common noun to a present
@@ -624,15 +671,19 @@ fixTags twogramList =
                   else (current !! 1))
  twogramList
   
+substitute :: [String] -> [[[String]]]
 substitute tks = bigram $ map tagHelper tks
 
+tagHelper :: String -> [String]
 tagHelper token =
   let tags = M.findWithDefault [] token lexicon in
   if tags == [] then [token, "NN"] else [token, tags]
 
+tag :: [String] -> [String]
 tag tokens = fixTags $ substitute ([""] ++ tokens)
 
 
+main :: IO ()
 main = do
   let tokens = ["the", "dog", "ran", "around", "the", "tree", "while",
                 "the", "cat", "snaked", "around", "the", "trunk",

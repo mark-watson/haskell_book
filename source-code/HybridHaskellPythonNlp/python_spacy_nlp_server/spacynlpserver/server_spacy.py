@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Coreference resolution server example.
-A simple server serving the coreference system.
-
-This file is copied and modified from an example
-program from https://github.com/huggingface/neuralcoref
+"""SpaCy NLP entity extraction and tokenization server.
+A simple server providing NLP entity extraction and tokenization via spaCy.
 
 """
 from __future__ import unicode_literals
 from __future__ import print_function
 
 import json
+from urllib.parse import unquote
 from wsgiref.simple_server import make_server
 import falcon
 import spacy
@@ -19,7 +17,7 @@ unicode_ = str      # Python 3
 
 class AllResource(object):
     def __init__(self):
-        self.nlp = spacy.load('en')
+        self.nlp = spacy.load('en_core_web_sm')
         print("Server loaded")
         self.response = None
 
@@ -31,7 +29,7 @@ class AllResource(object):
             
             text = ",".join(text_param) if isinstance(text_param, list) else text_param
             text = unicode_(text)
-            text = text.replace("%20", " ").replace("%3B", ";").replace("%2C", ",").replace("%3A", ":").replace("%24","$").replace("%2C",",")
+            text = unquote(text)
             print("** text=", text)
             doc = self.nlp(text)
             #print("** doc=", doc)
@@ -47,5 +45,5 @@ if __name__ == '__main__':
     RESSOURCE = AllResource()
     APP = falcon.API()
     APP.add_route('/', RESSOURCE)
-    HTTPD = make_server('0.0.0.0', 8008, APP)
+    HTTPD = make_server('127.0.0.1', 8008, APP)
     HTTPD.serve_forever()

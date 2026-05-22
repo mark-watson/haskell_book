@@ -5,25 +5,27 @@ module Main where
 
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.List (nub)
-import Control.Monad (guard)
+
 
 -- ==========================================
 -- 1. RDF Data Types
 -- ==========================================
 
--- A Node can be an IRI (URI), a Literal string, or a Blank Node
+-- | A Node can be an IRI (URI), a Literal string, or a Blank Node.
 data Node
   = IRI String
   | Lit String
   | BNode Int
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
-instance Show Node where
-  show (IRI s)   = "<" ++ s ++ ">"
-  show (Lit s)   = "\"" ++ s ++ "\""
-  show (BNode i) = "_:b" ++ show i
+-- | Format an RDF Node for display using standard N-Triples notation.
+-- Use this instead of 'show' when producing human-readable output.
+formatNode :: Node -> String
+formatNode (IRI s)   = "<" ++ s ++ ">"
+formatNode (Lit s)   = "\"" ++ s ++ "\""
+formatNode (BNode i) = "_:b" ++ show i
 
 -- An RDF Triple: (Subject, Predicate, Object)
 type Triple = (Node, Node, Node)
@@ -170,5 +172,5 @@ printTable :: [String] -> [[Node]] -> IO ()
 printTable headers rows = do
   putStrLn $ unwords headers
   putStrLn $ replicate (length (unwords headers) + 5) '-'
-  mapM_ (putStrLn . unwords . map show) rows
+  mapM_ (putStrLn . unwords . map formatNode) rows
 

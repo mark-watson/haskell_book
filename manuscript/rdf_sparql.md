@@ -36,27 +36,27 @@ module Main where
 
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.List (nub)
 
-import Text.ParserCombinators.ReadP
-import Data.Char (isSpace, isAlphaNum)
 
 -- ==========================================
 -- 1. RDF Data Types
 -- ==========================================
 
--- A Node can be an IRI (URI), a Literal string, or a Blank Node
+-- | A Node can be an IRI (URI), a Literal string, or a Blank Node.
 data Node
   = IRI String
   | Lit String
   | BNode Int
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
-instance Show Node where
-  show (IRI s)   = "<" ++ s ++ ">"
-  show (Lit s)   = "\"" ++ s ++ "\""
-  show (BNode i) = "_:b" ++ show i
+-- | Format an RDF Node for display using standard N-Triples notation.
+-- Use this instead of 'show' when producing human-readable output.
+formatNode :: Node -> String
+formatNode (IRI s)   = "<" ++ s ++ ">"
+formatNode (Lit s)   = "\"" ++ s ++ "\""
+formatNode (BNode i) = "_:b" ++ show i
 
 -- An RDF Triple: (Subject, Predicate, Object)
 type Triple = (Node, Node, Node)
@@ -142,82 +142,7 @@ runQuery graph query =
     nub $ map project allBindings
 
 -- ==========================================
--- 4. SPARQL Parser
--- ==========================================
-
--- | Parses a SPARQL query string into a SelectQuery
-parseQuery :: String -> Either String SelectQuery
-parseQuery input = 
-  case readP_to_S parser input of
-    [(q, "")] -> Right q
-    [(q, rest)] | all isSpace rest -> Right q
-    _ -> Left "Parse error"
-  where
-    parser :: ReadP SelectQuery
-    parser = do
-      skipSpaces
-      _ <- stringCI "SELECT"
-      skipSpaces
-      vs <- many1 (skipSpaces >> parseVarName)
-      skipSpaces
-      _ <- stringCI "WHERE"
-      skipSpaces
-      _ <- char '{'
-      skipSpaces
-      pats <- sepBy parseTriplePattern (skipSpaces >> optional (char '.') >> skipSpaces)
-      skipSpaces
-      _ <- char '}'
-      return $ Select vs pats
-
-    stringCI :: String -> ReadP String
-    stringCI str = traverse (\c -> satisfy (\x -> toLower x == toLower c)) str
-      where toLower x = if 'A' <= x && x <= 'Z' then toEnum (fromEnum x + 32) else x
-
-    parseVarName :: ReadP String
-    parseVarName = do
-      _ <- char '?'
-      munch1 isAlphaNum
-
-    parseTriplePattern :: ReadP TriplePattern
-    parseTriplePattern = do
-      s <- parseQueryNode
-      skipSpaces
-      p <- parseQueryNode
-      skipSpaces
-      o <- parseQueryNode
-      return $ TP s p o
-
-    parseQueryNode :: ReadP QueryNode
-    parseQueryNode = parseVar <++ parseTerm
-
-    parseVar :: ReadP QueryNode
-    parseVar = QVar <$> parseVarName
-
-    parseTerm :: ReadP QueryNode
-    parseTerm = QTerm <$> (parseIRI <++ parseLit <++ parseSimpleIRI)
-
-    parseIRI :: ReadP Node
-    parseIRI = do
-      _ <- char '<'
-      content <- munch (/= '>')
-      _ <- char '>'
-      return $ IRI content
-
-    -- Support for simple words as IRIs (e.g., "likes" instead of "<likes>")
-    parseSimpleIRI :: ReadP Node
-    parseSimpleIRI = do
-      content <- munch1 isAlphaNum
-      return $ IRI content
-
-    parseLit :: ReadP Node
-    parseLit = do
-      _ <- char '"'
-      content <- munch (/= '"')
-      _ <- char '"'
-      return $ Lit content
-
--- ==========================================
--- 5. Example Data and Usage
+-- 4. Example Data and Usage
 -- ==========================================
 
 -- Helpers to make data entry cleaner
@@ -244,33 +169,41 @@ main = do
   putStrLn "--- RDF Store Loaded ---"
   mapM_ print myGraph
   
-  let queries = 
-        [ ("Query 1: Select ?s ?o where { ?s likes ?o }", 
-           "SELECT ?s ?o WHERE { ?s likes ?o }")
-        , ("Query 2: Select ?who where { ?who likes <Bob> }", 
-           "SELECT ?who WHERE { ?who likes <Bob> }")
-        , ("Query 3 (Join): Who likes someone who likes them back?", 
-           "SELECT ?a ?b WHERE { ?a likes ?b . ?b likes ?a }")
-        ]
+  putStrLn "\n--- Query 1: Select ?s ?o where { ?s likes ?o } ---"
+  let q1 = Select 
+        { vars = ["s", "o"]
+        , whereClause = 
+            [ TP (QVar "s") (QTerm (iri "likes")) (QVar "o") 
+            ]
+        }
+  printTable ["?s", "?o"] (runQuery myGraph q1)
 
-  mapM_ runAndPrint queries
+  putStrLn "\n--- Query 2: Select ?who where { ?who likes <Bob> } ---"
+  let q2 = Select 
+        { vars = ["who"]
+        , whereClause = 
+            [ TP (QVar "who") (QTerm (iri "likes")) (QTerm (iri "Bob")) 
+            ]
+        }
+  printTable ["?who"] (runQuery myGraph q2)
 
-runAndPrint :: (String, String) -> IO ()
-runAndPrint (desc, qStr) = do
-  putStrLn $ "\n--- " ++ desc ++ " ---"
-  case parseQuery qStr of
-    Left err -> putStrLn $ "Error parsing query: " ++ err
-    Right q -> do
-      let results = runQuery myGraph q
-      let headers = map ("?" ++) (vars q)
-      printTable headers results
+  putStrLn "\n--- Query 3 (Join): Who likes someone who likes them back? ---"
+  -- SPARQL: SELECT ?a ?b WHERE { ?a likes ?b . ?b likes ?a }
+  let q3 = Select 
+        { vars = ["a", "b"]
+        , whereClause = 
+            [ TP (QVar "a") (QTerm (iri "likes")) (QVar "b")
+            , TP (QVar "b") (QTerm (iri "likes")) (QVar "a")
+            ]
+        }
+  printTable ["?a", "?b"] (runQuery myGraph q3)
 
 -- Utility to print results nicely
 printTable :: [String] -> [[Node]] -> IO ()
 printTable headers rows = do
   putStrLn $ unwords headers
   putStrLn $ replicate (length (unwords headers) + 5) '-'
-  mapM_ (putStrLn . unwords . map show) rows
+  mapM_ (putStrLn . unwords . map formatNode) rows
 ```
 
 The engine relies on a pattern-matching approach where **TriplePattern** objects are compared against concrete triples in the store to build a **Binding** map. The **matchTriple** function acts as the gatekeeper: it checks if a specific triple fits the constraints of the pattern (e.g., matching a specific Subject IRI) and updates the variable bindings (like **?s** or **?o**) accordingly. Because the queries are constructed as Haskell data types—shown in the main function alongside the commented-out SPARQL strings they represent—the compiler ensures the structure of the query is valid before the program even runs, bypassing the complexity of text parsing entirely.
@@ -314,36 +247,6 @@ Build profile: -w ghc-9.6.7 -O1
 ----------
 <Alice> <Bob>
 <Bob> <Alice>
-Marks-Mac-mini:rdf_sparql $ cabal run simple-rdf
---- RDF Store Loaded ---
-(<Alice>,<likes>,<Bob>)
-(<Alice>,<likes>,<Pizza>)
-(<Bob>,<likes>,<Alice>)
-(<Bob>,<likes>,<Pasta>)
-(<Charlie>,<likes>,<Bob>)
-(<Alice>,<age>,"25")
-(<Bob>,<age>,"28")
-
---- Query 1: Select ?s ?o where { ?s likes ?o } ---
-?s ?o
-----------
-<Alice> <Bob>
-<Alice> <Pizza>
-<Bob> <Alice>
-<Bob> <Pasta>
-<Charlie> <Bob>
-
---- Query 2: Select ?who where { ?who likes <Bob> } ---
-?who
----------
-<Alice>
-<Charlie>
-
---- Query 3 (Join): Who likes someone who likes them back? ---
-?a ?b
-----------
-<Alice> <Bob>
-<Bob> <Alice>
 ```
 
 ## In-memory Example Using a Simplified SPARQL Query Syntax
@@ -358,27 +261,29 @@ module Main where
 
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.List (nub)
 
 import Text.ParserCombinators.ReadP
-import Data.Char (isSpace, isAlphaNum)
+import Data.Char (isSpace, isAlphaNum, toLower)
 
 -- ==========================================
 -- 1. RDF Data Types
 -- ==========================================
 
--- A Node can be an IRI (URI), a Literal string, or a Blank Node
+-- | A Node can be an IRI (URI), a Literal string, or a Blank Node.
 data Node
   = IRI String
   | Lit String
   | BNode Int
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
-instance Show Node where
-  show (IRI s)   = "<" ++ s ++ ">"
-  show (Lit s)   = "\"" ++ s ++ "\""
-  show (BNode i) = "_:b" ++ show i
+-- | Format an RDF Node for display using standard N-Triples notation.
+-- Use this instead of 'show' when producing human-readable output.
+formatNode :: Node -> String
+formatNode (IRI s)   = "<" ++ s ++ ">"
+formatNode (Lit s)   = "\"" ++ s ++ "\""
+formatNode (BNode i) = "_:b" ++ show i
 
 -- An RDF Triple: (Subject, Predicate, Object)
 type Triple = (Node, Node, Node)
@@ -450,22 +355,41 @@ evaluatePatterns graph (pat:pats) = do
 
 -- | The main entry point for running a query.
 -- It evaluates the WHERE clause and then projects only the requested SELECT variables.
+-- Any SELECT variable that does not appear in a WHERE pattern is flagged as an error.
 runQuery :: Graph -> SelectQuery -> [[Node]]
-runQuery graph query =
-  let 
-    -- 1. Find all valid bindings for the WHERE clause
-    -- We reverse the patterns because the list monad naturally processes right-to-left 
-    -- in the recursion above, but we want left-to-right evaluation flow.
-    allBindings = evaluatePatterns graph (reverse $ whereClause query)
-    
-    -- 2. Project specific variables (SELECT ?s ?o)
-    project binding = map (\v -> fromMaybe (Lit "NULL") (Map.lookup v binding)) (vars query)
-  in
-    nub $ map project allBindings
+runQuery graph query
+  | not (null unboundVars) =
+      error $ "SELECT variable(s) not bound in WHERE clause: " ++
+              unwords (map ('?':) unboundVars)
+  | otherwise =
+      let
+        -- 1. Find all valid bindings for the WHERE clause
+        -- We reverse the patterns because the list monad naturally processes right-to-left
+        -- in the recursion above, but we want left-to-right evaluation flow.
+        allBindings = evaluatePatterns graph (reverse $ whereClause query)
+
+        -- 2. Project specific variables (SELECT ?s ?o)
+        project binding = map (\v -> fromMaybe (Lit "NULL") (Map.lookup v binding)) (vars query)
+      in
+        nub $ map project allBindings
+  where
+    -- Collect all variable names that appear in WHERE triple patterns
+    patternVars = nub [v | TP s p o <- whereClause query, QVar v <- [s, p, o]]
+    unboundVars = filter (`notElem` patternVars) (vars query)
 
 -- ==========================================
 -- 4. SPARQL Parser
 -- ==========================================
+--
+-- Limitations of this simplified SPARQL grammar:
+--   * Only SELECT queries are supported (no ASK, CONSTRUCT, DESCRIBE).
+--   * No OPTIONAL, UNION, FILTER, BIND, or sub-queries.
+--   * No prefix declarations — IRIs must be written in full (<…>) or as
+--     bare alphanumeric words (which are treated as IRIs).
+--   * Literal values must be double-quoted strings; no language tags or
+--     datatype IRIs.
+--   * Triple patterns are separated by optional dots; no semicolon or
+--     comma shortcuts.
 
 -- | Parses a SPARQL query string into a SelectQuery
 parseQuery :: String -> Either String SelectQuery
@@ -493,7 +417,6 @@ parseQuery input =
 
     stringCI :: String -> ReadP String
     stringCI str = traverse (\c -> satisfy (\x -> toLower x == toLower c)) str
-      where toLower x = if 'A' <= x && x <= 'Z' then toEnum (fromEnum x + 32) else x
 
     parseVarName :: ReadP String
     parseVarName = do
@@ -592,7 +515,7 @@ printTable :: [String] -> [[Node]] -> IO ()
 printTable headers rows = do
   putStrLn $ unwords headers
   putStrLn $ replicate (length (unwords headers) + 5) '-'
-  mapM_ (putStrLn . unwords . map show) rows
+  mapM_ (putStrLn . unwords . map formatNode) rows
 ```
 
 The parseQuery function serves as the new frontend, utilizing monadic parser combinators to decompose the query string. We define a parser that enforces the structural grammar of SPARQL: it expects the **SELECT** keyword followed by variables, and a WHERE clause containing a set of triple patterns enclosed in braces. The use of **sepBy** allows us to parse multiple patterns separated by optional dots, while **stringCI** ensures case-insensitivity for keywords, making the parser robust against minor formatting variations in the input string.
@@ -603,7 +526,7 @@ At the granular level, **parseTriplePattern** constructs the abstract syntax tre
 
 The example program output is :
 
-```test
+```text
 $ cabal run simple-rdf-with-sparql
 
 --- RDF Store Loaded ---

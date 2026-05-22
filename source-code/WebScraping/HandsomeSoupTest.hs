@@ -1,5 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- NOTE: HandsomeSoup and HXT are legacy/unmaintained libraries.
+-- For new projects, consider modern alternatives such as:
+--   * scalpel      — a declarative, CSS-selector-based scraping library
+--   * html-conduit — an HTML parser built on the conduit streaming framework
+--
 -- references: https://github.com/egonSchiele/HandsomeSoup
 --             http://adit.io/posts/2012-04-14-working_with_HTML_in_haskell.html
 
