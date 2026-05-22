@@ -1,0 +1,10 @@
+[project]
+name = "python-coreference-anaphora-resolution-server"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "falcon>=4.2.0",
+    "fastcoref>=2.1.6",
+    "spacy>=3.8.13",
+    "transformers<5.0.0",
+]

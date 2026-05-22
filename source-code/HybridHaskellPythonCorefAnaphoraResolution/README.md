@@ -6,10 +6,6 @@
 
 Demonstrates a hybrid architecture where a Haskell client calls a Python server that performs coreference and anaphora resolution using a BERT model with the spaCy NLP library. This is a practical example of combining Haskell's strengths in data processing with Python's rich ML ecosystem.
 
-## Prerequisites
-
-1. Start the Python server first — see `python_coreference_anaphora_resolution_server/README.md` for setup instructions.
-2. The Python server uses BERT and spaCy, so those dependencies must be installed in the Python environment.
 
 ![Hybrid Haskell-Python coreference resolution architecture](FIG_HybridHaskellPythonCorefAnaphoraResolution.jpg)
 
@@ -18,7 +14,7 @@ Demonstrates a hybrid architecture where a Haskell client calls a Python server 
 ```bash
 # In one terminal: start the Python server
 cd python_coreference_anaphora_resolution_server
-# (follow the README instructions there)
+uv run coref_server.py
 
 # In another terminal: run the Haskell client
 stack build --fast --exec HybridHaskellPythonCorefAnaphoraResolution-exe
