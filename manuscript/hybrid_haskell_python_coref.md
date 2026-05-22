@@ -27,37 +27,21 @@ In this example notice that the words "He" and "it" in the second sentence are r
 
 ## Installing the Python Coreference Server
 
-I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. If you want to install the **neuralcoref** library using **pip** you must use and older version of **spaCy**. First install the dependencies:
+I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions. We use the **uv** tool to manage dependencies and run the server.
+
+The server code is in the subdirectory **source-code/HybridHaskellPythonCorefAnaphoraResolution/python_coreference_anaphora_resolution_server**.
+
+First, download the spaCy language model using `uv run`:
 
 ```{line-numbers: false}
-pip install spacy==2.1.0
-pip install neuralcoref 
-pip install falcon
+cd source-code/HybridHaskellPythonCorefAnaphoraResolution/python_coreference_anaphora_resolution_server
+uv run python -m spacy download en_core_web_sm
 ```
 
-As I write this chapter the *neuralcoref* model and library require a old version of **spaCy**.
-
-If you want to instead use the latest version of **spaCy** then install **neuralcoref** from source:
+Then run the server:
 
 ```{line-numbers: false}
-pip install spacy
-git clone https://github.com/huggingface/neuralcoref.git
-cd neuralcoref
-python setup.py install
-pip install falcon
-```
-
-After installing all dependencies, then change directory to the subdirectory **python_coreference_anaphora_resolution_server** and install the coref server:
-
-```{line-numbers: false}
-cd python_coreference_anaphora_resolution_server
-python setup.py install
-```
-
-Once you install the server, you can run it from any directory on your laptop or server using:
-
-```{line-numbers: false}
-corefserver
+uv run coref_server.py
 ```
 
 I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use as REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.

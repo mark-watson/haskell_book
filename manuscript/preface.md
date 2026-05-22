@@ -6,10 +6,9 @@ It took me over a year learning Haskell before I became comfortable with the lan
 
 - **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
 - **HybridHaskellPythonNlp** is a hybrid project: a Python web service that provides access to the SpaCy natural language processing (NLP) library and select NLP deep learning models and a Haskell client for accessing this service.
-- **HybridHaskellPythonCorefAnaphoraResolution** that uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to.
-- Use of Large Language Models (LLMs) form OpenAI.
+- **HybridHaskellPythonCorefAnaphoraResolution** uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to.
 
-I have also added chapters on using the OpenAI LLM APIs and the Brave search APIs.
+I have also added chapters on using Large Language Models (OpenAI, Google Gemini, and local Ollama LLMs) and the Brave search APIs.
 
 ## Requests from the Author
 
@@ -39,15 +38,18 @@ After working through these tutorial chapters you will understand enough of Hask
 The second section contains the following recipes implemented as complete programs:
 
 - Using the OpenAI LLM APIs
+- Using the Google Gemini API (including integration in web applications)
+- Using local LLMs via Ollama
 - Using the Brave search APIs
 - Textprocessing CSV Files
 - Textprocessing JSON Files
-- Natural Language Processing (NLP) interface to relational databases, including annotating English text with Wikipedia/DBPedia URIs for entities in the original text. Entities can be people, places, organizations, etc.
+- Natural Language Processing (NLP) tools
 - Accessing and Using Linked Data
 - Querying Semantic Web RDF Data Sources
 - Web scraping data on web sites
 - Using Sqlite and Postgres relational databases
-- Play a simple version of Blackjack card game
+- Working with Dataframes in Haskell
+- Playing a simple version of the Blackjack card game
 
 
 ## Code Examples

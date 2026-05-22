@@ -25,32 +25,24 @@ There is some overlap in functionality between the Python SpaCy NLP library and 
 
 ## Setting up the Python NLP Server
 
-I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions assuming that you have the utilities **pip**, and **python** installed. I recommend installing Python and Pip using [Anaconda](https://anaconda.org/anaconda/conda).
+I assume that you have some familiarity with using Python. If not, you will still be able to follow these directions. We use the **uv** tool to manage dependencies and run the server.
 
-The server code is in the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** where you will work when performing a one time initialization. After the server is installed you can then run it from the command line from any directory on your laptop.
+The server code is in the subdirectory **source-code/HybridHaskellPythonNlp/python_spacy_nlp_server**.
 
-I recommend that you use virtual Python environments when using Python applications to separate the dependencies required for each application or development project. Here I assume that you are running in a Python version 3.6 (or higher) version environment. First install the dependencies:
-
-```{line-numbers: false}
-pip install -U spacy
-python -m spacy download en
-pip install falcon
-```
-
-Then change directory to the subdirectory **HybridHaskellPythonNlp/python_spacy_nlp_server** and install the NLP server:
+First, download the spaCy language model using `uv run`:
 
 ```{line-numbers: false}
-cd HybridHaskellPythonNlp/python_spacy_nlp_server
-python setup.py install
+cd source-code/HybridHaskellPythonNlp/python_spacy_nlp_server
+uv run python -m spacy download en
 ```
 
-Once you install the server, you can run it from any directory on your laptop or server using:
+Then run the server:
 
 ```{line-numbers: false}
-spacynlpserver
+uv run server_spacy.py
 ```
 
-I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use a REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
+I use deep learning models written in Python using TensorFlow or PyTorch in applications I write in Haskell or Common Lisp. While it is possible to directly embed models in Haskell and Common Lisp, I find it much easier and developer friendly to wrap deep learning models I use as REST services as I have done here. Often deep learning models only require about a gigabyte of memory and using pre-trained models has lightweight CPU resource needs so while I am developing on my laptop I might have two or three models running and available as wrapped REST services. For production, I configure both the Python services and my Haskell and Common Lisp applications to start automatically on system startup.
 
 This is not a Python programming book and I will not discuss the simple Python wrapping code but if you are also a Python developer you can easily read and understand the code.
 

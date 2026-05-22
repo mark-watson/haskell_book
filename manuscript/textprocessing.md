@@ -4,8 +4,6 @@ In my work in data science and machine learning, processing text is a core activ
 
 We will cover three useful techniques: parsing and using CSV (comma separated values) spreadsheet files, parsing and using JSON data, and cleaning up natural language text that contains noise characters.
 
-![Text Processing Pipeline Architecture](FIG_TextProcessing.jpg)
-
 ## CSV Spreadsheet Files
 
 The comma separated values (CSV) format is a plain text format that all spreadsheet applications support. The following example illustrates two techniques that we haven't covered yet:
@@ -14,6 +12,8 @@ The comma separated values (CSV) format is a plain text format that all spreadsh
 - Using destructuring to concisely extract parts of a list.
 
 The **Either** type *Either a b* contains either a *Left a* or a *Right b* value and is usually used to return an error in **Left** or a value in **Right**. The **Text.CSV.parseCSVFromFile** function reads a CSV file and returns a **Left** error or the data in the spreadsheet in a list as the **Right** value. We use a **case** expression to pattern match on the result.
+
+![Text Processing Pipeline Architecture](FIG_TextProcessing.jpg)
 
 The destructuring trick in line 21 in the following listing lets us separate the head and rest of a list in one operation; for example:
 
