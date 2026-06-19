@@ -15,6 +15,7 @@ build:
 	cd TextProcessing; stack build
 	cd Timers; stack build
 	cd WebScraping; cabal build
+	cd webkit-haskell; cabal build
 	echo "There may be problems compiling the getenerated LexData source files in LexiconData.hs:"
 	cd FastTag; stack build
 

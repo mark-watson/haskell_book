@@ -6,6 +6,7 @@ tutorial-impure.md
 section2.md
 openai.md
 webgemini.md
+webkit.md
 gemini.md
 ollama.md
 brave_search.md
