@@ -16,6 +16,8 @@ build:
 	cd Timers; stack build
 	cd WebScraping; cabal build
 	cd webkit-haskell; cabal build
+	cd Bridge_game; cabal build
+	cd Bridge_webkit; cabal build
 	echo "There may be problems compiling the getenerated LexData source files in LexiconData.hs:"
 	cd FastTag; stack build
 

@@ -1,0 +1,5 @@
+resolver: lts-22.26
+packages:
+- .
+- ../Bridge_game
+- ../webkit-haskell

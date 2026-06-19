@@ -1,0 +1,25 @@
+cabal-version:       2.4
+name:                bridge-webkit
+version:             0.1.0.0
+synopsis:            WebKit-based GUI for the Rubber Bridge Game
+description:         A beautiful graphical interface for the Haskell Rubber Bridge game using webkit-haskell
+license:             Apache-2.0
+license-file:        ../APACHE_LICENSE-2.0.txt
+author:              Mark Watson
+maintainer:          markw@markwatson.com
+build-type:          Simple
+
+executable bridge-webkit
+  main-is:             Main.hs
+  hs-source-dirs:      app
+  build-depends:       base >= 4.7 && < 5
+                     , containers >= 0.6
+                     , random >= 1.1
+                     , aeson >= 1.0
+                     , bytestring >= 0.10
+                     , text >= 1.2
+                     , directory >= 1.3
+                     , bridge-game
+                     , webkit-haskell
+  default-language:    Haskell2010
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall

@@ -12,4 +12,5 @@ machinelearning.md
 webscraping.md
 database.md
 blackjack.md
+Bridge.md
 appendexAtools.md

@@ -1,0 +1,4 @@
+packages:
+  .
+  ../Bridge_game
+  ../webkit-haskell
