@@ -6,7 +6,6 @@ tutorial-impure.md
 section2.md
 openai.md
 webgemini.md
-webkit.md
 gemini.md
 ollama.md
 brave_search.md
@@ -18,8 +17,9 @@ webscraping.md
 database.md
 dataframe.md
 blackjack.md
+webkit.md
 Bridge.md
-Bridge_webscript.md
+Bridge_webkit.md
 section3.md
 kgcreator.md
 hybrid_haskell_python_nlp.md
