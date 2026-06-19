@@ -472,17 +472,28 @@
     transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px));
   }
 
-  .south-hand .card.legal:hover {
-    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(-32px) scale(1.1);
+  /* When it's South's turn to play, lift and highlight legal cards to make them larger */
+  .south-hand.south-turn .card.legal {
+    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px - 18px)) scale(1.12);
+    z-index: 10;
+    border-color: rgba(223, 178, 63, 0.4);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 10px rgba(223, 178, 63, 0.2);
+  }
+
+  /* Hover state for legal cards on South's turn: even larger and glowing */
+  .south-hand.south-turn .card.legal:hover {
+    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(-36px) scale(1.28);
     z-index: 100;
     border-color: var(--gold);
-    box-shadow: 0 0 15px var(--gold);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px var(--gold);
     cursor: pointer;
   }
 
-  .south-hand.playing .card:not(.legal):not(.back) {
-    filter: brightness(0.55);
-    cursor: not-allowed;
+  /* When it's South's turn, make non-legal cards disabled/dimmed and non-interactive */
+  .south-hand.south-turn .card:not(.legal) {
+    filter: brightness(0.4) grayscale(0.5);
+    opacity: 0.5;
+    pointer-events: none; /* Disables hover/clicks */
   }
 
   /* Hidden Hand Styles */
@@ -616,6 +627,19 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Tricks Counter in Current Deal -->
+    <div class="tricks-counter-box" style="margin-top: 12px; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; align-items: center; text-align: center;">
+      <div>
+        <div style="font-size: 0.7em; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.5px;">We (N-S)</div>
+        <div id="tricks-ns" style="font-size: 1.8rem; font-weight: 800; color: var(--gold);">0</div>
+      </div>
+      <div style="font-size: 0.9em; font-weight: 700; color: rgba(255,255,255,0.2);">VS</div>
+      <div>
+        <div style="font-size: 0.7em; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.5px;">Them (E-W)</div>
+        <div id="tricks-ew" style="font-size: 1.8rem; font-weight: 800; color: #f3f4f6;">0</div>
+      </div>
+    </div>
     
     <div class="scorecard-meta">
       <span>Games: <strong id="score-games">0 - 0</strong></span>
@@ -850,9 +874,14 @@
     const trickArea = document.getElementById('trick-area');
     trickArea.innerHTML = '';
 
-    if (!gameState.currentTrick) return;
+    let trickToRender = [];
+    if (gameState.currentTrick && gameState.currentTrick.length > 0) {
+      trickToRender = gameState.currentTrick;
+    } else if (gameState.lastCompletedTrick && gameState.lastCompletedTrick.length > 0) {
+      trickToRender = gameState.lastCompletedTrick;
+    }
 
-    gameState.currentTrick.forEach(played => {
+    trickToRender.forEach(played => {
       const p = played.pcPlayer;
       const card = played.pcCard;
       
@@ -933,10 +962,10 @@
     // 1. South hand
     const southHandDiv = document.getElementById('south-hand');
     southHandDiv.innerHTML = '';
-    if (gameState.phase === "Playing") {
-      southHandDiv.classList.add('playing');
+    if (gameState.phase === "Playing" && gameState.activeActor === "South") {
+      southHandDiv.classList.add('south-turn');
     } else {
-      southHandDiv.classList.remove('playing');
+      southHandDiv.classList.remove('south-turn');
     }
     const sCards = gameState.hands.hlSouth;
     sCards.forEach((code, idx) => {
@@ -1005,6 +1034,8 @@
     document.getElementById('ew-above').textContent = rb.ewAbove;
     document.getElementById('ns-below').textContent = rb.nsBelow;
     document.getElementById('ew-below').textContent = rb.ewBelow;
+    document.getElementById('tricks-ns').textContent = gameState.tricksNs;
+    document.getElementById('tricks-ew').textContent = gameState.tricksEw;
     document.getElementById('score-games').textContent = `${rb.nsGames} - ${rb.ewGames}`;
     
     let vulStr = "None";
@@ -1039,7 +1070,9 @@
       const isLeadHuman = lead === "South" || (lead === "North" && gameState.dummyVisible && gameState.dummy === "North");
 
       let playText = `Contract: <strong>${contr}</strong> by ${decl}${dbl}. `;
-      if (isLeadHuman) {
+      if (gameState.lastCompletedTrick && gameState.lastCompletedTrick.length > 0 && (!gameState.currentTrick || gameState.currentTrick.length === 0)) {
+        playText += `<span class="status-line">${gameState.trickLead} wins the trick!</span>`;
+      } else if (isLeadHuman) {
         playText += `<span class="status-line">Your turn to play! (Select card from ${lead === 'South' ? 'South' : 'North/Dummy'})</span>`;
       } else {
         playText += `Playing phase. ${lead}'s turn to play.`;
@@ -1082,16 +1115,65 @@
       resetBtn.onclick = triggerReset;
       actionsEl.appendChild(resetBtn);
     }
+
+    // Trigger AI turn if needed
+    checkAndTriggerAi();
+  }
+
+  // AI Turn Detection and Timer Controls
+  let aiTimeout = null;
+
+  function isAiTurn(state) {
+    if (state.phase !== "Playing") return false;
+    const actor = state.activeActor;
+    if (!actor) return false;
+    if (actor === "South") return false;
+
+    // North dummy play check:
+    // If North is dummy, and declarer side is 0 (N-S), then human plays North dummy
+    const isNorthDummy = (actor === "North" && state.dummy === "North");
+    const isNsDeclarer = (state.declarer === "North" || state.declarer === "South");
+    if (isNorthDummy && isNsDeclarer) {
+      return false; // South human plays dummy
+    }
+
+    return true; // Any other actor (East, West, or North if E-W won contract) is AI
+  }
+
+  async function triggerAiPlay() {
+    aiTimeout = null;
+    const state = await invokeBackend('ai-play-single', {});
+    if (state) {
+      renderUI(state);
+    }
+  }
+
+  function checkAndTriggerAi() {
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
+    if (isAiTurn(gameState)) {
+      aiTimeout = setTimeout(triggerAiPlay, 2000);
+    }
   }
 
   // FFI action triggering
   async function triggerNextDeal() {
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
     const state = await invokeBackend('next-deal', {});
     renderUI(state);
   }
 
   async function triggerReset() {
     if (confirm("Reset current rubber and deal a new one?")) {
+      if (aiTimeout) {
+        clearTimeout(aiTimeout);
+        aiTimeout = null;
+      }
       const state = await invokeBackend('reset-game', {});
       renderUI(state);
     }

@@ -27,9 +27,10 @@ import System.Directory (doesFileExist)
 -- ---------------------------------------------------------------------------
 
 data ActiveState = ActiveState
-  { currentGameState  :: GameState
-  , currentRubberState :: RubberState
-  , randomGen         :: StdGen
+  { currentGameState   :: GameState
+  , currentRubberState  :: RubberState
+  , randomGen           :: StdGen
+  , lastTrickCards      :: [PlayedCard]
   }
 
 data BidPayload = BidPayload
@@ -43,7 +44,7 @@ data PlayPayload = PlayPayload
 data PlayedCard = PlayedCard
   { pcPlayer :: String
   , pcCard   :: String
-  } deriving (Generic, Aeson.ToJSON)
+  } deriving (Generic, Aeson.ToJSON, Eq, Show)
 
 data BidEntry = BidEntry
   { bePlayer :: String
@@ -58,36 +59,37 @@ data HandList = HandList
   } deriving (Generic, Aeson.ToJSON)
 
 data GameStatePayload = GameStatePayload
-  { phase         :: String
-  , dealer        :: String
-  , vulnerability :: String
-  , humanPlayer   :: String
-  , activeActor   :: Maybe String
-  , hands         :: HandList
-  , originalHands :: HandList
-  , bidHistory    :: [BidEntry]
-  , contract      :: Maybe String
-  , declarer      :: Maybe String
-  , doubled       :: Int
-  , dummy         :: Maybe String
-  , dummyVisible  :: Bool
-  , currentTrick  :: [PlayedCard]
-  , trickLead     :: String
-  , tricksNs      :: Int
-  , tricksEw      :: Int
-  , tricksPlayed  :: Int
-  , trumpSuit     :: Maybe String
-  , rubberState   :: RubberState
-  , legalCards    :: [String]
-  , dealNum       :: Int
+  { phase              :: String
+  , dealer             :: String
+  , vulnerability      :: String
+  , humanPlayer        :: String
+  , activeActor        :: Maybe String
+  , hands              :: HandList
+  , originalHands      :: HandList
+  , bidHistory         :: [BidEntry]
+  , contract           :: Maybe String
+  , declarer           :: Maybe String
+  , doubled            :: Int
+  , dummy              :: Maybe String
+  , dummyVisible       :: Bool
+  , currentTrick       :: [PlayedCard]
+  , lastCompletedTrick :: [PlayedCard]
+  , trickLead          :: String
+  , tricksNs           :: Int
+  , tricksEw           :: Int
+  , tricksPlayed       :: Int
+  , trumpSuit          :: Maybe String
+  , rubberState        :: RubberState
+  , legalCards         :: [String]
+  , dealNum            :: Int
   } deriving (Generic, Aeson.ToJSON)
 
 -- ---------------------------------------------------------------------------
 -- Game State Marshalling
 -- ---------------------------------------------------------------------------
 
-makePayload :: GameState -> RubberState -> Int -> GameStatePayload
-makePayload gs rs dNum =
+makePayload :: GameState -> RubberState -> Int -> [PlayedCard] -> GameStatePayload
+makePayload gs rs dNum lastTrick =
   let
     actor = currentActor gs
     leadSuit = case gs.currentTrick of
@@ -143,6 +145,7 @@ makePayload gs rs dNum =
     , dummy = fmap show gs.dummy
     , dummyVisible = isDummyVis
     , currentTrick = playedCardList
+    , lastCompletedTrick = lastTrick
     , trickLead = show gs.trickLead
     , tricksNs = gs.tricksNs
     , tricksEw = gs.tricksEw
@@ -201,11 +204,42 @@ nextDeal state =
     (gen1, gen2) = split state.randomGen
     gs = newGame dealerVal vul South gen1
     gs' = runAiBidding gs
-    gs'' = if gs'.phase == Playing then runAiPlaying gs' else gs'
   in state
-    { currentGameState = gs''
+    { currentGameState = gs'
     , randomGen = gen2
+    , lastTrickCards = []
     }
+
+-- Helper to apply a card play and transition/score the game step
+playCardAndStep :: Card -> Player -> ActiveState -> ActiveState
+playCardAndStep cardVal actor state =
+  let gsVal = state.currentGameState
+      currentTrick' = (actor, cardVal) : gsVal.currentTrick
+      
+      completedTrick =
+        if length currentTrick' == 4
+        then map (\(p, c) -> PlayedCard (show p) (show c)) (reverse currentTrick')
+        else []
+        
+      gs' = applyCardPlay cardVal gsVal
+      
+      state' =
+        if gs'.phase == Scoring
+        then
+          let
+            rsVal = state.currentRubberState
+            contractVal = maybe (SuitBid 1 NoTrump) id gs'.contract
+            level = case contractVal of SuitBid l _ -> l; _ -> 1
+            strain = case contractVal of SuitBid _ s -> s; _ -> NoTrump
+            declarerVal = maybe South id gs'.declarer
+            doubledVal = gs'.doubled
+            tricksWon = if side declarerVal == 0 then gs'.tricksNs else gs'.tricksEw
+            (rs', _) = scoreRubberDeal level strain tricksWon declarerVal doubledVal rsVal
+            rs'' = rs' { dealsPlayed = rs'.dealsPlayed + 1, currentDealer = nextPlayer rs'.currentDealer }
+          in state { currentGameState = gs', currentRubberState = rs'' }
+        else
+          state { currentGameState = gs' }
+  in state' { lastTrickCards = completedTrick }
 
 -- ---------------------------------------------------------------------------
 -- Bid / Card Input Parsers
@@ -264,12 +298,12 @@ main = do
     initRs = newRubberState
     initGs = newGame North None South initGen1
     initGs' = runAiBidding initGs
-  stateRef <- newIORef (ActiveState initGs' initRs initGen2)
+  stateRef <- newIORef (ActiveState initGs' initRs initGen2 [])
 
   -- Register handlers for Javascript bridge invocations
   registerHandler app "get-state" $ \_ -> do
     state <- readIORef stateRef
-    return $ Aeson.toJSON (makePayload state.currentGameState state.currentRubberState (state.currentRubberState.dealsPlayed + 1))
+    return $ Aeson.toJSON (makePayload state.currentGameState state.currentRubberState (state.currentRubberState.dealsPlayed + 1) state.lastTrickCards)
 
   registerHandler app "bid" $ \payload ->
     case Aeson.fromJSON payload of
@@ -289,14 +323,13 @@ main = do
                  let
                    gs' = applyBid bidVal gsVal
                    gs'' = runAiBidding gs'
-                   gs''' = if gs''.phase == Playing then runAiPlaying gs'' else gs''
                    state' =
-                     if gs'''.phase == Done
+                     if gs''.phase == Done
                      then nextDeal state
-                     else state { currentGameState = gs''' }
+                     else state { currentGameState = gs'', lastTrickCards = [] }
                  writeIORef stateRef state'
                  stateFinal <- readIORef stateRef
-                 return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1))
+                 return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1) stateFinal.lastTrickCards)
                else
                  return $ Aeson.object ["error" Aeson..= ("Bid " ++ bidStr ++ " is not legal." :: String)]
           Nothing ->
@@ -319,29 +352,10 @@ main = do
             let legal = legalPlays (gsVal.hands Map.! act) leadSuit
             case find (\c -> show c == cardStr) legal of
               Just cardVal -> do
-                let
-                  gs' = applyCardPlay cardVal gsVal
-                  gs'' = runAiPlaying gs'
-                  
-                  state' =
-                    if gs''.phase == Scoring
-                    then
-                      let
-                        rsVal = state.currentRubberState
-                        contractVal = maybe (SuitBid 1 NoTrump) id gs''.contract
-                        level = case contractVal of SuitBid l _ -> l; _ -> 1
-                        strain = case contractVal of SuitBid _ s -> s; _ -> NoTrump
-                        declarerVal = maybe South id gs''.declarer
-                        doubledVal = gs''.doubled
-                        tricksWon = if side declarerVal == 0 then gs''.tricksNs else gs''.tricksEw
-                        (rs', _) = scoreRubberDeal level strain tricksWon declarerVal doubledVal rsVal
-                        rs'' = rs' { dealsPlayed = rs'.dealsPlayed + 1, currentDealer = nextPlayer rs'.currentDealer }
-                      in state { currentGameState = gs'', currentRubberState = rs'' }
-                    else
-                      state { currentGameState = gs'' }
+                let state' = playCardAndStep cardVal act state
                 writeIORef stateRef state'
                 stateFinal <- readIORef stateRef
-                return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1))
+                return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1) stateFinal.lastTrickCards)
               Nothing ->
                 return $ Aeson.object ["error" Aeson..= ("Card " ++ cardStr ++ " is not a legal play." :: String)]
           Nothing ->
@@ -349,13 +363,35 @@ main = do
       _ ->
         return $ Aeson.object ["error" Aeson..= ("Invalid play-card payload syntax." :: String)]
 
+  registerHandler app "ai-play-single" $ \_ -> do
+    putStrLn "[Haskell] Received ai-play-single command"
+    state <- readIORef stateRef
+    let gsVal = state.currentGameState
+    case currentActor gsVal of
+      Just actor -> do
+        let isHuman = actor == South
+            isDummy = Just actor == gsVal.dummy
+            declarerSide = fmap side gsVal.declarer
+            humanPlaysDummy = isDummy && (declarerSide == Just 0)
+            humanPlaysThis = isHuman || humanPlaysDummy
+        if humanPlaysThis
+          then return $ Aeson.object ["error" Aeson..= ("It is human's turn to play, not AI." :: String)]
+          else do
+            let cardVal = aiSelectCard (gsVal.hands Map.! actor) (map snd gsVal.currentTrick) gsVal.trickLead gsVal.trumpSuit actor (maybe South id gsVal.declarer)
+                state' = playCardAndStep cardVal actor state
+            writeIORef stateRef state'
+            stateFinal <- readIORef stateRef
+            return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1) stateFinal.lastTrickCards)
+      Nothing ->
+        return $ Aeson.object ["error" Aeson..= ("No active player found." :: String)]
+
   registerHandler app "next-deal" $ \_ -> do
     putStrLn "[Haskell] Received next-deal command"
     state <- readIORef stateRef
     let state' = nextDeal state
     writeIORef stateRef state'
     stateFinal <- readIORef stateRef
-    return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1))
+    return $ Aeson.toJSON (makePayload stateFinal.currentGameState stateFinal.currentRubberState (stateFinal.currentRubberState.dealsPlayed + 1) stateFinal.lastTrickCards)
 
   registerHandler app "reset-game" $ \_ -> do
     putStrLn "[Haskell] Received reset-game command"
@@ -365,8 +401,8 @@ main = do
       rsVal = newRubberState
       gsVal = newGame North None South gen1
       gs' = runAiBidding gsVal
-    writeIORef stateRef (ActiveState gs' rsVal gen2)
-    return $ Aeson.toJSON (makePayload gs' rsVal (rsVal.dealsPlayed + 1))
+    writeIORef stateRef (ActiveState gs' rsVal gen2 [])
+    return $ Aeson.toJSON (makePayload gs' rsVal (rsVal.dealsPlayed + 1) [])
 
   -- Load index.html safely
   htmlPath <- do

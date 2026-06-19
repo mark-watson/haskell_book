@@ -60,13 +60,14 @@ Bridge_webkit/
 
 ## API Bridge Endpoints
 
-Communication between the JS webview and GHC Haskell backend is governed by five JSON-based endpoints registered in `Main.hs`:
+Communication between the JS webview and GHC Haskell backend is governed by six JSON-based endpoints registered in `Main.hs`:
 
 1. **`get-state`**: Queries the current game and scorecard status. Returns a `GameStatePayload` object containing hand lists, bidding history, played trick cards, and active legal card codes.
 2. **`bid`**: Submits a bid string (e.g. `"PASS"`, `"1H"`, `"3NT"`, `"DBL"`). Automatically calculates subsequent AI bids and updates state.
-3. **`play-card`**: Plays a card (e.g. `"AS"`, `"10D"`). Verifies play legality, executes trick/deal score checking, and runs AI responses.
-4. **`next-deal`**: Advances the rubber to the next deal, rotating the dealer and adjusting vulnerability.
-5. **`reset-game`**: Aborts the active rubber, clearing scorecards and dealing new hands.
+3. **`play-card`**: Plays a card (e.g. `"AS"`, `"10D"`). Verifies play legality, and executes trick/deal score checking.
+4. **`ai-play-single`**: Instructs the backend to select and play exactly one card for the current active AI player (West, East, or partner North).
+5. **`next-deal`**: Advances the rubber to the next deal, rotating the dealer and adjusting vulnerability.
+6. **`reset-game`**: Aborts the active rubber, clearing scorecards and dealing new hands.
 
 ---
 
