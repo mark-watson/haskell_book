@@ -850,3 +850,9 @@ This code relies on external modules like `FileUtils`, `GenNeo4jCypher`, `GenTri
 ## Wrap Up for Automating the Creation of Knowledge Graphs
 
 The code in this chapter will provide you with a good start for creating both test knowledge graphs and for generating data for production. In practice, generated data should be reviewed before use and additional data manually generated as needed. It is good practice to document required manual changes because this documentation can be used in the requirements for updating the code in this chapter to more closely match your knowledge graph requirements.
+
+
+## Optional Practice Problems
+
+1. Modify the Knowledge Graph Creator to serialize the built graphs into Turtle (.ttl) format instead of raw triples.
+2. Write a visualization helper that prints a Graphviz DOT representation of the generated entities and their relationships.

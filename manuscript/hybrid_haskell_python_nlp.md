@@ -190,3 +190,9 @@ This code snippet defines a simple interactive application that:
 
 The example in this chapter shows a technique that I often use for using libraries and frameworks that are not written in Haskell: wrap the service implemented in another programming language is a REST web service. While it is possible to use a foreign function interface (FFI) to call out to code written in other languages I find for my own work that I prefer calling out to a separate service especially when I run other services on remote servers so I do not need to run them on my development laptop. For production it is also useful to be able to easily scale horizontally across servers.
 
+
+
+## Optional Practice Problems
+
+1. Expose token lemmatization and dependency parsing functions from the Python SpaCy NLP server, and update the Haskell client to support querying them.
+2. Add failure detection and retry logic in the Haskell client to automatically restart the background Python server process if it encounters a crash.

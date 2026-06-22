@@ -194,3 +194,9 @@ Enriched dataset written to ./data/housing_enriched.csv
 $
 ```
 
+
+
+## Optional Practice Problems
+
+1. Write helper functions to filter the DataFrame rows dynamically based on custom query criteria (e.g., matching a minimum numeric value or string prefix).
+2. Implement functions to compute summary statistics (such as mean, median, and standard deviation) for selected numeric columns within the DataFrame.

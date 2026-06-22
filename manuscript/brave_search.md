@@ -267,3 +267,9 @@ Search suggestions:
 - Title: Lisp (programming language) - Wikipedia | URL: https://en.wikipedia.org/wiki/Lisp_(programming_language) | Description: Scheme is a statically scoped and properly tail-recursive dialect of <strong>the</strong> <strong>Li
 - Title: The Lisp approach to AI (Part 1). If you are a programmer that reads… | by Sebastian Valencia | AI Society | Medium | URL: https://medium.com/ai-society/the-lisp-approach-to-ai-part-1-a48c7385a913 | Description: If you are a programmer that reads about the history and random facts of this lovely craft
 ```
+
+
+## Optional Practice Problems
+
+1. Modify the response data parsing in the BraveSearch client to extract and display the published date/timestamp of each search result if it exists in the JSON payload.
+2. Add query parameter options to allow the user to specify the maximum number of results to fetch (up to 20) via command-line arguments.

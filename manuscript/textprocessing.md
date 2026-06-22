@@ -265,3 +265,9 @@ Ok, modules loaded: Main.
 ```
 
 We will continue working with text in the next chapter.
+
+
+## Optional Practice Problems
+
+1. Implement a configuration parser using the Megaparsec parser combinators library to parse key-value configurations with sections.
+2. Write a text processing utility that counts the frequency of words in a document, ignoring word capitalization and filtering out common stop words.

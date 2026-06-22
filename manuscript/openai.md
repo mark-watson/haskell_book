@@ -225,3 +225,9 @@ The output would look like:
 ```
 ["London","Paris","New York"]
 ```
+
+
+## Optional Practice Problems
+
+1. Modify the OpenAI client library to accept custom temperature and max_tokens generation parameters in configuration settings.
+2. Create an interactive conversation loop in the client application that tracks basic session context to simulate a continuous assistant conversation.

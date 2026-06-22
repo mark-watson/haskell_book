@@ -223,3 +223,9 @@ Scotty is built on top of the efficient WAI (Web Application Interface) standard
  
 This is a simple web app but I hope, dear reader, that it is a useful example and a good jumping off point for your own web app projects. This example also serves as an additional example in this book for using LLM APIs in Haskell applications.
 
+
+
+## Optional Practice Problems
+
+1. Add CSS styling to the Gemini webchat web page layout to support dynamic responsive design and a clean aesthetic.
+2. Add an interactive text field in the web interface to allow dynamic updates to the Gemini agent's system instructions.

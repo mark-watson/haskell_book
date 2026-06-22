@@ -279,3 +279,9 @@ The first section of the code defines several data types using Haskell's derivin
 The main function implements the program's core logic: it retrieves a prompt from command-line arguments and an API key from environment variables, constructs an HTTP request to the Gemini API with proper headers and JSON body, and handles the response. The code uses monadic composition to handle the asynchronous nature of HTTP requests and includes error handling for various failure cases, such as missing arguments, API errors, or malformed responses. The response processing extracts the generated text from the nested data structure and prints it to the console. The code also includes configuration for the AI model's parameters like temperature and maximum output tokens.
 
 
+
+
+## Optional Practice Problems
+
+1. Modify the Gemini command line utility to read prompt inputs directly from a specified text file when requested by the user.
+2. Add support for selecting different official Gemini models (e.g., gemini-1.5-pro vs gemini-1.5-flash) using command-line arguments.

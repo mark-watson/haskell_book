@@ -1229,3 +1229,9 @@ cabal run bridge-game
 ```
 
 When prompted during the bidding phase, enter standard bids (such as `1H`, `1NT`, `PASS`, or `DBL`). During the playing phase, you can select card plays using the index numbers shown on the screen (e.g., `1`, `2`) or short symbols (such as `AS`, `10H`). Typing `Q` or `QUIT` at any prompt exits the game.
+
+
+## Optional Practice Problems
+
+1. Extend the heuristic bidding AI in the Bridge game library to evaluate the vulnerability status (vulnerable vs. non-vulnerable) of all players before choosing a bid.
+2. Write Hspec test assertions under `Bridge_game/test` to verify that contract scoring calculations for trick points match official scoring rules under doubled or redoubled states.

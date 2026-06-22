@@ -338,3 +338,9 @@ Preprocessing executable 'TestPostgres1' for TestDatabase-0.1.0.0...
 
 Postgres is my default database and I use it unless there is a compelling reason not to. While work for specific customers has mandated using alternative data stores (e.g., BigTable while working at Google and MongoDB at Compass Labs), Postgres supports relational tables, free text search, and structured data like JSON.
 
+
+
+## Optional Practice Problems
+
+1. Add schema migration capabilities to the Database SQLite/Postgres code that checks if the required tables and indexes exist before attempting to create them.
+2. Write a batch insertion function that executes a list of database insertions in a single transaction blocks, and measure the performance improvement.

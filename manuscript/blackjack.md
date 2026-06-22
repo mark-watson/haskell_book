@@ -502,3 +502,9 @@ Here the game user has four cards with values of [10,6,3,2] for a winning score 
 
 I hope that you enjoyed this last example that demonstrates a reasonable approach for managing state when using immutable data.
 
+
+
+## Optional Practice Problems
+
+1. Extend the Blackjack card game rules to support 'double-down' and 'split' options in the player's interface.
+2. Implement a persistent storage mechanism to save and load the player's chip balance to/from a local file between game sessions.

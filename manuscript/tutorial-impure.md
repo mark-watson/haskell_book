@@ -1121,3 +1121,10 @@ This is the end of the first section. We will now look at a variety of applicati
 
 While I expect you to have worked through the previous chapters in order, for the rest of the book you can skip around and read the material in any order that you wish.
 
+
+
+## Optional Practice Problems
+
+1. Write an interactive guessing game under `CommandLineApp` that records attempts and persists high scores to a local file.
+2. Develop a TCP client/server program where the server computes the factorial of any integer sent by the client over a socket.
+3. Incorporate debug trace output (`trace` and `traceShow` from `Debug.Trace`) into the prime number generator recursive function and test a timeout wrapper using `System.Timeout`.

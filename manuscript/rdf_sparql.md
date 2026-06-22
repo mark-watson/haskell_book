@@ -568,3 +568,9 @@ These examples illustrate the power of Haskell's monadic structures for modeling
 The progression from manual data type construction to a text-based parser highlights the critical distinction between a query engine and a query language. The first example demonstrated that the execution logic operates purely on the Abstract Syntax Tree (AST), entirely independent of how that tree is created. The second example bridged the gap to usability by adding a combinator-based parser, effectively treating the SPARQL string syntax merely as a serialization format for the internal logic we had already built. This separation of concerns allows the backend to remain stable even as the frontend syntax evolves or expands.
 
 Finally, while the two implementation in this chapter are functionally correct for small datasets, they reveal the performance challenges inherent in graph databases. The nested-loop join strategy employed here performs a linear scan of the graph for every pattern, resulting in exponential time complexity for complex queries. Production-grade triple stores solve this by replacing list-based storage with indexed structures—such as B-Trees or Hexastores (indexing S-P-O, P-O-S, etc.)—to allow constant-time lookups, ensuring that queries remain performant even as the dataset grows into the billions of triples.
+
+
+## Optional Practice Problems
+
+1. Extend the RDF simple store library to perform uniqueness checks on triples before inserting them into the database.
+2. Add support for simple ASK queries (returning a boolean) to verify the existence of specific patterns in the store.

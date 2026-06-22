@@ -285,3 +285,9 @@ cabal run bridge-webkit
 ```
 
 Upon launching, the native macOS window initializes, loads `app/index.html` into the embedded `WKWebView`, and begins the bridge bidding auction!
+
+
+## Optional Practice Problems
+
+1. Update the WebKit Bridge HTML frontend UI to show a prominent visual indicator indicating the current player with the lead, active bidder, and the current trump suit.
+2. Implement a 'Suggest Play' button in the WebKit GUI that queries the backend AI engine to highlight the heuristically recommended card to play next.

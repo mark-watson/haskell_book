@@ -276,3 +276,9 @@ If you enjoyed the material on linked data and DBPedia then please do get a free
 
 Structured and semantically labelled data, when it is available, is much easier to process and use effectively than raw text and HTML collected from web sites.
 
+
+
+## Optional Practice Problems
+
+1. Formulate and run a SPARQL query in the Haskell SparqlClient to query DBpedia for a list of space exploration missions, outputting their launch dates.
+2. Implement a file-based caching layer in your Haskell application that hashes SPARQL query strings and caches the raw XML/JSON query responses locally on disk.

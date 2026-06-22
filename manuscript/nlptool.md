@@ -717,3 +717,9 @@ IN Preposition              of,in,by
 
 NLP is a large topic. I have attempted to show you just the few tricks that I use often and are simple to implement. I hope that you reuse the code in this chapter in your own projects when you need to detect entities, classify text, summarize text, and assign part of speech tags to words in text.
 
+
+
+## Optional Practice Problems
+
+1. Implement a custom, rule-based Named Entity Recognizer (NER) within the NlpTool library to identify common pattern types such as email addresses and phone numbers.
+2. Extend the FastTag part-of-speech tagging code to support reading custom POS tag overrides from a user-defined text dictionary.

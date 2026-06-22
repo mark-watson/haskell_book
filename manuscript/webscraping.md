@@ -118,3 +118,9 @@ https://markwatson.com/privacy.html
 There are many Haskell library options for web scraping and cleaning data. In this chapter I showed you just what I use in my projects.
 
 The material in this chapter and the chapters on text processing and linked data should be sufficient to get you started using online data sources in your applications.
+
+
+## Optional Practice Problems
+
+1. Extend the WebScraping scraper to search for and extract all image source URLs (`<img>` tags) from a target webpage.
+2. Implement a basic polite scraper that enforces a 1-second delay between successive HTTP page requests to prevent server rate limiting.

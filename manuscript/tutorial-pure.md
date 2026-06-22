@@ -1401,3 +1401,10 @@ We will continue to see examples of how lazy evaluation simplifies code because 
 
 In addition to Haskell code generally having fewer errors (after it gets by the compiler!) other advantages of functional programming include more concise code that is easy to read and understand once you get some experience with the language.
 
+
+
+## Optional Practice Problems
+
+1. Implement a function to compute the Fibonacci sequence using lazy evaluation and infinite lists.
+2. Modify the MyColors enum type and update the Hspec test suite under `TestingHaskell` to verify the ascending and descending list sorting operations.
+3. Model a simple state machine for a counter using the State monad with `get` and `put` primitives.

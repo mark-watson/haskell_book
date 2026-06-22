@@ -964,3 +964,9 @@ cabal run webkit-markdown-viewer
 ```
 
 A window opens displaying the current workspace's Markdown files in a side list. Selecting any file will read it from the local disk using Haskell's `readFile` and update the view pane content asynchronously.
+
+
+## Optional Practice Problems
+
+1. Add a dark mode CSS toggle mechanism to the WebKit application using JS injection from Haskell.
+2. Register a message callback handler to capture window/document JavaScript errors and output them to GHC's console stdout.

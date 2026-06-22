@@ -177,3 +177,9 @@ curl http://localhost:11434/api/generate -d '{
   "stream": false
 }'
 ```
+
+
+## Optional Practice Problems
+
+1. Implement an interactive command-line chat session that maintains user and assistant message histories, appending them to subsequent request payloads.
+2. Create a diagnostic system check that tests the availability of the local Ollama API server and prints a clear warning if it is not reachable.
