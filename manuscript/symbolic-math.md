@@ -1,6 +1,6 @@
 # Symbolic Mathematics in Haskell
 
-Symbolic computation manipulates mathematical expressions as data structures rather than as floating-point approximations. When you differentiate \(3x^2 - x + 5\) by hand, you apply the power rule to each term and write \(6x - 1\) — you are doing symbolic math. A numeric approach, by contrast, would estimate the derivative by evaluating the function at two nearby points and dividing. Symbolic computation gives you exact, algebraic results.
+Symbolic computation manipulates mathematical expressions as data structures rather than as floating-point approximations. When you differentiate *3x^2 - x + 5* by hand, you apply the power rule to each term and write *6x - 1* — you are doing symbolic math. A numeric approach, by contrast, would estimate the derivative by evaluating the function at two nearby points and dividing. Symbolic computation gives you exact, algebraic results.
 
 Haskell is a natural fit for symbolic math. Algebraic data types let you model mathematical expressions directly as trees of constructors. Pattern matching lets you write transformation rules that read almost exactly like the rules you learned in calculus. And because coefficients use `Rational` (exact fractions), differentiation and integration produce results with no floating-point drift.
 
@@ -137,7 +137,7 @@ ghci> makeTerm (-1) x 1  -- -x
 ghci> makeTerm 5  x 0    -- constant 5
 ```
 
-The module provides `termNegate` (multiply coefficient by \(-1\)), `termScale` (multiply coefficient by a scalar), and `termToString` for display:
+The module provides `termNegate` (multiply coefficient by *-1*), `termScale` (multiply coefficient by a scalar), and `termToString` for display:
 
 ```haskell
 ghci> termToString (makeTerm 3 x 2)
@@ -291,7 +291,7 @@ differentiateTerm (Term c v n)
 
 The `Maybe` return type handles the case where a term differentiates to zero so we want to drop those terms from the result polynomial rather than storing a zero-coefficient term. This is exactly the pattern the power rule describes:
 
-\[\frac{d}{dx}(c \cdot x^n) = n \cdot c \cdot x^{n-1} \quad \text{for } n \geq 1\]
+*d/dx (c · x^n) = n · c · x^(n-1)* for n ≥ 1
 
 The polynomial-level `differentiate` applies `differentiateTerm` to each term via a local `mapMaybe` helper, then constructs a new normalized polynomial (or the zero polynomial if every term differentiated to zero):
 
@@ -324,7 +324,7 @@ criticalPointP :: Polynomial -> Double -> Double -> Bool
 criticalPointP poly x tolerance = abs (gradientAt poly x) < tolerance
 ```
 
-Let us see the differentiation functions in action. We will use the polynomial \(p = 3x^2 - x + 5\):
+Let us see the differentiation functions in action. We will use the polynomial *p = 3x^2 - x + 5*:
 
 ```haskell
 ghci> let x = makeVariable "x" Real
@@ -349,9 +349,9 @@ ghci> criticalPointP p (1/6) 1e-9
 True
 ```
 
-The critical point check at \(x = 1/6\) returns `True` because \(p'(x) = 6x - 1\) equals zero at \(x = 1/6\). This is the minimum of the parabola.
+The critical point check at *x = 1/6* returns `True` because *p'(x) = 6x - 1* equals zero at *x = 1/6*. This is the minimum of the parabola.
 
-Let us also differentiate \(q = x^4 - 2x^3 + x\) to see higher-degree behavior:
+Let us also differentiate *q = x^4 - 2x^3 + x* to see higher-degree behavior:
 
 ```haskell
 ghci> let q = makePolynomial x
@@ -370,7 +370,7 @@ The module `SymbolicMath.Integration` implements the reverse power rule and the 
 
 The reverse power rule on a single term is:
 
-\[\int c \cdot x^n \, dx = \frac{c}{n+1} \cdot x^{n+1}\]
+*∫ c · x^n dx = (c/(n+1)) · x^(n+1)*
 
 In Haskell:
 
@@ -382,7 +382,7 @@ integrateTerm (Term c v n) =
   in Term newCoef v newExp
 ```
 
-Unlike differentiation, integration of a term never produces zero — even a constant term \(c\) integrates to \(c \cdot x\). So `integrateTerm` returns a `Term` directly rather than a `Maybe Term`.
+Unlike differentiation, integration of a term never produces zero — even a constant term *c* integrates to *c · x*. So `integrateTerm` returns a `Term` directly rather than a `Maybe Term`.
 
 The polynomial-level `integrate` maps `integrateTerm` over every term and normalizes:
 
@@ -395,11 +395,11 @@ integrate (Polynomial var terms domain) =
      else makePolynomial var newTerms domain
 ```
 
-Note that `integrate` does not add a constant of integration \(+C\). The antiderivative is returned as a polynomial, and you can add a constant term yourself if needed.
+Note that `integrate` does not add a constant of integration *+C*. The antiderivative is returned as a polynomial, and you can add a constant term yourself if needed.
 
 For definite integrals, `evaluateDefinite` uses the Fundamental Theorem of Calculus:
 
-\[\int_a^b f(x)\,dx = F(b) - F(a) \quad \text{where } F = \int f\]
+*∫[a,b] f(x) dx = F(b) - F(a)* where *F = ∫ f*
 
 ```haskell
 evaluateDefinite :: Polynomial
@@ -435,7 +435,7 @@ makeDefiniteIntegral :: Polynomial
                      -> SymIntegral
 ```
 
-Let us run through the integration examples using \(p = 3x^2 - x + 5\):
+Let us run through the integration examples using *p = 3x^2 - x + 5*:
 
 ```haskell
 ghci> let x = makeVariable "x" Real
@@ -453,9 +453,9 @@ ghci> evaluateDefinite p (Left 0) (Right piC)
 41.779...
 ```
 
-The indefinite integral of \(3x^2 - x + 5\) is \(x^3 - \frac{1}{2}x^2 + 5x\). The definite integral from 0 to 1 evaluates to \(5.5\) — you can verify this by hand: \(F(1) - F(0) = (1 - 0.5 + 5) - 0 = 5.5\).
+The indefinite integral of *3x^2 - x + 5* is *x^3 - (1/2)x^2 + 5x*. The definite integral from 0 to 1 evaluates to *5.5* — you can verify this by hand: *F(1) - F(0) = (1 - 0.5 + 5) - 0 = 5.5*.
 
-We can also integrate a simpler polynomial \(q = 6x + 2\):
+We can also integrate a simpler polynomial *q = 6x + 2*:
 
 ```haskell
 ghci> let q = makePolynomial x [makeTerm 6 x 1, makeTerm 2 x 0] Real
@@ -541,7 +541,7 @@ A few architectural choices are worth calling out because they make the library 
 
 **Immutability.** Every arithmetic function returns a fresh polynomial. You never need to worry about a differentiation call silently modifying a polynomial you are still using elsewhere.
 
-**Bound flexibility.** Integral bounds accept `Rational` numbers or `Constant` values, making it straightforward to express \(\int_0^\pi\) or \(\int_0^e\) without manually converting to floating-point.
+**Bound flexibility.** Integral bounds accept `Rational` numbers or `Constant` values, making it straightforward to express *∫[0,π]* or *∫[0,e]* without manually converting to floating-point.
 
 **Single-variable limitation.** The library handles one variable at a time. Multi-variable polynomials and partial derivatives would require a different term representation (e.g., a map from tuples of variable-exponent pairs to coefficients). This is a natural extension if you want to deepen your understanding of the design.
 
@@ -555,6 +555,6 @@ I encourage you to experiment with the code in a REPL as you work through the pr
 
 ## Optional Practice Problems
 
-1. Extend the `Polynomial` data type and arithmetic functions to support polynomials in *two* variables (e.g., \(2x^2y + 3xy - y\)). You will need to change the term representation so that a `Term` can hold an exponent for each variable. Then implement `partialDerivativeX` and `partialDerivativeY` functions that differentiate with respect to one variable while treating the other as a constant.
+1. Extend the `Polynomial` data type and arithmetic functions to support polynomials in *two* variables (e.g., *2x^2 y + 3xy - y*). You will need to change the term representation so that a `Term` can hold an exponent for each variable. Then implement `partialDerivativeX` and `partialDerivativeY` functions that differentiate with respect to one variable while treating the other as a constant.
 
-2. Add a `simplify` function to `SymbolicMath.Types` that improves the display of polynomials. Currently `polynomialToString` renders \(-1x + 5\) with a leading coefficient of \(-1\) and a trailing `+` before negative terms. Write `simplify` to produce cleaner output: render \(1x\) as just \(x\), omit the coefficient when it is 1 (except for constant terms), and replace `+ -` with `- ` between terms. For example, `3x^2 + -1x + 5` should become `3x^2 - x + 5`.
+2. Add a `simplify` function to `SymbolicMath.Types` that improves the display of polynomials. Currently `polynomialToString` renders *-1x + 5* with a leading coefficient of *-1* and a trailing `+` before negative terms. Write `simplify` to produce cleaner output: render *1x* as just *x*, omit the coefficient when it is 1 (except for constant terms), and replace `+ -` with `- ` between terms. For example, `3x^2 + -1x + 5` should become `3x^2 - x + 5`.
