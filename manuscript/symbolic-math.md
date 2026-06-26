@@ -1,6 +1,6 @@
 # Symbolic Mathematics in Haskell
 
-Symbolic computation manipulates mathematical expressions as data structures rather than as floating-point approximations. When you differentiate *3x^2 - x + 5* by hand, you apply the power rule to each term and write *6x - 1* — you are doing symbolic math. A numeric approach, by contrast, would estimate the derivative by evaluating the function at two nearby points and dividing. Symbolic computation gives you exact, algebraic results.
+Symbolic computation manipulates mathematical expressions as data structures rather than as floating-point approximations. When you differentiate *3x^2 - x + 5* by hand, you apply the power rule to each term and write *6x - 1* then you are doing symbolic math. A numeric approach, by contrast, would estimate the derivative by evaluating the function at two nearby points and dividing. Symbolic computation gives you exact, algebraic results.
 
 Haskell is a natural fit for symbolic math. Algebraic data types let you model mathematical expressions directly as trees of constructors. Pattern matching lets you write transformation rules that read almost exactly like the rules you learned in calculus. And because coefficients use `Rational` (exact fractions), differentiation and integration produce results with no floating-point drift.
 
