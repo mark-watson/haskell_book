@@ -12,4 +12,5 @@ out
 dist-newstyle
 *.dyn_hi
 *.dyn_o
+.claude
 

@@ -1,0 +1,37 @@
+cabal-version: 3.0
+name:          symbolic-math
+version:       0.1.0.0
+synopsis:      Symbolic mathematics library for Haskell
+description:   A foundational library for symbolic mathematics in Haskell.
+  Provides data structures for variables, terms, polynomials, and integrals,
+  along with symbolic differentiation and integration.
+  Ported from the Common Lisp symbolic-math library.
+license:       MIT
+author:        Mark Watson
+build-type:    Simple
+
+common common-opts
+  default-language: GHC2021
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wmissing-home-modules
+    -Wpartial-fields -Wredundant-constraints
+
+library
+  import:          common-opts
+  hs-source-dirs:  src
+  exposed-modules:
+    SymbolicMath.Types
+    SymbolicMath.Differentiation
+    SymbolicMath.Integration
+  build-depends:
+    base       >= 4.16,
+    containers
+
+executable symbolic-math
+  import:         common-opts
+  main-is:        Main.hs
+  hs-source-dirs: app
+  build-depends:
+    base,
+    symbolic-math
