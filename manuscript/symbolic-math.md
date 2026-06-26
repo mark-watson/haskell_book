@@ -31,7 +31,7 @@ cabal build
 cabal run symbolic-math
 ```
 
-The smoke test exercises every function in the library and prints expected versus actual results. If you are working through this chapter, keep a REPL open (`cabal repl`) and experiment with the examples as you read.
+The smoke test exercises every function in the library and prints expected versus actual results. If you are working through this chapter, keep a REPL open with `cabal repl` and experiment with the examples as you read.
 
 ## Core Data Structures
 
@@ -106,7 +106,7 @@ ghci> constantNumericValue g
 9.80665
 ```
 
-Constants are used most often as integral bounds — writing *int_0^pi* reads more naturally than *int_0^3.14159*.
+Constants are used most often as integral bounds such as writing *int_0^pi* reads more naturally than *int_0^3.14159*.
 
 ### Term
 
@@ -172,7 +172,7 @@ makePolynomial var terms domain =
   in Polynomial var newTerms domain
 ```
 
-This uses `Data.Map.Strict` to group by exponent and sum coefficients — a nice example of using the right data structure to simplify the logic. The `Down` newtype from `Data.Ord` gives us descending sort order.
+This uses `Data.Map.Strict` to group by exponent and sum coefficients which is a nice example of using the right data structure to simplify the logic. The `Down` newtype from `Data.Ord` gives us descending sort order.
 
 Let us build a polynomial:
 
@@ -413,7 +413,7 @@ evaluateDefinite poly lower upper =
   in polynomialEvaluate f b - polynomialEvaluate f a
 ```
 
-The helper `resolveBoundToDouble` converts either a rational or a symbolic constant to `Double`. This is the one place in the library where exact arithmetic gives way to floating-point — it happens at the very last step, after all symbolic manipulation is complete.
+The helper `resolveBoundToDouble` converts either a rational or a symbolic constant to `Double`. This is the one place in the library where exact arithmetic gives way to floating-point and it happens at the very last step, after all symbolic manipulation is complete.
 
 Higher-order integration uses the same recursive pattern as higher-order differentiation:
 
@@ -453,7 +453,7 @@ ghci> evaluateDefinite p (Left 0) (Right piC)
 41.779...
 ```
 
-The indefinite integral of *3x^2 - x + 5* is *x^3 - (1/2)x^2 + 5x*. The definite integral from 0 to 1 evaluates to *5.5* — you can verify this by hand: *F(1) - F(0) = (1 - 0.5 + 5) - 0 = 5.5*.
+The indefinite integral of *3x^2 - x + 5* is *x^3 - \(1/2\)x^2 + 5x*. The definite integral from 0 to 1 evaluates to *5.5* and you can verify this by hand: *F(1) - F(0) = (1 - 0.5 + 5) - 0 = 5.5*.
 
 We can also integrate a simpler polynomial *q = 6x + 2*:
 
