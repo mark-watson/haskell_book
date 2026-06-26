@@ -4,9 +4,9 @@ Symbolic computation manipulates mathematical expressions as data structures rat
 
 Haskell is a natural fit for symbolic math. Algebraic data types let you model mathematical expressions directly as trees of constructors. Pattern matching lets you write transformation rules that read almost exactly like the rules you learned in calculus. And because coefficients use `Rational` (exact fractions), differentiation and integration produce results with no floating-point drift.
 
-Dear reader, you might wonder: why study symbolic math? In an age where everyone is talking about large language models there is room and a real need for deterministic technologies that stand on their own merits as well as augment other AI/LLM based systems. I hope you enjoy this material.
+Dear reader, you might wonder: why study symbolic math? In an age where everyone is talking about large language models there is room and a real need for deterministic technologies that stand on their own merits as well as augment sometime non-deterministic AI/LLM based systems. I hope you enjoy this material.
 
-The library we will study in this chapter — located in the `source-code/SymbolicMath` directory — provides symbolic differentiation and integration for single-variable polynomials. It was ported from my Common Lisp symbolic math library I wrote for my book [Loving Common Lisp, or the Savvy Programmer's Secret Weapon](https://leanpub.com/read/lovinglisp), and the translation from Lisp to Haskell is instructive: where the Lisp version uses lists and runtime type checking, the Haskell version uses statically-checked algebraic data types and precise function signatures.
+The library we will study in this chapter is located in the `source-code/SymbolicMath` directory, and provides symbolic differentiation and integration for single-variable polynomials. It was ported from the Common Lisp symbolic math library I wrote for my book [Loving Common Lisp, or the Savvy Programmer's Secret Weapon](https://leanpub.com/read/lovinglisp), and the translation from Lisp to Haskell is instructive: where the Lisp version uses lists and runtime type checking, the Haskell version uses statically-checked algebraic data types and precise function signatures.
 
 
 ## Project Structure
@@ -46,7 +46,7 @@ data Domain = Real | Complex | Integer_
   deriving (Show, Eq)
 ```
 
-The library uses `Domain` mostly for bookkeeping; the differentiation and integration rules do not inspect it. But encoding the domain in the type gives you the option to add domain-specific validation later — for example, refusing to take a square root in `Integer_` domain.
+The library uses `Domain` mostly for bookkeeping; the differentiation and integration rules do not inspect it. But encoding the domain in the type gives you the option to add domain-specific validation later. For example this code refuses to take a square root in `Integer_` domain.
 
 ### Variable
 
@@ -79,7 +79,7 @@ False
 
 ### Constant
 
-A `Constant` represents a named mathematical constant like \(\pi\) or \(e\), or an exact rational number you want to treat symbolically:
+A `Constant` represents a named mathematical constant like *pi* or *e*, or an exact rational number you want to treat symbolically:
 
 ```haskell
 data ConstantValue
@@ -106,7 +106,7 @@ ghci> constantNumericValue g
 9.80665
 ```
 
-Constants are used most often as integral bounds — writing \(\int_0^\pi\) reads more naturally than \(\int_0^{3.14159}\).
+Constants are used most often as integral bounds — writing *int_0^pi* reads more naturally than *int_0^3.14159*.
 
 ### Term
 
@@ -196,11 +196,11 @@ ghci> polynomialToString messy
 "3x^2 + 4"
 ```
 
-The \(2x^2\) and \(1x^2\) combined to \(3x^2\); the \(3x\) and \(-3x\) canceled; the constant 4 remained. This normalization guarantee means every polynomial has exactly one representation, which simplifies equality checking and debugging.
+The *2x^2* and *1x^2* combined to *3x^2*; the *3x* and *-3x* canceled; the constant 4 remained. This normalization guarantee means every polynomial has exactly one representation, which simplifies equality checking and debugging.
 
 #### Polynomial Arithmetic
 
-The module provides addition, subtraction, negation, and scalar multiplication. All return new polynomials — inputs are never mutated:
+The module provides addition, subtraction, negation, and scalar multiplication. All return new polynomials and inputs are never mutated:
 
 ```haskell
 ghci> let q = makePolynomial x [makeTerm 1 x 1, makeTerm 2 x 0] Real
@@ -212,7 +212,7 @@ ghci> polynomialToString (polynomialScale 2 p)
 "6x^2 + -2x + 10"
 ```
 
-Addition checks that both polynomials use the same variable and errors out if they do not — you cannot add a polynomial in \(x\) to a polynomial in \(y\).
+Addition checks that both polynomials use the same variable and errors out if they do not so you cannot add a polynomial in *x* to a polynomial in *y*.
 
 #### Evaluation and Inspection
 
@@ -233,7 +233,7 @@ ghci> polynomialEvaluate p (2 :: Rational)
 15
 ```
 
-`polynomialDegree` returns the highest exponent, or \(-1\) for the zero polynomial (a convention borrowed from computer algebra systems). `polynomialLeadingTerm` returns the first term in the sorted list, or `Nothing`.
+`polynomialDegree` returns the highest exponent, or *-1* for the zero polynomial (a convention borrowed from computer algebra systems). `polynomialLeadingTerm` returns the first term in the sorted list, or `Nothing`.
 
 Three convenience constructors round out the API:
 
@@ -256,7 +256,7 @@ data SymIntegral = SymIntegral
   } deriving (Show, Eq)
 ```
 
-Bounds use `Maybe` because an integral is either definite (both bounds present) or indefinite (both absent). The `Either Rational Constant` lets you write numeric bounds like \(0\) and \(1\) or symbolic bounds like \(\pi\) and \(e\). The constructor enforces the invariant that both bounds must be `Just` or both `Nothing`:
+Bounds use `Maybe` because an integral is either definite (both bounds present) or indefinite (both absent). The `Either Rational Constant` lets you write numeric bounds like *0* and *1* or symbolic bounds like *pi* and *e*. The constructor enforces the invariant that both bounds must be `Just` or both `Nothing`:
 
 ```haskell
 makeIntegral :: Polynomial -> Variable
@@ -289,7 +289,7 @@ differentiateTerm (Term c v n)
   | otherwise = Just (Term (fromIntegral n * c) v (n - 1))
 ```
 
-The `Maybe` return type handles the case where a term differentiates to zero — we want to drop those terms from the result polynomial rather than storing a zero-coefficient term. This is exactly the pattern the power rule describes:
+The `Maybe` return type handles the case where a term differentiates to zero so we want to drop those terms from the result polynomial rather than storing a zero-coefficient term. This is exactly the pattern the power rule describes:
 
 \[\frac{d}{dx}(c \cdot x^n) = n \cdot c \cdot x^{n-1} \quad \text{for } n \geq 1\]
 
@@ -547,9 +547,9 @@ A few architectural choices are worth calling out because they make the library 
 
 ## Wrap Up
 
-We have built a small but complete symbolic math library in three modules. The key insight is that mathematical expressions are trees, and algebraic data types let you model those trees directly. Once you have the data types right, the transformation rules — the power rule, the sum rule, the reverse power rule — translate almost word-for-word into pattern-matching function definitions.
+We have built a small but complete symbolic math library in three modules. The key insight is that mathematical expressions are trees, and algebraic data types let you model those trees directly. Once you have the data types right, the transformation rules: the power rule, the sum rule, the reverse power rule, then you translate almost word-for-word into pattern-matching function definitions.
 
-The library uses exact rational arithmetic throughout, normalizes polynomials automatically, and cleanly separates the symbolic manipulation layer from the numeric evaluation layer. The same design pattern — model your domain as algebraic data types, then write pure functions that transform those types — applies to compilers, theorem provers, equation solvers, and many other domains beyond calculus.
+The library uses exact rational arithmetic throughout, normalizes polynomials automatically, and cleanly separates the symbolic manipulation layer from the numeric evaluation layer. The same design pattern of modeling your domain as algebraic data types, then writing pure functions that transform those types. This pattern applies to compilers, theorem provers, equation solvers, and many other domains beyond calculus.
 
 I encourage you to experiment with the code in a REPL as you work through the practice problems below. The best way to internalize these ideas is to extend the library yourself.
 
