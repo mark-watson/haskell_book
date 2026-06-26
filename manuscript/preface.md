@@ -1,14 +1,10 @@
 # Preface
 
-This is the preface the newest version of this book released November 2025.
+This is the preface the newest version of this book released June 2026.
 
-It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at a few larger Haskell programs:
+It took me over a year learning Haskell before I became comfortable with the language because I tried to learn too much at once. There are two aspects to Haskell development: writing pure functional code and writing impure code that needs to maintain state and generally deal with the world non-deterministically. I usually find writing pure functional Haskell code to be easy and a lot of fun. Writing impure code is sometimes a different story. This is why I am taking a different approach to teaching you to program in Haskell: we begin techniques for writing concise, easy to read and understand efficient pure Haskell code. I will then show you patterns for writing impure code to deal with file IO, network IO, database access, and web access. You will see that the impure code tends to be (hopefully!) a small part of your application and is isolated in the impure main program and in a few impure helper functions used by the main program. Finally, we will look at many application areas.
 
-- **knowledge_graph_creator** helps to automate the process of creating Knowledge Graphs from raw text input and generates data for both the Neo4J open source graph database as well as RDF data for use in semantic web and linked data applications.
-- **HybridHaskellPythonNlp** is a hybrid project: a Python web service that provides access to the SpaCy natural language processing (NLP) library and select NLP deep learning models and a Haskell client for accessing this service.
-- **HybridHaskellPythonCorefAnaphoraResolution** uses another deep learning model to replace pronouns in text with the original nouns that the pronouns refer to.
-
-I have also added chapters on using Large Language Models (OpenAI, Google Gemini, and local Ollama LLMs) and the Brave search APIs.
+Dear reader, I frequently update this book so please check for updates.
 
 ## Requests from the Author
 

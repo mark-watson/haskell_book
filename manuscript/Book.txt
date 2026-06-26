@@ -20,6 +20,7 @@ blackjack.md
 webkit.md
 Bridge.md
 Bridge_webkit.md
+symbolic-math.md
 section3.md
 kgcreator.md
 hybrid_haskell_python_nlp.md
