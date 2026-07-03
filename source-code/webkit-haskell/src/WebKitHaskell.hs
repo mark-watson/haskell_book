@@ -21,7 +21,6 @@ module WebKitHaskell
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import Foreign.StablePtr
 import Data.IORef
 import qualified Data.Map.Strict as Map
 import qualified Data.Aeson as Aeson

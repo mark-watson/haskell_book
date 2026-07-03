@@ -13,7 +13,7 @@ import Bridge.Scoring
 import Bridge.Engine
 
 import WebKitHaskell
-import System.Random (getStdGen, StdGen, split)
+import System.Random (getStdGen, StdGen, splitGen)
 import Data.IORef
 import qualified Data.Aeson as Aeson
 import GHC.Generics (Generic)
@@ -201,7 +201,7 @@ nextDeal state =
             (True, False) -> NsOnly
             (False, True) -> EwOnly
             (False, False)-> None
-    (gen1, gen2) = split state.randomGen
+    (gen1, gen2) = splitGen state.randomGen
     gs = newGame dealerVal vul South gen1
     gs' = runAiBidding gs
   in state
@@ -294,7 +294,7 @@ main = do
   -- Initialize Game and Rubber state inside IORef
   initGen <- getStdGen
   let
-    (initGen1, initGen2) = split initGen
+    (initGen1, initGen2) = splitGen initGen
     initRs = newRubberState
     initGs = newGame North None South initGen1
     initGs' = runAiBidding initGs
@@ -397,7 +397,7 @@ main = do
     putStrLn "[Haskell] Received reset-game command"
     state <- readIORef stateRef
     let
-      (gen1, gen2) = split state.randomGen
+      (gen1, gen2) = splitGen state.randomGen
       rsVal = newRubberState
       gsVal = newGame North None South gen1
       gs' = runAiBidding gsVal

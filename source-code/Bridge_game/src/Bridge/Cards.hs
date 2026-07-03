@@ -11,9 +11,11 @@ shuffleDeck :: RandomGen g => [Card] -> g -> ([Card], g)
 shuffleDeck [] g = ([], g)
 shuffleDeck xs g = 
   let (n, g') = randomR (0, length xs - 1) g
-      (left, x:right) = splitAt n xs
-      (shuffled, g'') = shuffleDeck (left ++ right) g'
-  in (x : shuffled, g'')
+      (left, rest) = splitAt n xs
+  in case rest of
+       (x:right) -> let (shuffled, g'') = shuffleDeck (left ++ right) g'
+                    in (x : shuffled, g'')
+       []        -> (xs, g')
 
 dealHands :: [Card] -> ([Card], [Card], [Card], [Card])
 dealHands deck =
