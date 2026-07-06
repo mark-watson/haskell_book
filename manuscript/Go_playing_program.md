@@ -1,10 +1,10 @@
 # A Go Playing Program in Haskell
 
-The game of Go, also known as Weiqi in China and Baduk in Korea, is one of the oldest board games still widely played, with a history stretching back over two and a half thousand years. It is also one of the deepest. Two players take turns placing stones on a grid; the rules themselves can be stated in a few sentences, yet the strategic complexity that emerges from them is vast. It is no accident that Go was the last of the classic board games to fall to computer play. Chess programs reached world-champion strength in 1997, but it was not until 2016, with DeepMind's AlphaGo, that a Go program could defeat a top human professional. Between those dates, the best Go engines relied not on brute-force search but on a hybrid of Monte Carlo simulation and hand-crafted heuristic knowledge — exactly the style of engine we will study in this chapter.
+The game of Go, also known as Weiqi in China and Baduk in Korea, is one of the oldest board games still widely played, with a history stretching back over two and a half thousand years. It is also one of the deepest. Two players take turns placing stones on a grid; the rules themselves can be stated in a few sentences, yet the strategic complexity that emerges from them is vast. It is no accident that Go was the last of the classic board games to fall to computer play. Chess programs reached world-champion strength in 1997, but it was not until 2016, with DeepMind's AlphaGo, that a Go program could defeat a top human professional. Between those dates, the best Go engines relied not on brute-force search but on a hybrid of Monte Carlo simulation and hand-crafted heuristic knowledge that is exactly the style of engine we will study in this chapter.
 
 Back in the late 1970s, long before artificial intelligence was a mainstream topic, I tried to push the boundaries of what home computers could achieve. I developed Honninbo Warrior, what I believe was the first commercial Go program built specifically for the Apple II. While academic researchers at the time relied on more powerful computers to handle the staggering mathematical complexity of Go, I managed to squeeze a functional evaluation algorithm into the severe memory limits of early consumer microcomputers.
 
-The program in this chapter is a complete, terminal-based Go application written in Haskell. You can play a game against the AI in your terminal, on board sizes of 9×9, 13×13, or 19×19. The AI is not a single monolithic brain but a federation of specialized engines — a tactical engine for local combat, a strategic engine for whole-board evaluation, a joseki engine for opening patterns, a Monte Carlo Tree Search engine for stochastic look-ahead, and a rule engine with nineteen heuristic rules that adjust move scores. A master agent orchestrates these engines, weighting their contributions according to the phase of the game.
+The program in this chapter is a complete, terminal-based Go application written in Haskell. You can play a game against the AI in your terminal, on board sizes of 9×9, 13×13, or 19×19. The AI is not a single monolithic brain but a federation of specialized engines, rather it is comprised of a tactical engine for local combat, a strategic engine for whole-board evaluation, a joseki engine for opening patterns, a Monte Carlo Tree Search engine for stochastic look-ahead, and a rule engine with nineteen heuristic rules that adjust move scores. A master agent orchestrates these engines, weighting their contributions according to the phase of the game.
 
 Dear reader, this is the most architecturally complex example in this book, and I want to use it to illustrate how a larger Haskell program can be decomposed into pure, independently testable modules that cooperate to produce sophisticated behavior. The key design idea is this: each engine is a pure function from a board position to a list of scored candidate moves, and the master agent combines these lists with phase-dependent weights. The only impurity lives in the main game loop and in the MCTS engine's use of `IORef` for its mutable search tree.
 
@@ -35,6 +35,8 @@ cabal run go-game -- 13         # 13×13 game
 cabal run go-game -- 19 1500    # 19×19 game, strength 1500 playouts
 ```
 
+The defaults are playing strength of 3000 (highest setting) and a 9x9 board.
+
 The first command-line argument selects the board size (9, 13, or 19); the second sets the AI strength as a playout budget. Larger boards automatically scale down the playout count and time limit because there are more legal moves to consider.
 
 ## Board Representation: Immutable Vectors and Pure Rules
@@ -58,7 +60,7 @@ data Board = Board
   } deriving (Show)
 ```
 
-The grid is a flat, unboxed `Vector Int` in row-major order. For a 19×19 board this is 361 integers — small enough to fit comfortably in cache. Unboxed vectors store the integers directly without the pointer indirection of a boxed vector, which matters when the MCTS engine is cloning boards thousands of times per second.
+The grid is a flat, unboxed `Vector Int` in row-major order. For a 19×19 board this is 361 integers that is small enough to fit comfortably in cache. Unboxed vectors store the integers directly without the pointer indirection of a boxed vector, which matters when the MCTS engine is cloning boards thousands of times per second.
 
 The `boardPrevHash` field stores a hash of the position that existed before the last move. This is the simplest possible ko detection: if playing a move would recreate the position from two moves ago, the move is illegal. A more sophisticated implementation would track the full positional super-ko history, but for a hobbyist engine a single-position hash is sufficient and keeps the board compact.
 
@@ -66,14 +68,14 @@ Because the `Vector` is immutable, "modifying" the board produces a new board. T
 
 ```haskell{line-numbers: true}
 cloneBoard :: Board -> Board
-cloneBoard b = b  -- immutable data — identity clone
+cloneBoard b = b  -- immutable data - identity clone
 ```
 
 The comment says it all. There is nothing to clone because the data is already immutable. When the MCTS engine needs to explore a branch, it calls `tryPlay`, which produces a new `Board` sharing the old vector's structure through `V.//` (a functional update that copies only the changed elements). This is the Haskell approach to game-tree search: no mutation, no undo stacks, just pure functions that return new states.
 
 ### Playing a Move: Captures, Suicide, and Ko
 
-The `tryPlay` function is the heart of the rules engine. Given a board and a flat index, it returns `Maybe Board` — `Nothing` if the move is illegal, or `Just` the new board if it is legal. Let us walk through it:
+The `tryPlay` function is the heart of the rules engine. Given a board and a flat index, it returns `Maybe Board` that can be `Nothing` if the move is illegal, or `Just` the new board if it is legal. Let us walk through it:
 
 ```haskell{line-numbers: true}
 tryPlay :: Board -> Int -> Maybe Board
@@ -166,7 +168,7 @@ data ScoredMove = ScoredMove
   } deriving (Show, Eq)
 ```
 
-The `smReason` field is worth noting. Every move comes with a textual explanation of *why* the engine suggested it — "capture 3 stone(s) in atari", "reduce enemy moyo", "joseki: 44-ikken-kakari-extend", "MCTS: 247 visits, 58.3% win rate". When the AI makes its final choice, it concatenates all the reasons that contributed to the winning move, so the human player can see the AI's thinking. This is a small touch but it makes debugging and play-testing far more informative.
+The `smReason` field is worth noting. Every move comes with a textual explanation of *why* the engine suggested it, e.g., "capture 3 stone(s) in atari", "reduce enemy moyo", "joseki: 44-ikken-kakari-extend", "MCTS: 247 visits, 58.3% win rate". When the AI makes its final choice, it concatenates all the reasons that contributed to the winning move, so the human player can see the AI's thinking. This is a small touch but it makes debugging and play-testing far more informative.
 
 The master agent in `Agent.hs` runs all engines, then merges their scores:
 
@@ -199,19 +201,19 @@ detectPhase b =
      else Endgame
 ```
 
-On a 9×9 board (81 points), the opening ends when about 16 stones have been played. On a 19×19 board (361 points), the opening lasts until about 72 stones. These thresholds are rough but reasonable — they correspond to the point in the game where most corners have been claimed and fighting begins in earnest.
+On a 9×9 board (81 points), the opening ends when about 16 stones have been played. On a 19×19 board (361 points), the opening lasts until about 72 stones. These thresholds are rough but reasonable and they correspond to the point in the game where most corners and some of the sides have been claimed and fighting begins in earnest.
 
 ## The Tactical Engine: Local Combat
 
 The tactical engine in `Tactical.hs` handles the urgent, local situations that demand immediate response: capturing stones in atari, saving your own stones from atari, putting enemy groups into atari, and detecting ladders.
 
-A group is in *atari* when it has exactly one liberty — one empty point adjacent to it. If the opponent plays that liberty, the entire group is captured. Atari situations are the most tactically urgent positions in Go, and the tactical engine prioritizes them accordingly.
+A group is in *atari* when it has exactly one liberty, i.e., it only has one empty point (or “breathing space”) adjacent to it. If the opponent plays that liberty, the entire group is captured. Atari situations are the most tactically urgent positions in Go, and the tactical engine prioritizes them accordingly.
 
 The engine generates five categories of moves:
 
-1. **Captures**: enemy groups in atari — play their liberty to capture them. Score: 100 + size × 30. Capturing a 3-stone group scores 190.
-2. **Saves**: own groups in atari — extend to add liberties. If the extension gives the group two or more liberties, it is safe (score: 90 + size × 25). If the extension leads to a ladder that escapes, it is still worth playing (score: 40 + size × 10).
-3. **Counter-atari**: when your own group is in atari, sometimes the best defense is to attack — put an adjacent enemy group into atari instead, forcing a response.
+1. **Captures**: for enemy groups in atari the computer plays on their single liberty to capture them. Score: 100 + size × 30. Capturing a 3-stone group scores 190.
+2. **Saves**: for the computer’s groups in atari then extend to add liberties. If the extension gives the group two or more liberties, it is safe (score: 90 + size × 25). If the extension leads to a ladder that escapes, it is still worth playing (score: 40 + size × 10).
+3. **Counter-atari**: when your own group is in atari, sometimes the best defense is to attack, putting an adjacent enemy group into atari instead, forcing a response.
 4. **Atari attacks**: enemy groups with two liberties can be put into atari. If the atari also starts a working ladder, the score is much higher (60 + size × 15) because the group is likely doomed.
 5. **Preventive reinforcement**: own groups with two liberties should be reinforced before they are pushed into atari.
 
@@ -279,10 +281,10 @@ Each stone radiates influence that decays exponentially with Manhattan distance.
 This influence map drives several strategic move generators:
 
 - **Extensions**: play in areas where your own influence is strong, to consolidate territory. The engine penalizes moves that create empty triangles (an inefficient shape) or that connect to groups that are already safe.
-- **Moyo reduction**: if the opponent has built a thick wall of influence (but not yet solid territory), invade or reduce it. The engine looks for empty points where enemy influence is between 2.0 and 6.0 — strong enough to be worth reducing, but not so strong that the invasion is suicidal.
+- **Moyo reduction**: if the opponent has built a thick wall of influence (but not yet solid territory), invade or reduce it. The engine looks for empty points where enemy influence is between 2.0 and 6.0: strong enough to be worth reducing, but not so strong that the invasion is suicidal.
 - **Approach moves**: play near enemy groups to apply pressure, with care for edge distance and safety.
 - **Connections**: if two friendly groups are close together, play a point that connects them, making both stronger.
-- **Big points**: play on the third or fourth line in unclaimed areas — the classical "big point" concept from Go theory.
+- **Big points**: play on the third or fourth line in unclaimed areas. This is the classical "big point" concept from Go theory.
 
 The strategic engine also estimates the score:
 
@@ -304,7 +306,7 @@ The komi of 6.5 is subtracted from Black's score, reflecting the standard compen
 
 ## The Joseki Engine: Opening Patterns
 
-*Joseki* are established corner opening sequences — moves that are considered equitable for both players. The Joseki engine in `Joseki.hs` encodes a small library of patterns as data:
+*Joseki* are established corner opening sequences or moves that are considered equitable for both players. The Joseki engine in `Joseki.hs` encodes a small library of patterns as data:
 
 ```haskell{line-numbers: true}
 data JosekiPattern = JP
@@ -322,7 +324,7 @@ Each pattern specifies a set of stones in relative coordinates (from a corner or
 JP "44-ikken-kakari-extend" [(3, 3, 1), (2, 3, 2)] Black (3, 4) 65.0
 ```
 
-This pattern says: if there is a black stone at the 4-4 point (relative coordinate (3,3)) and a white stone one space above it at (2,3) — this is called an *ikken kakari* or one-space approach — then the joseki reply for Black is to extend to (3,4), the side extension. The weight of 65.0 reflects how strongly the engine recommends this move.
+This pattern says: if there is a black stone at the 4-4 point (relative coordinate (3,3)) and a white stone one space above it at (2,3), this is called an *ikken kakari* or one-space approach, then the joseki reply for Black is to extend to (3,4), the side extension. The weight of 65.0 reflects how strongly the engine recommends this move.
 
 The clever part is corner symmetry. Each pattern is checked against all four corners of the board, with the coordinate system flipped appropriately:
 
@@ -341,7 +343,7 @@ Each tuple is `(originRow, originCol, rowDirection, colDirection)`. By flipping 
 
 When the board is nearly empty (move count ≤ 4), the engine also generates *fuseki* (opening) moves: star points and komoku (3-4 point) positions. Star points get a base score of 50 if they are in a corner region with no nearby stones, dropping to 30 if the corner is already contested.
 
-The engine also penalizes empty triangles — the same shape check appears here as in the strategic engine, because empty triangles are universally bad:
+The engine also penalizes empty triangles: the same shape check appears here as in the strategic engine, because empty triangles are universally bad:
 
 ```haskell{line-numbers: true}
 createsEmptyTriangle :: Board -> Int -> Color -> Bool
@@ -356,7 +358,7 @@ createsEmptyTriangle b idx color =
   in any (uncurry check) topLefts
 ```
 
-An empty triangle is a 2×2 box where three corners are friendly stones and one is empty. It is the quintessential "heavy" shape in Go — it uses three stones to control very little territory. The penalty reduces a joseki pattern's weight to 30% of its normal value if the resulting move would create an empty triangle.
+An empty triangle is a 2×2 box where three corners are friendly stones and one is empty. It is the quintessential "heavy" shape in Go because it uses three stones to control very little territory. The penalty reduces a joseki pattern's weight to 30% of its normal value if the resulting move would create an empty triangle.
 
 ## Monte Carlo Tree Search
 
@@ -421,7 +423,7 @@ This is one of the few places in the program that uses `IORef`. The search tree 
 
 ### Playout Policy
 
-The *playout* — the random simulation from a leaf to a terminal position — is where MCTS gets its strategic knowledge. A purely random playout plays legal moves uniformly at random, which produces unrealistic games and weak play. This engine uses *heavy playouts*: the playout policy incorporates tactical knowledge.
+The *playout* is the random simulation from a leaf to a terminal position and this is where MCTS gets its strategic knowledge. A purely random playout plays legal moves uniformly at random, which produces unrealistic games and weak play. This engine uses *heavy playouts*: the playout policy incorporates tactical knowledge.
 
 ```haskell{line-numbers: true}
 playoutMove :: Board -> StdGen -> (Maybe Int, StdGen)
@@ -442,7 +444,7 @@ playoutMove board gen =
         []      -> candidates gen      -- otherwise play randomly
 ```
 
-The playout policy has two rules: always capture enemy groups in atari (this is almost always correct), and avoid playing into your own eyes (filling your own eye is almost always wrong). Beyond that, moves are random, with a preference for non-edge points. This is a minimalist heavy playout — production engines like GNU Go use much richer pattern-based playout policies — but even these two rules produce dramatically more realistic simulations than pure randomness.
+The playout policy has two rules: always capture enemy groups in atari (this is almost always correct), and avoid playing into your own eyes (filling your own eye is almost always wrong). Beyond that, moves are random, with a preference for non-edge points. This is a minimalist heavy playout and production engines like GNU Go use much richer pattern-based playout policies, but even these two rules produce dramatically more realistic simulations than pure randomness.
 
 ## The Rule Engine: Nineteen Heuristic Adjustments
 
@@ -498,19 +500,19 @@ evaluateMove eng b i moveCount =
 
 Let me highlight a few of the more interesting rules.
 
-**Avoid edge unless capturing** (weight 3.0): Playing on the first or second line in the opening is generally bad — edge stones control very little territory. This rule penalizes edge moves by -30 (first line) or -10 (second line), unless the move captures something or saves a group in atari. The penalty is further increased if the surrounding area is completely empty.
+**Avoid edge unless capturing** (weight 3.0): Playing on the first or second line in the opening is generally bad because edge stones control very little territory. This rule penalizes edge moves by -30 (first line) or -10 (second line), unless the move captures something or saves a group in atari. The penalty is further increased if the surrounding area is completely empty.
 
 **Ladder avoidance** (weight 1.0): This rule does double duty. First, it penalizes moves that would put your own group into a working ladder. Second, it gives a bonus to moves that escape or break a ladder for a group already in danger. The rule includes a full ladder simulation (`simulateLadderPath`) that traces the sequence of forced moves, so it can identify which points on the board would break the ladder.
 
-**Double atari** (weight 1.0): A move that puts two enemy groups into atari simultaneously is devastating — the opponent can only save one. This rule gives a bonus of 50 + (extraAtaris - 2) × 15 for such moves.
+**Double atari** (weight 1.0): A move that puts two enemy groups into atari simultaneously is devastating because the opponent can only save one. This rule gives a bonus of 50 + (extraAtaris - 2) × 15 for such moves.
 
-**Empty triangle and light shape** (weight 1.0): This rule penalizes moves that create empty triangles (35 per triangle), moves that connect directly to two or more friendly stones with no enemy nearby (15), and moves that extend an unbroken line of three or more stones (8 + 6 per extra stone). All penalties are waived if the move has a tactical justification — touching an enemy stone, saving a group in atari, or capturing stones.
+**Empty triangle and light shape** (weight 1.0): This rule penalizes moves that create empty triangles (35 per triangle), moves that connect directly to two or more friendly stones with no enemy nearby (15), and moves that extend an unbroken line of three or more stones (8 + 6 per extra stone). All penalties are waived if the move has a tactical justification, for example touching an enemy stone, saving a group in atari, or capturing stones.
 
 **Contact response** (weight 2.0): When the opponent plays a contact move (a stone touching yours), the classical responses are the *hane* (diagonal contact) and the *extend* (straight extension). This rule gives a bonus of 30 for a hane that puts the contacting stone into atari, 20 for a regular hane, and 12 for an extend. It also penalizes direct connections that would put your own stones into atari.
 
 **Cutting** (weight 2.0): A *cut* is a move that separates two enemy groups, preventing them from connecting. This rule gives a bonus of 30 + (groups - 1) × 15 + totalEnemyStones × 4, scaled by a safety factor based on the cutting stone's own liberties.
 
-These rules encode decades of Go knowledge in algorithmic form. No single rule is decisive — each contributes a small delta to the move's score — but together they steer the AI away from amateur mistakes and toward moves that a club-level player would recognize as reasonable.
+These rules encode Go knowledge in algorithmic form. No single rule is decisive: each contributes a small delta to the move's score but together they steer the AI away from amateur mistakes and toward moves that a club-level player would recognize as reasonable.
 
 ## The Master Agent: Orchestration
 
@@ -543,7 +545,7 @@ decideMove b moveCount opts gen = do
       -- 8. Fallback to a reasonable move if nothing was found
 ```
 
-The decision pipeline has a short-circuit: if the tactical engine finds a move with score ≥ 100 (a capture or a critical save), the AI plays it immediately without running MCTS. This is a performance optimization — there is no point spending two seconds on MCTS search when the right move is obvious tactically.
+The decision pipeline has a short-circuit: if the tactical engine finds a move with score ≥ 100 (a capture or a critical save), the AI plays it immediately without running MCTS. This is a performance optimization because there is no point spending two seconds on MCTS search when the right move is obvious tactically.
 
 The resign and pass checks use the strategic engine's score estimate. The AI resigns if it is more than 30 points behind and fewer than 15% of the board points remain empty. It passes if MCTS thinks no move is worth more than 5 points and the AI is already ahead, or if the board is 85% full with no tactical moves available.
 
@@ -576,7 +578,7 @@ data GameState = GameState
   }
 ```
 
-The `gsHistory` field stores a list of previous boards, enabling the `undo` command to revert the last full turn (both the human's move and the AI's response). Because boards are immutable, undo is simply a matter of restoring a previous board from the history list — no reverse-move logic required.
+The `gsHistory` field stores a list of previous boards, enabling the `undo` command to revert the last full turn (both the human's move and the AI's response). Because boards are immutable, undo is simply a matter of restoring a previous board from the history list, so no reverse-move logic required.
 
 The board rendering uses Unicode characters for stones:
 
@@ -613,7 +615,7 @@ Let us look at a sample interaction. We start a 9×9 game with the default stren
 $ cabal run
 
 ╔══════════════════════════════════════════════╗
-║      Go — AI Engine CLI (Haskell v1.0)       ║
+║      Go AI Engine CLI (Haskell v1.0)       ║
 ╚══════════════════════════════════════════════╝
   Board: 9x9  |  Strength: 3000 playouts
   You: Black (●)  |  AI: White (○)
@@ -632,7 +634,7 @@ $ cabal run
   A B C D E F G H J
   ──────────────────────────────────────────────────
   Your turn (Black)  |  Move #1
-  Captures — Black: 0  White: 0
+  Captures: Black: 0  White: 0
   ──────────────────────────────────────────────────
 
   Your move (e.g. D4): f4
@@ -665,25 +667,25 @@ The human played F4, a corner star point. The AI responded with D4, the opposite
 
 A few architectural choices in this program are worth reflecting on:
 
-**Pure engines, impure shell.** The tactical, strategic, joseki, and rule engines are all pure functions. They take a `Board` and return `[ScoredMove]` or `Double` — no `IO`, no mutation. The only impure code is in `MCTS.hs` (which uses `IORef` for its mutable tree and `getCurrentTime` for its time limit) and in `Main.hs` (the terminal interaction). This separation makes the engines easy to test in GHCi: you can construct a board, call `generateTacticalMoves b 40`, and inspect the results without setting up any mock state or environment.
+**Pure engines, impure shell.** The tactical, strategic, joseki, and rule engines are all pure functions. They take a `Board` and return `[ScoredMove]` or `Double` so no `IO` and no mutation are required. The only impure code is in `MCTS.hs` (which uses `IORef` for its mutable tree and `getCurrentTime` for its time limit) and in `Main.hs` (the terminal interaction). This separation makes the engines easy to test in GHCi: you can construct a board, call `generateTacticalMoves b 40`, and inspect the results without setting up any mock state or environment.
 
-**Data-driven rules.** The rule engine is a list of `Rule` records, each with a name, weight, and evaluation function. Adding a new rule is a matter of writing one function and adding it to `buildStandardRules`. There is no registration framework, no plugin system — just a list. This is the Haskell advantage: the simplicity of algebraic data types and higher-order functions makes lightweight extensibility natural.
+**Data-driven rules.** The rule engine is a list of `Rule` records, each with a name, weight, and evaluation function. Adding a new rule is a matter of writing one function and adding it to `buildStandardRules`. There is no registration framework, no plugin system because we just lists. This is the Haskell advantage: the simplicity of algebraic data types and higher-order functions makes lightweight extensibility natural.
 
-**Immutable boards as first-class values.** The `Board` type is a record with an unboxed vector, strict fields, and a deriving `Show` instance. Boards are passed around, stored in history lists, used as keys in aggregations, and printed for debugging — all without any concern for aliasing or mutation. The `cloneBoard` function is the identity function, and that is the whole point: immutability means cloning is free.
+**Immutable boards as first-class values.** The `Board` type is a record with an unboxed vector, strict fields, and a deriving `Show` instance. Boards are passed around, stored in history lists, used as keys in aggregations, and printed for debugging, all without any concern for aliasing or mutation. The `cloneBoard` function is the identity function, and that is the whole point: immutability means cloning is free.
 
 **Phase-dependent weighting.** The master agent adjusts the weights of each engine based on the game phase. This is a simple form of meta-reasoning: the AI knows that joseki matters in the opening but not in the endgame, and that tactical precision matters most when the board is full and every liberty counts. Encoding this as a weight table rather than hard-coded if-then-else logic makes the meta-strategy easy to inspect and tune.
 
-**Explainable moves.** Every `ScoredMove` carries a reason string, and the agent concatenates all reasons that contributed to the final move. This makes the AI's decisions transparent — you can see which engines agreed and which disagreed. In an era where AI explainability is increasingly important, this design choice is both practically useful for debugging and pedagogically valuable for understanding how the engines interact.
+**Explainable moves.** Every `ScoredMove` carries a reason string, and the agent concatenates all reasons that contributed to the final move. This makes the AI's decisions transparent so you can see which engines agreed and which disagreed. In an era where AI explainability is increasingly important, this design choice is both practically useful for debugging and pedagogically valuable for understanding how the engines interact.
 
 **The MCTS `IORef` compromise.** The search tree is mutable because each playout updates statistics along a path, and rebuilding the tree immutably on every playout would be too expensive for thousands of iterations per second. This is a pragmatic trade-off: the rest of the program is pure, but the MCTS engine uses `IORef` for performance. The `runPlayout` function itself is pure (it takes and returns a `StdGen` and produces a new root node), so the impurity is confined to the search loop that reads and writes the `IORef`.
 
 ## Wrap Up
 
-We have built a complete Go-playing program with a multi-engine AI architecture. The key insight is that Go is too complex for a single evaluation function, so we decompose the problem into independent aspects — tactical urgency, strategic influence, opening patterns, stochastic search, and heuristic rules — and combine their outputs with phase-dependent weights. Each engine is a pure function that can be tested in isolation, and the only impurity lives in the MCTS search loop and the terminal interface.
+We have built a complete Go-playing program with a multi-engine AI architecture. The key insight is that Go is too complex for a single evaluation function, so we decompose the problem into independent aspects (tactical urgency, strategic influence, opening patterns, stochastic search, and heuristic rules) and combine their outputs with phase-dependent weights. Each engine is a pure function that can be tested in isolation, and the only impurity lives in the MCTS search loop and the terminal interface.
 
-This architecture is, in miniature, the same architecture that powered the best Go programs before the deep-learning revolution of AlphaGo. The difference is that AlphaGo replaced the hand-crafted feature detectors with neural networks, and the Monte Carlo playouts with neural network policy and value evaluation. But the overall structure — multiple specialized evaluators whose outputs are combined — remains recognizable. The program in this chapter is a window into that earlier era of game AI, implemented in a language whose purity and type safety make the architecture unusually clear.
+This architecture is, in miniature, the same architecture that powered the best Go programs before the deep-learning revolution of AlphaGo. The difference is that AlphaGo replaced the hand-crafted feature detectors with neural networks, and the Monte Carlo playouts with neural network policy and value evaluation. But the overall structure, with multiple specialized evaluators whose outputs are combined, remains recognizable. The program in this chapter is a window into that earlier era of game AI, implemented in a language whose purity and type safety make the architecture unusually clear.
 
-I encourage you to play a few games against the AI and then experiment with the engines. Try changing the phase weights in `aggregateMoves` and observe how the AI's opening play changes. Add a new rule to `buildStandardRules` — perhaps a rule that penalizes playing on top of your own influence, or a rule that rewards splitting the opponent's groups. The data-driven design makes these experiments straightforward.
+I encourage you to play a few games against the AI and then experiment with the engines. Try changing the phase weights in `aggregateMoves` and observe how the AI's opening play changes. Add a new rule to `buildStandardRules`, perhaps a rule that penalizes playing on top of your own influence, or a rule that rewards splitting the opponent's groups. The data-driven design makes these experiments straightforward.
 
 ## Optional Practice Problems
 
