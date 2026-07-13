@@ -1,3 +1,5 @@
+.PHONY: check test clean all gendata rdf cypher run stop tidy
+
 all: gendata rdf cypher
 
 gendata:
@@ -13,8 +15,15 @@ cypher:
 	awk '!visited[$$0]++' out.cypher > output.cypher
 	rm -f out.cypher
 
+check:
+	stack build --fast
+
+test:
+	@echo "No formal test suite defined for knowledge_graph_creator_pure"
+
 clean:
 	rm -f *~ */*~
+
 
 run:
 	../python-intelligent-systems/spacy_nlp_web_service/bin/spacynlpserver  > /tmp/AISspacynlp.txt &

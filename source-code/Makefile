@@ -21,7 +21,26 @@ build:
 	echo "There may be problems compiling the getenerated LexData source files in LexiconData.hs:"
 	cd FastTag; stack build
 
+check:
+	for dir in *; do \
+		if [ -d "$$dir" ] && [ -f "$$dir/Makefile" ]; then \
+			$(MAKE) -C "$$dir" check || exit 1; \
+		fi; \
+	done
+
+test:
+	for dir in *; do \
+		if [ -d "$$dir" ] && [ -f "$$dir/Makefile" ]; then \
+			$(MAKE) -C "$$dir" test || exit 1; \
+		fi; \
+	done
+
 clean:
+	for dir in *; do \
+		if [ -d "$$dir" ] && [ -f "$$dir/Makefile" ]; then \
+			$(MAKE) -C "$$dir" clean || exit 1; \
+		fi; \
+	done
 	rm -r -f */.stack-work */dist-newstyle */*.dyn*
 
 update_stack_resolver_macOs:
@@ -29,4 +48,5 @@ update_stack_resolver_macOs:
 
 update_stack_resolver_linux:
 	sed -i  's/^resolver: .*/resolver: lts-22.26/' */stack.yaml
+
 
