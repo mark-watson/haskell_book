@@ -28,6 +28,17 @@ library
     base       >= 4.16,
     containers
 
+test-suite symbolic-math-test
+  import:         common-opts
+  type:            exitcode-stdio-1.0
+  main-is:         Spec.hs
+  hs-source-dirs:  test
+  build-depends:
+    base,
+    symbolic-math,
+    hspec
+  default-language: GHC2021
+
 executable symbolic-math
   import:         common-opts
   main-is:        Main.hs

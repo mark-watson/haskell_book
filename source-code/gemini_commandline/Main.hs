@@ -6,79 +6,15 @@
 
 import System.Environment (getArgs, lookupEnv)
 import qualified Data.Aeson as Aeson
-import Data.Aeson (FromJSON, ToJSON, eitherDecode)
-import GHC.Generics (Generic)
+import Data.Aeson (eitherDecode)
+import Gemini
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Client (newManager, httpLbs, parseRequest, Manager, Request(..), RequestBody(..), Response(..), responseStatus, HttpException)
 import Network.HTTP.Types.Status (statusCode)
-import Data.Text (Text, pack, unpack, splitOn, strip, null)
+import Data.Text (pack, unpack, splitOn, strip, null)
 import Data.Text.Encoding (encodeUtf8)
 import Control.Exception (try)
 import qualified Data.ByteString.Lazy as LBS
-
--- --- Request Data Types ---
-
-data RequestPart = RequestPart
-  { reqText :: Text  -- Using reqText to avoid name clash with Response Part's text
-  } deriving (Show, Generic)
-
-instance ToJSON RequestPart where
-  toJSON (RequestPart t) = Aeson.object ["text" Aeson..= t]
-
-data RequestContent = RequestContent
-  { reqParts :: [RequestPart] -- Using reqParts to avoid name clash
-  } deriving (Show, Generic)
-
-instance ToJSON RequestContent where
-  toJSON (RequestContent p) = Aeson.object ["parts" Aeson..= p]
-
-data GenerationConfig = GenerationConfig
-  { temperature     :: Double
-  , maxOutputTokens :: Int
-  -- Add other config fields as needed (e.g., topP, topK)
-  } deriving (Show, Generic, ToJSON)
-
-data GeminiApiRequest = GeminiApiRequest
-  { contents         :: [RequestContent]
-  , generationConfig :: GenerationConfig
-  } deriving (Show, Generic, ToJSON)
-
-
--- --- Response Data Types (mostly unchanged, renamed for clarity) ---
-
-data ResponsePart = ResponsePart
-  { text :: String
-  } deriving (Show, Generic, FromJSON)
-
-data ResponseContent = ResponseContent
-  { parts :: [ResponsePart]
-  } deriving (Show, Generic, FromJSON)
-
-data Candidate = Candidate
-  { content :: ResponseContent
-  } deriving (Show, Generic, FromJSON)
-
--- | Safety checking: the Gemini API returns 'SafetyRating' entries for each
--- response candidate, scoring potential harm across categories (e.g.
--- HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_HATE_SPEECH). When the
--- combined ratings exceed the configured threshold, the API may block the
--- response entirely and report a 'blockReason' via 'PromptFeedback'.
--- Always inspect 'promptFeedback' when the candidate list is empty to
--- determine whether the prompt was blocked for safety reasons.
-data SafetyRating = SafetyRating
-  { category    :: String
-  , probability :: String
-  } deriving (Show, Generic, FromJSON)
-
-data PromptFeedback = PromptFeedback
-  { blockReason   :: Maybe String
-  , safetyRatings :: Maybe [SafetyRating]
-  } deriving (Show, Generic, FromJSON)
-
-data GeminiApiResponse = GeminiApiResponse
-  { candidates     :: [Candidate]
-  , promptFeedback :: Maybe PromptFeedback -- Added optional promptFeedback
-  } deriving (Show, Generic, FromJSON)
 
 -- --- Completion Function ---
 

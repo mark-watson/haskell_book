@@ -6,6 +6,10 @@
 
 module BraveSearch
   ( getSearchSuggestions
+  , SearchResponse(..)
+  , QueryInfo(..)
+  , WebResults(..)
+  , WebResult(..)
   ) where
 
 import Network.HTTP.Simple -- HTTP request/response helpers (parseRequest, setRequestHeader, httpLBS)
@@ -22,17 +26,17 @@ import qualified Data.ByteString.Char8 as BS -- UTF-8 ByteString for headers
 data SearchResponse = SearchResponse
   { query :: QueryInfo
   , web :: WebResults
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 -- | Metadata about the original query as echoed back by the API.
 data QueryInfo = QueryInfo
   { original :: T.Text
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 -- | Container wrapping the list of individual web results returned by the API.
 data WebResults = WebResults
   { results :: [WebResult]
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 -- | A single web search result. Several fields are optional ('Maybe')
 -- because the API may omit them depending on the result type.
@@ -43,7 +47,7 @@ data WebResult = WebResult
   , title :: Maybe T.Text
   , url :: Maybe T.Text
   , description :: Maybe T.Text
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 -- JSON decoders mapping API fields to our Haskell types
 instance FromJSON SearchResponse where

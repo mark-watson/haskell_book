@@ -1,11 +1,12 @@
 -- cabal.project
--- Points cabal to the DataHaskell/dataframe Git repository so that the
--- 1.0.0.0 release (not yet on Hackage) can be pulled in directly.
+-- Originally used a Git source-repository-package for dataframe 1.0.0.0,
+-- but the main branch has moved to v3 which requires sub-packages not on
+-- Hackage. Use Hackage versions instead (1.3 – 2.3 available).
 
 packages: .
 
-source-repository-package
-    type:     git
-    location: https://github.com/DataHaskell/dataframe.git
-    tag:      main
-    subdir:   .
+          
+allow-newer:
+    pinch:containers,
+    pinch:bytestring,
+    bytestring-lexing:base

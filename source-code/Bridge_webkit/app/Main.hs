@@ -13,11 +13,11 @@ import Bridge.Scoring
 import Bridge.Engine
 
 import WebKitHaskell
+import BridgeWebKit.Parsing
 import System.Random (getStdGen, StdGen, splitGen)
 import Data.IORef
 import qualified Data.Aeson as Aeson
 import GHC.Generics (Generic)
-import Data.Char (toUpper, isDigit)
 import Data.List (find)
 import qualified Data.Map.Strict as Map
 import System.Directory (doesFileExist)
@@ -40,23 +40,6 @@ data BidPayload = BidPayload
 data PlayPayload = PlayPayload
   { card :: String
   } deriving (Generic, Aeson.FromJSON)
-
-data PlayedCard = PlayedCard
-  { pcPlayer :: String
-  , pcCard   :: String
-  } deriving (Generic, Aeson.ToJSON, Eq, Show)
-
-data BidEntry = BidEntry
-  { bePlayer :: String
-  , beBid    :: String
-  } deriving (Generic, Aeson.ToJSON)
-
-data HandList = HandList
-  { hlNorth :: [String]
-  , hlEast  :: [String]
-  , hlSouth :: [String]
-  , hlWest  :: [String]
-  } deriving (Generic, Aeson.ToJSON)
 
 data GameStatePayload = GameStatePayload
   { phase              :: String
@@ -240,45 +223,6 @@ playCardAndStep cardVal actor state =
         else
           state { currentGameState = gs' }
   in state' { lastTrickCards = completedTrick }
-
--- ---------------------------------------------------------------------------
--- Bid / Card Input Parsers
--- ---------------------------------------------------------------------------
-
-trim :: String -> String
-trim = f . f
-  where f = reverse . dropWhile (== ' ')
-
-parseBidInput :: String -> Maybe BidType
-parseBidInput raw =
-  let s = map toUpper (trim raw)
-  in case s of
-    "PASS" -> Just Pass
-    "P" -> Just Pass
-    "DOUBLE" -> Just DoubleBid
-    "DBL" -> Just DoubleBid
-    "X" -> Just DoubleBid
-    "REDOUBLE" -> Just RedoubleBid
-    "RDBL" -> Just RedoubleBid
-    "XX" -> Just RedoubleBid
-    (c:strainStr) | isDigit c ->
-      let
-        level = read [c] :: Int
-      in if level >= 1 && level <= 7
-         then case parseStrain strainStr of
-                Just strain -> Just (SuitBid level strain)
-                Nothing -> Nothing
-         else Nothing
-    _ -> Nothing
-
-parseStrain :: String -> Maybe Strain
-parseStrain s
-  | s `elem` ["C", "CLUBS"] = Just (SuitStrain Clubs)
-  | s `elem` ["D", "DIAMONDS"] = Just (SuitStrain Diamonds)
-  | s `elem` ["H", "HEARTS"] = Just (SuitStrain Hearts)
-  | s `elem` ["S", "SPADES"] = Just (SuitStrain Spades)
-  | s `elem` ["N", "NT", "NOTRUMP", "NO TRUMP"] = Just NoTrump
-  | otherwise = Nothing
 
 -- ---------------------------------------------------------------------------
 -- Main Program Wrapper

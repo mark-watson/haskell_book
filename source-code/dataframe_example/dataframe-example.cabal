@@ -17,7 +17,7 @@ executable dataframe_example
     main-is:          Main.hs
     build-depends:
         base          >= 4.14 && < 5,
-        dataframe     >= 0.7 && < 2,
+        dataframe     >= 1.3 && < 2.4,
         text          >= 1.2  && < 3
     hs-source-dirs:   src
     default-language: GHC2021
@@ -25,3 +25,14 @@ executable dataframe_example
     default-extensions:
         OverloadedStrings
         TemplateHaskell
+
+test-suite dataframe-example-test
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    hs-source-dirs:   test
+    build-depends:    base
+                    , dataframe     >= 1.3 && < 2.4
+                    , text
+                    , hspec
+    default-language: GHC2021
+    ghc-options:      -Wall

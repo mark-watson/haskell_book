@@ -76,7 +76,7 @@ data Board = Board
   , boardPrevHash :: !Word32            -- ^ Hash of the position before last move (ko)
   , boardLastMove :: !(Maybe Int)       -- ^ Flat index of last move, Nothing for pass/start
   , boardCaptures :: !(Int, Int)        -- ^ (Black's captures, White's captures)
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 -- | Short-hand for board edge length.
 boardSize :: Board -> Int
