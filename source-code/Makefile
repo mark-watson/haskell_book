@@ -31,6 +31,7 @@ check:
 test:
 	for dir in *; do \
 		if [ -d "$$dir" ] && [ -f "$$dir/Makefile" ]; then \
+			echo "\n******* $$dir *******\n"; \
 			$(MAKE) -C "$$dir" test || exit 1; \
 		fi; \
 	done
@@ -48,5 +49,3 @@ update_stack_resolver_macOs:
 
 update_stack_resolver_linux:
 	sed -i  's/^resolver: .*/resolver: lts-22.26/' */stack.yaml
-
-

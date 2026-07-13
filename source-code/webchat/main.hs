@@ -5,8 +5,6 @@ import Network.HTTP.Types.Status (status500)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Aeson as Aeson
-import Data.Aeson (FromJSON, ToJSON)
-import GHC.Generics
 import qualified Data.Text as T
 import System.IO (hFlush, stdout)
 import System.Environment (lookupEnv)
@@ -14,41 +12,7 @@ import System.Exit (exitFailure)
 import Control.Exception (try, SomeException)
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Vector as V
-
-data GeminiRequest = GeminiRequest
-  { prompt :: String
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data GeminiResponse = GeminiResponse
-  { candidates :: [Candidate]
-  , promptFeedback :: Maybe PromptFeedback
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data Candidate = Candidate
-  { content :: Content2
-  , finishReason :: Maybe String
-  , index :: Maybe Int
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data Content2 = Content2
-  { parts :: [Part]
-  , role :: Maybe String
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data Part = Part
-  { text :: String
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data PromptFeedback = PromptFeedback
-  { blockReason :: Maybe String
-  , safetyRatings :: Maybe [SafetyRating]
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
-data SafetyRating = SafetyRating
-  { category :: String
-  , probability :: String
-  } deriving (Show, Generic, FromJSON, ToJSON)
-
+import Gemini
 
 main :: IO ()
 main = do
@@ -100,41 +64,41 @@ main = do
         \</body>\
         \</html>"
 
-    post "/chat" $ do
-      req <- jsonData :: ActionM GeminiRequest
-      liftIO $ putStrLn $ "Received request: " ++ show req
-      liftIO $ hFlush stdout
+    post "/chat" $ do
+      req <- jsonData :: ActionM GeminiRequest
+      liftIO $ putStrLn $ "Received request: " ++ show req
+      liftIO $ hFlush stdout
 
-      initialRequest <- liftIO $ parseRequest 
+      initialRequest <- liftIO $ parseRequest
         "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
 
       let geminiRequestBody = Aeson.object
-            [ ("contents", Aeson.Array $ V.singleton $ Aeson.object
-                [ ("parts", Aeson.Array $ V.singleton $ Aeson.object
-                    [ ("text", Aeson.String $ T.pack $ prompt req)
-                    ]
-                  )
-                ]
-              )
-            , ("generationConfig", Aeson.object
-                [ ("temperature", Aeson.Number 0.1)
-                , ("maxOutputTokens", Aeson.Number 800)
-                ]
-              )
-            ]
+            [ ("contents", Aeson.Array $ V.singleton $ Aeson.object
+                [ ("parts", Aeson.Array $ V.singleton $ Aeson.object
+                    [ ("text", Aeson.String $ T.pack $ prompt req)
+                    ]
+                  )
+                ]
+              )
+            , ("generationConfig", Aeson.object
+                [ ("temperature", Aeson.Number 0.1)
+                , ("maxOutputTokens", Aeson.Number 800)
+                ]
+              )
+            ]
 
 
       let request2 = initialRequest
-            { requestHeaders =
-                [ ("Content-Type", "application/json")
-                , ("x-goog-api-key", BS.pack apiKey)
-                ]
-            , method = "POST"
-            , requestBody = RequestBodyLBS $ Aeson.encode geminiRequestBody
-            }
+            { requestHeaders =
+                [ ("Content-Type", "application/json")
+                , ("x-goog-api-key", BS.pack apiKey)
+                ]
+            , method = "POST"
+            , requestBody = RequestBodyLBS $ Aeson.encode geminiRequestBody
+            }
 
       liftIO $ putStrLn $ "Request body: " ++ show (Aeson.encode geminiRequestBody)
-      liftIO $ hFlush stdout
+      liftIO $ hFlush stdout
 
       -- Wrap the API call in try to catch network errors gracefully
       eitherResponse <- liftIO $ (try (httpLbs request2 manager) :: IO (Either SomeException (Response LBS.ByteString)))

@@ -1,11 +1,25 @@
 cabal-version:      2.4
 name:              gemini-chat
 version:           0.1.0.0
+
+library
+  exposed-modules:  Gemini
+  build-depends:    base >= 4.7 && < 5
+                  , aeson
+                  , text
+  default-language: Haskell2010
+  default-extensions:
+    OverloadedStrings
+    DeriveGeneric
+    DeriveAnyClass
+  ghc-options: -Wall
+
 executable gemini-chat
   main-is:          Main.hs
 
   -- Dependencies
   build-depends:    base >= 4.7 && < 5
+                  , gemini-chat
                   , scotty
                   , http-client >= 0.7
                   , http-client-tls
@@ -27,7 +41,20 @@ executable gemini-chat
 
   program-default-options
   hsc2hs: --with-hsc2hs=/opt/homebrew/bin/hsc2hs
-  
+
   -- Compiler flags
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
 
+test-suite gemini-chat-test
+  type:                exitcode-stdio-1.0
+  main-is:             Spec.hs
+  hs-source-dirs:      test
+  build-depends:       base
+                     , gemini-chat
+                     , aeson
+                     , bytestring
+                     , hspec
+  default-language:    Haskell2010
+  default-extensions:
+    OverloadedStrings
+    DeriveGeneric
