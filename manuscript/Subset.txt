@@ -1,2 +1,3 @@
-Go_playing_program.md
+symbolic-math.md
+
 
