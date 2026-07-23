@@ -169,7 +169,7 @@ runAiPlaying gs
           in if humanPlaysThis
              then gs
              else
-               let cardVal = aiSelectCard (gs.hands Map.! actor) (map snd gs.currentTrick) gs.trickLead gs.trumpSuit actor (maybe South id gs.declarer)
+               let cardVal = aiSelectCard (gs.hands Map.! actor) (map snd (reverse gs.currentTrick)) gs.trickLead gs.trumpSuit actor (maybe South id gs.declarer)
                    gs' = applyCardPlay cardVal gs
                in runAiPlaying gs'
         Nothing -> gs
@@ -321,7 +321,7 @@ main = do
         if humanPlaysThis
           then return $ Aeson.object ["error" Aeson..= ("It is human's turn to play, not AI." :: String)]
           else do
-            let cardVal = aiSelectCard (gsVal.hands Map.! actor) (map snd gsVal.currentTrick) gsVal.trickLead gsVal.trumpSuit actor (maybe South id gsVal.declarer)
+            let cardVal = aiSelectCard (gsVal.hands Map.! actor) (map snd (reverse gsVal.currentTrick)) gsVal.trickLead gsVal.trumpSuit actor (maybe South id gsVal.declarer)
                 state' = playCardAndStep cardVal actor state
             writeIORef stateRef state'
             stateFinal <- readIORef stateRef
