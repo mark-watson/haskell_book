@@ -98,29 +98,31 @@ applyBid bid gs =
                Nothing -> gs { bidHistory = history', phase = Done }
                Just (contract', declarer', doubled') ->
                  let
-                   dummy' = partner declarer'
                    ts = case contract' of
                           SuitBid _ (SuitStrain s) -> Just s
                           _ -> Nothing
-                          
-                   -- Swap North/South hands if North declarations won and human is South
-                   (hands', dummy'') =
+
+                   -- When partner North wins the contract, move the declaring hand
+                   -- into the South seat so the human plays it, and treat South as the
+                   -- effective declarer. This keeps declarer, dummy, trick credit, and
+                   -- lead rotation consistent (declarer and dummy stay partners).
+                   (hands', effDeclarer) =
                      if declarer' == North && humanPlayer gs == South
                      then
                        let
                          northCards = hands gs Map.! North
                          southCards = hands gs Map.! South
                          swapped = Map.fromList [(North, southCards), (East, hands gs Map.! East), (South, northCards), (West, hands gs Map.! West)]
-                       in (swapped, North)
-                     else (hands gs, dummy')
+                       in (swapped, South)
+                     else (hands gs, declarer')
                  in gs
                    { bidHistory = history'
                    , contract = Just contract'
-                   , declarer = Just declarer'
+                   , declarer = Just effDeclarer
                    , doubled = doubled'
-                   , dummy = Just dummy''
+                   , dummy = Just (partner effDeclarer)
                    , trumpSuit = ts
-                   , trickLead = nextPlayer declarer'
+                   , trickLead = nextPlayer effDeclarer
                    , phase = Playing
                    , hands = hands'
                    }
