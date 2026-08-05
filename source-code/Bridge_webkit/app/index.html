@@ -383,71 +383,149 @@
     cursor: not-allowed;
   }
 
-  /* Playing Card Visuals */
+  /* Playing Card Visuals - classic pip layout */
   .card {
     width: 68px;
     height: 98px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(160deg, #ffffff 0%, #f5f1e6 100%);
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
     position: relative;
-    color: #111827;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 6px;
-    border: 1px solid #d1d5db;
+    color: #1a1a1a;
+    font-family: 'Palatino', 'Palatino Linotype', 'Georgia', 'Book Antiqua', serif;
+    border: 1px solid rgba(0, 0, 0, 0.25);
     transition: all 0.2s ease;
+    overflow: hidden;
   }
 
   .card.red {
-    color: #dc2626;
+    color: #c1121f;
   }
 
-  .card-top {
+  /* Corner pip (rank atop small suit) */
+  .card-corner {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    font-weight: 700;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  }
+
+  .card-corner.tl {
+    top: 4px;
+    left: 5px;
+  }
+
+  .card-corner.br {
+    bottom: 4px;
+    right: 5px;
+    transform: rotate(180deg);
+  }
+
+  .card-rank {
+    font-size: 15px;
+    letter-spacing: -0.5px;
+    font-weight: 700;
+  }
+
+  .card-corner-suit {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  /* Center pip area, inset from the corners */
+  .card-center {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 19px;
+    right: 19px;
+  }
+
+  .pip {
+    position: absolute;
+    font-size: 14px;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .pip.inv {
+    transform: translate(-50%, -50%) rotate(180deg);
+  }
+
+  /* Ace: single very large center suit */
+  .card-ace {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 44px;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+
+  /* Face card (J/Q/K): framed letter + suit accent */
+  .card-face {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
     line-height: 1;
   }
 
-  .card-val {
-    font-size: 1.1em;
+  .card-face-letter {
+    font-family: 'Palatino', 'Palatino Linotype', 'Georgia', 'Book Antiqua', serif;
+    font-size: 24px;
     font-weight: 700;
+    font-style: italic;
+    border: 1.5px solid currentColor;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   }
 
-  .card-suit {
-    font-size: 1em;
+  .card-face-suit {
+    font-size: 13px;
+    margin-top: 4px;
   }
 
-  .card-center-suit {
-    font-size: 2em;
+  /* Card back - patterned diamond weave */
+  .card.back {
+    background: linear-gradient(135deg, #7a1220 0%, #3a0810 100%);
+    border: 1px solid #f9fafb;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0,0,0,0.25);
+  }
+
+  .card.back::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    border-radius: 3px;
+    border: 1px solid rgba(223, 178, 63, 0.35);
+    background:
+      repeating-linear-gradient(45deg, rgba(223, 178, 63, 0.18) 0, rgba(223, 178, 63, 0.18) 1px, transparent 1px, transparent 6px),
+      repeating-linear-gradient(-45deg, rgba(223, 178, 63, 0.18) 0, rgba(223, 178, 63, 0.18) 1px, transparent 1px, transparent 6px);
+  }
+
+  .card.back::after {
+    content: '\2660';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    opacity: 0.9;
-  }
-
-  /* Card backs */
-  .card.back {
-    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-    border: 2px solid white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-  }
-
-  .card.back::after {
-    content: '';
-    position: absolute;
-    top: 6px;
-    bottom: 6px;
-    left: 6px;
-    right: 6px;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 4px;
-    background-image: radial-gradient(var(--gold) 1px, transparent 0);
-    background-size: 8px 8px;
+    color: rgba(223, 178, 63, 0.75);
+    font-size: 22px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   }
 
   /* Fanning Hands */
@@ -525,12 +603,54 @@
   .dummy-hand .card {
     width: 48px;
     height: 70px;
-    font-size: 0.8em;
-    padding: 4px;
   }
 
-  .dummy-hand .card .card-center-suit {
-    font-size: 1.4em;
+  .dummy-hand .card .card-corner.tl {
+    top: 2px;
+    left: 3px;
+  }
+
+  .dummy-hand .card .card-corner.br {
+    bottom: 2px;
+    right: 3px;
+  }
+
+  .dummy-hand .card .card-rank {
+    font-size: 11px;
+  }
+
+  .dummy-hand .card .card-corner-suit {
+    font-size: 9px;
+  }
+
+  .dummy-hand .card .card-center {
+    top: 3px;
+    bottom: 3px;
+    left: 13px;
+    right: 13px;
+  }
+
+  .dummy-hand .card .pip {
+    font-size: 10px;
+  }
+
+  .dummy-hand .card .card-ace {
+    font-size: 30px;
+  }
+
+  .dummy-hand .card .card-face-letter {
+    font-size: 17px;
+    padding: 1px 5px;
+    border-width: 1px;
+  }
+
+  .dummy-hand .card .card-face-suit {
+    font-size: 9px;
+    margin-top: 2px;
+  }
+
+  .dummy-hand .card.back::after {
+    font-size: 16px;
   }
 
   .dummy-hand .card.legal:hover {
@@ -727,7 +847,26 @@
 <script>
   let gameState = null;
 
-  // Render card element
+  // Standard pip positions (percentages within .card-center) for numbered cards 2-10.
+  // Bottom-half pips are marked inv (rotated 180deg) to mirror real card printing.
+  function pipPositions(n) {
+    const L = 22, R = 78, C = 50;
+    const T = 10, B = 90, M = 50;
+    switch (n) {
+      case 2:  return [{y:T,x:C},{y:B,x:C,inv:1}];
+      case 3:  return [{y:T,x:C},{y:M,x:C},{y:B,x:C,inv:1}];
+      case 4:  return [{y:T,x:L},{y:T,x:R},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 5:  return [{y:T,x:L},{y:T,x:R},{y:M,x:C},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 6:  return [{y:T,x:L},{y:T,x:R},{y:M,x:L},{y:M,x:R},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 7:  return [{y:T,x:L},{y:T,x:R},{y:30,x:C},{y:M,x:L},{y:M,x:R},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 8:  return [{y:T,x:L},{y:T,x:R},{y:30,x:C},{y:M,x:L},{y:M,x:R},{y:70,x:C,inv:1},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 9:  return [{y:T,x:L},{y:T,x:R},{y:34,x:L},{y:34,x:R},{y:M,x:C},{y:66,x:L,inv:1},{y:66,x:R,inv:1},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      case 10: return [{y:T,x:L},{y:T,x:R},{y:26,x:C},{y:42,x:L},{y:42,x:R},{y:58,x:L,inv:1},{y:58,x:R,inv:1},{y:74,x:C,inv:1},{y:B,x:L,inv:1},{y:B,x:R,inv:1}];
+      default: return [];
+    }
+  }
+
+  // Render card element with classic playing card face
   function createCardElement(code, isLegal = false, isBack = false) {
     const cardDiv = document.createElement('div');
     if (isBack) {
@@ -738,20 +877,36 @@
     const suit = code.slice(-1);
     const val = code.slice(0, -1);
     const isRed = suit === 'H' || suit === 'D';
-    
+
     cardDiv.className = `card ${isRed ? 'red' : ''} ${isLegal ? 'legal' : ''}`;
-    
+
     const suitSymbol = { 'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣' }[suit] || suit;
-    
+
+    let centerHTML = '';
+    if (val === 'A') {
+      centerHTML = `<div class="card-ace">${suitSymbol}</div>`;
+    } else if (val === 'K' || val === 'Q' || val === 'J') {
+      centerHTML = `
+        <div class="card-face">
+          <div class="card-face-letter">${val}</div>
+          <div class="card-face-suit">${suitSymbol}</div>
+        </div>`;
+    } else {
+      const n = parseInt(val, 10);
+      centerHTML = pipPositions(n).map(p =>
+        `<span class="pip${p.inv ? ' inv' : ''}" style="top:${p.y}%;left:${p.x}%">${suitSymbol}</span>`
+      ).join('');
+    }
+
     cardDiv.innerHTML = `
-      <div class="card-top">
-        <div class="card-val">${val}</div>
-        <div class="card-suit">${suitSymbol}</div>
+      <div class="card-corner tl">
+        <div class="card-rank">${val}</div>
+        <div class="card-corner-suit">${suitSymbol}</div>
       </div>
-      <div class="card-center-suit">${suitSymbol}</div>
-      <div class="card-top" style="transform: rotate(180deg)">
-        <div class="card-val">${val}</div>
-        <div class="card-suit">${suitSymbol}</div>
+      <div class="card-center">${centerHTML}</div>
+      <div class="card-corner br">
+        <div class="card-rank">${val}</div>
+        <div class="card-corner-suit">${suitSymbol}</div>
       </div>
     `;
 
