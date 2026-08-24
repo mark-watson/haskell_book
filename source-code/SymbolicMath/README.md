@@ -260,14 +260,19 @@ evaluateDefinite p (Left 0) (Right piConst)  -- ~41.78
 
 ---
 
-## Building & Running
+## Building, Running & Testing
+
+The `Makefile` provides the usual targets. Use `make run` for the smoke-test
+executable, `make test` for the Hspec suite, and `make check` to build everything.
 
 ```bash
-cabal build
-cabal run symbolic-math
+make check    # cabal build all -O0
+make test     # cabal test
+make run      # cabal run symbolic-math
 ```
 
-The smoke test verifies data structures, differentiation, and integration:
+`make run` prints the smoke test output, which verifies data structures,
+differentiation, and integration:
 
 ```
 === Symbolic Math Data Layer Smoke Test ===
