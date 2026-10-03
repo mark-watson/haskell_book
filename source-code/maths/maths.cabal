@@ -1,0 +1,48 @@
+cabal-version:      3.0
+name:               maths
+version:            0.1.0.0
+synopsis:           Estimate pi and Euler's number e with three classical methods each
+description:
+    Two self-contained programs that pin down two famous mathematical
+    constants in several very different ways.
+    .
+    @pi@ is estimated with the Madhava-Leibniz alternating series, with
+    Machin's 1706 arctangent formula, and geometrically with Archimedes'
+    inscribed and circumscribed polygons.
+    .
+    @e@ is estimated with the Maclaurin series, with the compound-interest
+    limit (accelerated by Richardson extrapolation), and with the continued
+    fraction @[2; 1, 2, 1, 1, 4, 1, 1, 6, 1, ...]@.
+    .
+    Every estimator is a pure function of a budget (series terms, polygon
+    doublings, or convergent index), so the methods can be compared and
+    benchmarked from the command line.  Each program lives in a single
+    top-level source file.
+license:            MIT
+author:             Mark Watson
+maintainer:         markw@markwatson.com
+category:           Math
+build-type:         Simple
+extra-source-files: README.md
+
+common common-opts
+  default-language: GHC2021
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+
+executable pi
+  import:          common-opts
+  hs-source-dirs:  .
+  main-is:         pi.hs
+  build-depends:
+    base,
+    optparse-applicative  >= 0.17 && < 0.19
+
+executable e
+  import:          common-opts
+  hs-source-dirs:  .
+  main-is:         e.hs
+  build-depends:
+    base,
+    optparse-applicative  >= 0.17 && < 0.19

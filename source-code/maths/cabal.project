@@ -1,0 +1,6 @@
+-- Build configuration for the maths project.
+--
+-- Both executables (pi and e) and the test-suite share the Maths.* library
+-- defined in this same package, so a single "packages: ." stanza is enough.
+
+packages: .
