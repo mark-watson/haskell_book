@@ -1,3 +1,4 @@
-symbolic-math.md
+maths.md
+
 
 
