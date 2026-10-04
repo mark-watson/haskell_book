@@ -10,6 +10,8 @@ cabal run pi      # three methods for π
 cabal run e       # three methods for e
 ```
 
+Dear reader, we first cover the math, then list the programs at the end of the chapter.
+
 ## π: Three Methods
 
 ### 2.1 Madhava-Leibniz: Two Lines, Ten Million Terms
@@ -358,10 +360,25 @@ eContinuedFractionCoef k
 To build and run the programs:
 
 ```bash
-cd source-code/maths
+$ cd source-code/maths
 cabal build
-cabal run pi      # compute π with three methods
-cabal run e       # compute e with three methods
+$ make run-pi
+$ cabal run pi
+reference value : 3.141592653589793
+
+method                    budget  estimate             abs error          time
+------------------  ------------  -------------------  -----------  ----------
+leibniz                1,000,000  3.141591653589774    1.000e-6      0.008249s
+machin                        20  3.141592653589794    8.882e-16     0.000001s
+archimedes                    25  3.141592653589795    1.776e-15     0.000003s
+
+$ cabal run-e
+
+method                    budget  estimate             abs error          time
+------------------  ------------  -------------------  -----------  ----------
+taylor                        20  2.718281828459046    4.441e-16     0.000000s
+limit                100,000,000  2.718281828459045    4.441e-16     0.000039s
+continued-fraction            30  2.718281828459045    0.000e0       0.000241s
 ```
 
 For verbose output with method descriptions:
@@ -369,13 +386,6 @@ For verbose output with method descriptions:
 ```bash
 cabal run pi -- --verbose
 cabal run e -- --list
-```
-
-To see JSON output:
-
-```bash
-cabal run pi -- --json
-cabal run e -- --json
 ```
 
 
