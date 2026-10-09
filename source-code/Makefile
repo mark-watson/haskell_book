@@ -37,12 +37,12 @@ test:
 	done
 
 clean:
+	rm -r -f */.stack-work */dist-newstyle */*.dyn*
 	for dir in *; do \
 		if [ -d "$$dir" ] && [ -f "$$dir/Makefile" ]; then \
 			$(MAKE) -C "$$dir" clean || exit 1; \
 		fi; \
 	done
-	rm -r -f */.stack-work */dist-newstyle */*.dyn*
 
 update_stack_resolver_macOs:
 	sed -i ''  's/^resolver: .*/resolver: lts-22.26/' */stack.yaml

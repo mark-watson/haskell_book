@@ -1,0 +1,36 @@
+name:                llm-sushi-local
+version:             0.1.0.0
+synopsis:            A simple command-line client for a local OpenAI-compatible LLM server
+description:         A Haskell command-line client for a locally running LLM server
+                     (Sushi) that exposes an OpenAI-compatible chat-completions API
+                     at http://127.0.0.1:12345/v1
+license:             MIT
+author:              Mark Watson
+maintainer:          rw@markw.atonline.com
+category:            AI
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Sushi
+  build-depends:       base >= 4.7 && < 5
+                     , aeson
+                     , bytestring
+                     , text
+  default-language:    Haskell2010
+  default-extensions:
+    OverloadedStrings
+
+executable llm-sushi-local
+  main-is:             Main.hs
+  other-modules:       Sushi
+  build-depends:       base >= 4.7 && < 5
+                     , aeson
+                     , bytestring
+                     , http-client
+                     , http-types
+                     , text
+  default-language:    Haskell2010
+  default-extensions:
+    OverloadedStrings
+  ghc-options: -Wall -O2
