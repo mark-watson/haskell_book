@@ -98,7 +98,10 @@ handLongestSuit hand =
       case compare len2 len1 of
         EQ -> compare s2 s1
         other -> other
-  in snd $ head $ sortBy compareSuit lengths
+  in case sortBy compareSuit lengths of
+       ((_, s):_) -> s
+       -- Unreachable: `lengths` always holds all four suits.
+       [] -> Spades
 
 handSuitHcp :: [Card] -> Suit -> Int
 handSuitHcp hand suit = sum [cardHcp c | c <- hand, cardSuit c == suit]

@@ -30,9 +30,8 @@ cardScore (Card suit rank) leadSuit trumpSuit =
 -- Determine the winner of a completed (or partial) trick
 trickWinner :: [Card] -> Player -> Maybe Suit -> Player
 trickWinner [] leader _ = leader
-trickWinner trick leader trumpSuit =
+trickWinner trick@(leadCard:_) leader trumpSuit =
   let
-    leadCard = head trick
     leadSuit = cardSuit leadCard
     plays = zip trick (playersInPlayOrder leader)
     
@@ -59,18 +58,19 @@ isPartnerWinning trick leader trumpSuit me =
 canWinTrick :: [Card] -> [Card] -> Player -> Maybe Suit -> Bool
 canWinTrick [] _ _ _ = False
 canWinTrick _ [] _ _ = True
-canWinTrick inSuit trick _leader trumpSuit =
+canWinTrick inSuit trick@(leadCard:_) _leader trumpSuit =
   let
-    leadSuit = cardSuit (head trick)
+    leadSuit = cardSuit leadCard
     score c = cardScore c leadSuit trumpSuit
     winningScore = maximum (map score trick)
   in any (\c -> score c > winningScore) inSuit
 
 -- Play the cheapest card that wins the trick
 cheapestWinner :: [Card] -> [Card] -> Player -> Maybe Suit -> Card
-cheapestWinner inSuit trick _leader trumpSuit =
+cheapestWinner inSuit [] _ _ = lowestCard inSuit
+cheapestWinner inSuit trick@(leadCard:_) _leader trumpSuit =
   let
-    leadSuit = cardSuit (head trick)
+    leadSuit = cardSuit leadCard
     score c = cardScore c leadSuit trumpSuit
     winningScore = maximum (map score trick)
     winners = [c | c <- inSuit, score c > winningScore]
@@ -100,9 +100,10 @@ handLongestNonTrump hand trumpSuit =
       case compare len2 len1 of
         EQ -> compare s2 s1
         other -> other
-  in if null lengths
-     then handLongestSuit hand
-     else snd $ head $ sortBy compareSuit lengths
+  in case sortBy compareSuit lengths of
+       ((_, s):_) -> s
+       -- Only when every suit is trump-excluded: fall back to all suits.
+       [] -> handLongestSuit hand
 
 -- AI selects a card to lead
 aiSelectLead :: [Card] -> Maybe Suit -> Player -> Player -> Card
@@ -133,7 +134,9 @@ aiSelectLead hand trumpSuit me declarer =
              Nothing ->
                case leadFourthBest hand trumpSuit of
                  Just c -> c
-                 Nothing -> head hand
+                 Nothing -> case hand of
+                  (c:_) -> c
+                  [] -> error "aiSelectLead: empty hand"
 
 leadTopOfSequence :: [Card] -> Maybe Suit -> Maybe Card
 leadTopOfSequence hand trumpSuit =
@@ -158,9 +161,9 @@ leadFourthBest hand trumpSuit =
   let
     longest = handLongestNonTrump hand trumpSuit
     cards = sortBy (\c1 c2 -> compare (cardRank c2) (cardRank c1)) (handSuitCards hand longest)
-  in if length cards >= 4
-     then Just (cards !! 3)
-     else Nothing
+  in case cards of
+       (_:_:_:fourth:_) -> Just fourth
+       _ -> Nothing
 
 leadShortSuit :: [Card] -> Maybe Suit -> Maybe Card
 leadShortSuit _hand Nothing = Nothing
@@ -172,14 +175,19 @@ leadShortSuit hand (Just ts) =
   in case lengths of
     ((_, shortSuit):_) ->
       let cards = sortBy (\c1 c2 -> compare (cardRank c2) (cardRank c1)) (handSuitCards hand shortSuit)
-      in Just (head cards)
+      in case cards of
+           (top:_) -> Just top
+           -- Unreachable: `shortSuit` was selected with length > 0.
+           [] -> Nothing
     _ -> Nothing
 
 -- AI selects card when following
 aiSelectFollow :: [Card] -> [Card] -> Player -> Maybe Suit -> Player -> Player -> Card
-aiSelectFollow hand trick leader trumpSuit me _declarer =
+aiSelectFollow hand [] _leader trumpSuit me declarer =
+  aiSelectLead hand trumpSuit me declarer
+aiSelectFollow hand trick@(leadCard:_) leader trumpSuit me _declarer =
   let
-    leadSuit = cardSuit (head trick)
+    leadSuit = cardSuit leadCard
     legal = legalPlays hand (Just leadSuit)
     cardsPlayed = length trick
     partnerWinning = isPartnerWinning trick leader trumpSuit me
@@ -217,4 +225,6 @@ aiSelectCard hand trick leader trumpSuit me declarer =
      then card
      else case legal of
        (fallback:_) -> fallback
-       [] -> head hand
+       [] -> case hand of
+         (c:_) -> c
+         [] -> error "aiSelectCard: empty hand"
