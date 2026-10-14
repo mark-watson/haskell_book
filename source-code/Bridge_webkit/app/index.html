@@ -35,17 +35,17 @@
   /* Table Layout */
   .table-container {
     position: relative;
-    width: 95vw;
-    height: 95vh;
-    max-width: 1100px;
-    max-height: 850px;
+    flex-shrink: 0;
+    width: 1320px;
+    height: 940px;
+    transform-origin: center center;
     border-radius: 40px;
     background: rgba(0, 0, 0, 0.15);
     border: 8px solid #2e1d0c;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(0,0,0,0.5);
     display: grid;
-    grid-template-columns: 240px 1fr 240px;
-    grid-template-rows: 150px 1fr 220px;
+    grid-template-columns: 260px 1fr 260px;
+    grid-template-rows: 180px 1fr 250px;
     gap: 16px;
     padding: 24px;
   }
@@ -76,6 +76,11 @@
     background: var(--gold);
     box-shadow: 0 0 12px var(--gold-glow);
   }
+
+  .score-panel { grid-column: 1; grid-row: 1; }
+  .auction-panel { grid-column: 3; grid-row: 1; }
+  .tricks-panel { grid-column: 1; grid-row: 3; }
+  .info-panel { grid-column: 3; grid-row: 3; }
 
   .north-seat {
     grid-column: 2;
@@ -111,39 +116,40 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding-top: 64px;
   }
 
   /* Trick Area */
   .trick-area {
     position: relative;
-    width: 260px;
-    height: 260px;
+    width: 360px;
+    height: 330px;
   }
 
   .played-card-container {
     position: absolute;
-    width: 70px;
-    height: 100px;
+    width: 90px;
+    height: 130px;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .played-card-container.North {
-    top: 10px;
-    left: 95px;
+    top: 0;
+    left: 135px;
   }
 
   .played-card-container.South {
-    bottom: 10px;
-    left: 95px;
+    bottom: 18px;
+    left: 135px;
   }
 
   .played-card-container.West {
-    top: 80px;
+    top: 96px;
     left: 10px;
   }
 
   .played-card-container.East {
-    top: 80px;
+    top: 96px;
     right: 10px;
   }
 
@@ -168,7 +174,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 16px;
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0,0,0,0.25);
@@ -182,17 +188,16 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--gold);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 8px;
+    padding-bottom: 6px;
   }
 
   /* Scorecard */
   .scorecard-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
-    margin-bottom: 12px;
+    font-size: 1rem;
   }
 
   .scorecard-table th, .scorecard-table td {
@@ -208,13 +213,13 @@
   }
 
   .scorecard-table td.above {
-    height: 60px;
+    height: 40px;
     vertical-align: bottom;
     color: rgba(255,255,255,0.85);
   }
 
   .scorecard-table td.below {
-    height: 60px;
+    height: 40px;
     vertical-align: top;
     border-top: 2px solid #f3f4f6;
     color: white;
@@ -222,13 +227,47 @@
   }
 
   .scorecard-meta {
-    font-size: 0.8em;
+    font-size: 0.95em;
     color: rgba(255,255,255,0.5);
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-top: auto;
+    gap: 10px;
   }
+
+  /* Tricks won: this deal and running rubber total */
+  .tricks-grid {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 10px;
+    text-align: center;
+  }
+
+  .tricks-head {
+    font-size: 0.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .tricks-row-label {
+    text-align: left;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .tricks-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .tricks-num.we { color: var(--gold); }
+  .tricks-num.them { color: #f3f4f6; }
 
   .scorecard-meta span {
     display: flex;
@@ -385,8 +424,8 @@
 
   /* Playing Card Visuals - classic pip layout */
   .card {
-    width: 68px;
-    height: 98px;
+    width: 90px;
+    height: 130px;
     background: linear-gradient(160deg, #ffffff 0%, #f5f1e6 100%);
     border-radius: 6px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
@@ -414,24 +453,24 @@
   }
 
   .card-corner.tl {
-    top: 4px;
-    left: 5px;
+    top: 5px;
+    left: 6px;
   }
 
   .card-corner.br {
-    bottom: 4px;
-    right: 5px;
+    bottom: 5px;
+    right: 6px;
     transform: rotate(180deg);
   }
 
   .card-rank {
-    font-size: 15px;
+    font-size: 21px;
     letter-spacing: -0.5px;
     font-weight: 700;
   }
 
   .card-corner-suit {
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1;
     margin-top: 1px;
   }
@@ -439,15 +478,15 @@
   /* Center pip area, inset from the corners */
   .card-center {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 19px;
-    right: 19px;
+    top: 6px;
+    bottom: 6px;
+    left: 25px;
+    right: 25px;
   }
 
   .pip {
     position: absolute;
-    font-size: 20px;
+    font-size: 25px;
     line-height: 1;
     transform: translate(-50%, -50%);
   }
@@ -462,7 +501,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 44px;
+    font-size: 58px;
     line-height: 1;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15);
   }
@@ -481,7 +520,7 @@
 
   .card-face-letter {
     font-family: 'Palatino', 'Palatino Linotype', 'Georgia', 'Book Antiqua', serif;
-    font-size: 24px;
+    font-size: 32px;
     font-weight: 700;
     font-style: italic;
     border: 1.5px solid currentColor;
@@ -492,7 +531,7 @@
   }
 
   .card-face-suit {
-    font-size: 18px;
+    font-size: 24px;
     margin-top: 4px;
   }
 
@@ -524,7 +563,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: rgba(223, 178, 63, 0.75);
-    font-size: 22px;
+    font-size: 28px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   }
 
@@ -539,20 +578,20 @@
   }
 
   .south-hand {
-    height: 150px;
+    height: 200px;
   }
 
   .south-hand .card {
     position: absolute;
-    left: calc(50% - 34px);
+    left: calc(50% - 45px);
     bottom: 20px;
     transform-origin: bottom center;
-    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px));
+    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 50px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px));
   }
 
   /* When it's South's turn to play, lift and highlight legal cards to make them larger */
   .south-hand.south-turn .card.legal {
-    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px - 18px)) scale(1.12);
+    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 50px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(calc(var(--offset) * 4px - 18px)) scale(1.12);
     z-index: 10;
     border-color: rgba(223, 178, 63, 0.4);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 10px rgba(223, 178, 63, 0.2);
@@ -560,7 +599,7 @@
 
   /* Hover state for legal cards on South's turn: even larger and glowing */
   .south-hand.south-turn .card.legal:hover {
-    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 54px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(-36px) scale(1.28);
+    transform: translateX(calc((var(--index) - (var(--total) - 1) / 2) * 50px)) rotate(calc((var(--index) - (var(--total) - 1) / 2) * 2deg)) translateY(-36px) scale(1.28);
     z-index: 100;
     border-color: var(--gold);
     box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px var(--gold);
@@ -581,7 +620,13 @@
   }
 
   .hidden-hand-cards .card {
-    margin-left: -50px;
+    width: 60px;
+    height: 86px;
+    margin-left: -45px;
+  }
+
+  .hidden-hand-cards .card.back::after {
+    font-size: 18px;
   }
 
   .hidden-hand-cards .card:first-child {
@@ -591,7 +636,7 @@
   /* Dummy Visible Hand */
   .dummy-hand {
     display: flex;
-    gap: 4px;
+    gap: 0;
     justify-content: center;
     max-width: 100%;
     overflow-x: auto;
@@ -601,56 +646,44 @@
   }
 
   .dummy-hand .card {
-    width: 48px;
-    height: 70px;
+    width: 78px;
+    height: 112px;
+    flex-shrink: 0;
+    margin-left: -30px;
   }
 
-  .dummy-hand .card .card-corner.tl {
-    top: 2px;
-    left: 3px;
-  }
-
-  .dummy-hand .card .card-corner.br {
-    bottom: 2px;
-    right: 3px;
+  .dummy-hand .card:first-child {
+    margin-left: 0;
   }
 
   .dummy-hand .card .card-rank {
-    font-size: 11px;
+    font-size: 19px;
   }
 
   .dummy-hand .card .card-corner-suit {
-    font-size: 12px;
+    font-size: 18px;
   }
 
   .dummy-hand .card .card-center {
-    top: 3px;
-    bottom: 3px;
-    left: 13px;
-    right: 13px;
+    left: 22px;
+    right: 22px;
   }
 
   .dummy-hand .card .pip {
-    font-size: 14px;
+    font-size: 21px;
   }
 
   .dummy-hand .card .card-ace {
-    font-size: 30px;
+    font-size: 50px;
   }
 
   .dummy-hand .card .card-face-letter {
-    font-size: 17px;
-    padding: 1px 5px;
-    border-width: 1px;
+    font-size: 27px;
+    padding: 1px 6px;
   }
 
   .dummy-hand .card .card-face-suit {
-    font-size: 13px;
-    margin-top: 2px;
-  }
-
-  .dummy-hand .card.back::after {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .dummy-hand .card.legal:hover {
@@ -727,7 +760,7 @@
 
 <div class="table-container">
   <!-- West Seat (Left Panel) -->
-  <div class="side-panel">
+  <div class="side-panel score-panel">
     <div class="panel-title">Scorecard</div>
     <table class="scorecard-table">
       <thead>
@@ -748,25 +781,6 @@
       </tbody>
     </table>
 
-    <!-- Tricks Counter in Current Deal -->
-    <div class="tricks-counter-box" style="margin-top: 12px; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; align-items: center; text-align: center;">
-      <div>
-        <div style="font-size: 0.7em; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.5px;">We (N-S)</div>
-        <div id="tricks-ns" style="font-size: 1.8rem; font-weight: 800; color: var(--gold);">0</div>
-      </div>
-      <div style="font-size: 0.9em; font-weight: 700; color: rgba(255,255,255,0.2);">VS</div>
-      <div>
-        <div style="font-size: 0.7em; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.5px;">Them (E-W)</div>
-        <div id="tricks-ew" style="font-size: 1.8rem; font-weight: 800; color: #f3f4f6;">0</div>
-      </div>
-    </div>
-    
-    <div class="scorecard-meta">
-      <span>Games: <strong id="score-games">0 - 0</strong></span>
-      <span>Vul: <strong id="score-vul">None</strong></span>
-      <span>Dealer: <strong id="score-dealer">North</strong></span>
-      <span>Deal #: <strong id="score-deal-num">1</strong></span>
-    </div>
   </div>
 
   <!-- Board Area (Seat layout + center trick area) -->
@@ -830,7 +844,7 @@
   </div>
 
   <!-- East Seat (Right Panel): Bidding Auction Grid -->
-  <div class="side-panel">
+  <div class="side-panel auction-panel">
     <div class="panel-title">Bidding Auction</div>
     <div class="bidding-history">
       <div class="bidding-grid" id="bidding-grid">
@@ -840,6 +854,33 @@
         <div class="bidding-header">W</div>
         <!-- Bids dynamically appended here -->
       </div>
+    </div>
+  </div>
+
+  <!-- Bottom-left: tricks won this deal and running total for the rubber -->
+  <div class="side-panel tricks-panel">
+    <div class="panel-title">Tricks Won</div>
+    <div class="tricks-grid">
+      <div></div>
+      <div class="tricks-head">We (N-S)</div>
+      <div class="tricks-head">Them (E-W)</div>
+      <div class="tricks-row-label">This deal</div>
+      <div class="tricks-num we" id="tricks-ns">0</div>
+      <div class="tricks-num them" id="tricks-ew">0</div>
+      <div class="tricks-row-label">Rubber</div>
+      <div class="tricks-num we" id="total-tricks-ns">0</div>
+      <div class="tricks-num them" id="total-tricks-ew">0</div>
+    </div>
+  </div>
+
+  <!-- Bottom-right: deal info -->
+  <div class="side-panel info-panel">
+    <div class="panel-title">Deal Info</div>
+    <div class="scorecard-meta">
+      <span>Games: <strong id="score-games">0 - 0</strong></span>
+      <span>Vul: <strong id="score-vul">None</strong></span>
+      <span>Dealer: <strong id="score-dealer">North</strong></span>
+      <span>Deal #: <strong id="score-deal-num">1</strong></span>
     </div>
   </div>
 </div>
@@ -1191,6 +1232,8 @@
     document.getElementById('ew-below').textContent = rb.ewBelow;
     document.getElementById('tricks-ns').textContent = gameState.tricksNs;
     document.getElementById('tricks-ew').textContent = gameState.tricksEw;
+    document.getElementById('total-tricks-ns').textContent = gameState.totalTricksNs;
+    document.getElementById('total-tricks-ew').textContent = gameState.totalTricksEw;
     document.getElementById('score-games').textContent = `${rb.nsGames} - ${rb.ewGames}`;
     
     let vulStr = "None";
@@ -1351,6 +1394,15 @@
       renderUI(state);
     }
   }
+
+  // Scale the fixed-size board to fill the window
+  function fitBoard() {
+    const board = document.querySelector('.table-container');
+    const scale = Math.min(window.innerWidth / 1340, window.innerHeight / 960);
+    board.style.transform = `scale(${scale})`;
+  }
+  window.addEventListener('resize', fitBoard);
+  fitBoard();
 
   // Start after FFI bridge is ready
   setTimeout(initializeApp, 300);

@@ -6,5 +6,8 @@ check:
 test:
 	cabal test
 
+run:
+	cabal run bridge-webkit
+
 clean:
 	cabal clean
