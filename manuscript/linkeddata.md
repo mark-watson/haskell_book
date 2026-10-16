@@ -32,7 +32,7 @@ Example RDF N3 triples (subject, predicate, object) might look like:
 
 Element of triples can be URIs or string constants. Triples are often written all on one line; I split it to three lines to fit the page width. Here the subject is the URI for my web site, the predicate is a URI defining an ownership relationship, and the object is a string literal.
 
-If you want to see details for any property or other URI you see, then "follow your nose" and open the URI in a web browser. For example remove the brackets from the [owner property URI <http://dbpedia.org/ontology/owner>](http://dbpedia.org/ontology/owner) and open it in a web browser. For working with RDF data programmatically, it is convenient using full URI. For humans reading RDF, the N3 notation is better because it supports defining URI standard prefixes for use as abbreviations; for example:
+If you want to see details for any property or other URI you see, then "follow your nose" and open the URI in a web browser. For example remove the brackets from the [owner property URI `<http://dbpedia.org/ontology/owner>`](http://dbpedia.org/ontology/owner) and open it in a web browser. For working with RDF data programmatically, it is convenient using full URI. For humans reading RDF, the N3 notation is better because it supports defining URI standard prefixes for use as abbreviations; for example:
 
 ```sparql{line-numbers: false}
 prefix ontology: <http://dbpedia.org/ontology/>
